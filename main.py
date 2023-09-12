@@ -11,7 +11,7 @@ from config import conf, load_config
 from bgunit import Bgunit
 from common.utils import clean
 
-def Orator():
+def Pingo():
     # load config
     load_config()
     PICOVOICE_API_KEY = conf().get("picovoice_api_key")
@@ -88,4 +88,4 @@ def Orator():
 
 
 if __name__ == '__main__':
-    Orator()
+    Pingo()
