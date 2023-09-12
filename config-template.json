@@ -1,0 +1,12 @@
+{
+    "openai_api_key":  "", # 你的openai key
+    "picovoice_api_key": "",# 你的picovoice key
+    "keyword_path": "",# 你的唤醒词检测离线文件地址
+    "model_path": "",  # 中文模型地址
+    "sensitivity": 0.5,# 噪音指数
+    "baidu_app_id": "", # 你的百度APP_ID
+    "baidu_api_key": " ", # 你的百度API_KEY
+    "baidu_secret_key": "", # 你的百度SECRET_KEY
+    "azure_api_key": "", # 你的azure key
+    "azure_region": ""  # 你的azure region
+}

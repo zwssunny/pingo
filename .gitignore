@@ -1,0 +1,10 @@
+.DS_Store
+.idea
+.vscode
+__pycache__/
+env/
+cach/
+tmp
+*.log
+config.json
+user_datas.pkl
