@@ -136,4 +136,4 @@ if __name__ == '__main__':
     # azuretts.text_to_speech_and_play("嗯，你好，我是你的智能小伙伴，我的名字叫Murphy，你可以和我畅所欲言，我是很会聊天的哦！")
     edgetts = EdgeTTS()
     asyncio.run(edgetts.text_to_speech_and_play(
-        "嗯，你好，我是你的智能小伙伴，我的名字叫Murphy，你可以和我畅所欲言，我是很会聊天的哦！"))
+        "您好，我是你的智能小伙伴，我的名字叫Pingo，你可以和我畅所欲言，我是很会聊天的哦！"))
