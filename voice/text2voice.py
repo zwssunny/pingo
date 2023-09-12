@@ -8,7 +8,7 @@ from aip import AipSpeech
 import azure.cognitiveservices.speech as speechsdk
 import pyttsx3
 from edge_tts import Communicate
-from .playaudio import play_audio_with_pygame, play_audio
+from .playaudio import play_audio_with_pygame
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.tmp_dir import TmpDir
 from common.log import logger
