@@ -6,5 +6,6 @@ env/
 cach/
 tmp
 *.log
+*.ppn
 config.json
 user_datas.pkl
