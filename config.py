@@ -12,19 +12,19 @@ from common.log import logger
 available_setting = {
     # openai api配置
     "openai_api_key": "",  # openai api key
-    "picovoice_api_key": "", # 你的picovoice key
-    "keyword_path": "", # 你的唤醒词检测离线文件地址
+    "picovoice_api_key": "",  # 你的picovoice key
+    "keyword_path": "",  # 你的唤醒词检测离线文件地址
     "model_path": "",   # 中文模型地址
-    "sensitivity": 0.5, #噪音指数
+    "sensitivity": 0.5,  # 噪音指数
     # baidu 语音api配置， 使用百度语音识别和语音合成时需要
-    "baidu_app_id": "", # 你的百度APP_ID
-    "baidu_api_key": "", # 你的百度API_KEY
-    "baidu_secret_key": "", # 你的百度SECRET_KEY
+    "baidu_app_id": "",  # 你的百度APP_ID
+    "baidu_api_key": "",  # 你的百度API_KEY
+    "baidu_secret_key": "",  # 你的百度SECRET_KEY
     # 1536普通话(支持简单的英文识别) 1737英语 1637粤语 1837四川话 1936普通话远场
     "baidu_dev_pid": "1536",
     # azure 语音api配置， 使用azure语音识别和语音合成时需要
-    "azure_api_key": "", # 你的azure key
-    "azure_region": "japaneast", # 你的azure region
+    "azure_api_key": "",  # 你的azure key
+    "azure_region": "japaneast",  # 你的azure region
     "debug": True,
     "appdata_dir": "",
 }
@@ -105,7 +105,8 @@ def load_config():
     for name, value in os.environ.items():
         name = name.lower()
         if name in available_setting:
-            logger.info("[INIT] override config by environ args: {}={}".format(name, value))
+            logger.info(
+                "[INIT] override config by environ args: {}={}".format(name, value))
             try:
                 config[name] = eval(value)
             except:
@@ -141,7 +142,8 @@ def conf():
 def get_appdata_dir():
     data_path = os.path.join(get_root(), conf().get("appdata_dir", ""))
     if not os.path.exists(data_path):
-        logger.info("[INIT] data path not exists, create it: {}".format(data_path))
+        logger.info(
+            "[INIT] data path not exists, create it: {}".format(data_path))
         os.makedirs(data_path)
     return data_path
 
