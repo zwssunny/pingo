@@ -15,7 +15,7 @@ BaiduTTS,Pyttsx3TTS,AzureTTS,EdgeTTS,其它的可以加
 
 ## 运行环境
 
-python版本>=3.0，windows11环境开发测试；其它平台还没测试，有测试过的小伙伴请通知一下！
+python版本>=3.10，ubutun22,windows11环境开发测试；其它平台还没测试，有测试过的小伙伴请通知一下！
 
 ## porcupine 离线唤醒
 
