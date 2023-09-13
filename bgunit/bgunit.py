@@ -51,20 +51,21 @@ class Bgunit:
             logger.debug("[BGunit] Baidu_AI Intent= %s", intent)
             reply = self.getSay(parsed)
             self.isConversationcomplete = True
-
-            if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
-                slotstring = ''
-                slots = self.getSlots(parsed, intent)
-                if slots.__len__() > 0:
-                    slotstring = slots[0]['normalized_word']
+            slots = self.getSlots(parsed, intent)
+            soltslen = len(slots)
+            if soltslen > 0:
+                if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
                     # 查找页面
-                    pageindex = self.getIntentPageindex(intent, slotstring)
+                    pagename = slots[0]['normalized_word']
+                    pageindex = self.getIntentPageindex(intent, pagename)
                     if pageindex > -1:  # 找到页面，就发送消息
                         self.sendPageCtl(intent, pageindex)
                     else:
                         logger.info("[BGunit] pagename not found!")
-                else:
-                    self.isConversationcomplete = False  # 任务未完成，找不到页面
+                elif "FAQ_FOUND" in intent and soltslen < 2:
+                    self.isConversationcomplete = False  # 问题不明确
+            else:
+                self.isConversationcomplete = False  # 词槽不明确
         return reply
 
     def get_help_text(self, **kwargs):
