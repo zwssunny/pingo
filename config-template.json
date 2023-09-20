@@ -8,5 +8,8 @@
     "baidu_api_key": " ", # 你的百度API_KEY
     "baidu_secret_key": "", # 你的百度SECRET_KEY
     "azure_api_key": "", # 你的azure key
-    "azure_region": ""  # 你的azure region
+    "azure_region": "",  # 你的azure region
+    "xunfei_app_id": "", # 你的讯飞APP_ID
+    "xunfei_api_key": "", # 你的讯飞API_KEY
+    "xunfei_secret_key": "" # 你的讯飞SECRET_KEY
 }

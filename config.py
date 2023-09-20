@@ -27,6 +27,9 @@ available_setting = {
     "azure_region": "japaneast",  # 你的azure region
     "debug": True,
     "appdata_dir": "",
+    "xunfei_app_id": "", # 你的讯飞APP_ID
+    "xunfei_api_key": "", # 你的讯飞API_KEY
+    "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
 }
 
 
