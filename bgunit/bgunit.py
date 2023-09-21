@@ -8,7 +8,7 @@ import websocket
 from common.log import logger
 
 """利用百度UNIT实现智能对话
-    如果命中意图，返回意图对应的回复，否则返回继续交付给下个插件处理
+    如果命中意图，返回意图对应的回复
     页面操控，这些技能需要在百度UNIT技能中进行训练
 """
 
