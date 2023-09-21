@@ -4,8 +4,8 @@ import asyncio
 import pvporcupine
 from pvrecorder import PvRecorder
 from common.log import logger
-from voice.voice2text import BaiduASR, AzureASR, OpenaiASR
-from voice.text2voice import BaiduTTS, Pyttsx3TTS, AzureTTS, EdgeTTS
+from voice.voice2text import XunfeiASR
+from voice.text2voice import EdgeTTS
 from config import conf, load_config
 from bgunit import Bgunit
 from common.utils import clean
@@ -20,11 +20,15 @@ def Pingo():
         access_key=PICOVOICE_API_KEY,
         keyword_paths=[keyword_path]
     )
-    Baidu_APP_ID = conf().get("baidu_app_id")
-    Baidu_API_KEY = conf().get("baidu_api_key")
-    Baidu_SECRET_KEY = conf().get("baidu_secret_key")
-    asr = BaiduASR(Baidu_APP_ID, Baidu_API_KEY, Baidu_SECRET_KEY)
+    # Baidu_APP_ID = conf().get("baidu_app_id")
+    # Baidu_API_KEY = conf().get("baidu_api_key")
+    # Baidu_SECRET_KEY = conf().get("baidu_secret_key")
+    # asr = BaiduASR(Baidu_APP_ID, Baidu_API_KEY, Baidu_SECRET_KEY)
     # tts = BaiduTTS(Baidu_APP_ID, Baidu_API_KEY, Baidu_SECRET_KEY)
+    Xunfei_APP_ID = conf().get("xunfei_app_id")
+    Xunfei_API_KEY = conf().get("xunfei_api_key")
+    Xunfei_SECRET_KEY = conf().get("xunfei_secret_key")
+    asr = XunfeiASR(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
     tts = EdgeTTS()
     # 创建插件功能
     chat_module = Bgunit()
@@ -48,7 +52,7 @@ def Pingo():
                 num = 4  # 最多循环确认4次
                 chat_module.begin()
                 while not chat_module.conversation_is_complete() and num > 0:
-                    num = num-1
+                    num = num - 1
                     q = asr.speech_to_text()
                     logger.info("recognize_from_microphone, text= %s", q)
                     # 调用插件功能，返回意图结果
