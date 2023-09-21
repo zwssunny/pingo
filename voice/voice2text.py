@@ -92,10 +92,11 @@ class XunfeiASR:
         with open(file_name, "wb") as f:
             f.write(audio.get_wav_data())
 
-        if if_cmu:
-            return audio
-        else:
-            return self._get_file_content(file_name)
+        # if if_cmu:
+        #     return audio
+        # else:
+        #     return self._get_file_content(file_name)
+        return file_name
 
     # 从本地文件中加载音频 作为后续百度语音服务的输入
     def _get_file_content(self, file_name):
@@ -110,8 +111,7 @@ class XunfeiASR:
                 self._record(), self.appid, self.api_key, self.api_secret)
         # 从文件中读取
         else:
-            return XunfeiSpeech.transcribe(self._get_file_content(
-                audio_path), self.appid, self.api_key, self.api_secret)
+            return XunfeiSpeech.transcribe(audio_path, self.appid, self.api_key, self.api_secret)
 
 
 class OpenaiASR:
