@@ -36,7 +36,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM ")
+                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 if self.askcontinu:
