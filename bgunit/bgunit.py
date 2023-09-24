@@ -24,9 +24,6 @@ class bgunit:
             self.service_id = conf["service_id"]
             self.api_key = conf["api_key"]
             self.secret_key = conf["secret_key"]
-            # websocket
-            self.websocketurl = conf["websocketurl"]
-            self.screenid = conf["screenid"]
             # intent
             self.pageintent = conf["pageintent"]
             self.systemintent = conf["systemintent"]
