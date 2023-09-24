@@ -4,17 +4,19 @@ import os
 import uuid
 from uuid import getnode as get_mac
 import requests
-import websocket
 from common.log import logger
+from pagecontrol.pagecontrol import pagecontrol
+from orator.sysintroduction import sysIntroduction
+from voice.voice import Voice
 
 """利用百度UNIT实现智能对话
     如果命中意图，返回意图对应的回复
-    页面操控，这些技能需要在百度UNIT技能中进行训练
+    页面操控，系统演示这些技能需要在百度UNIT技能中进行训练
 """
 
 
-class Bgunit:
-    def __init__(self):
+class bgunit:
+    def __init__(self, tts:Voice):
         try:
             conf = self.loadpageconfig("config.json")
             if not conf:
@@ -33,7 +35,11 @@ class Bgunit:
             self.pages = self.loadpageconfig("pageindex.json")
             self.systems = self.loadpageconfig("systemindex.json")
             self.highlights = self.loadpageconfig("highlightindex.json")
-
+            #pagecontrol
+            self.pagecontrol=pagecontrol()
+            #tts
+            self.tts=tts
+            self.sysIntro=sysIntroduction(tts)
             self.access_token = self.get_token()
             self.isConversationcomplete = False  # 该会话是否完成
             logger.info("[BGunit] inited")
@@ -45,11 +51,12 @@ class Bgunit:
         logger.debug("[BGunit] query: %s" % query)
         parsed = self.getUnit2(query)
         intent = self.getIntent(parsed)
-        reply = "识别不到技能,请再说一遍！"
         self.isConversationcomplete = False
         if intent:  # 找到意图
             logger.debug("[BGunit] Baidu_AI Intent= %s", intent)
             reply = self.getSay(parsed)
+            print(reply)
+            self.tts.text_to_speech_and_play(reply)    
             self.isConversationcomplete = True
             slots = self.getSlots(parsed, intent)
             soltslen = len(slots)
@@ -59,17 +66,23 @@ class Bgunit:
                     pagename = slots[0]['normalized_word']
                     pageindex = self.getIntentPageindex(intent, pagename)
                     if pageindex > -1:  # 找到页面，就发送消息
-                        self.sendPageCtl(intent, pageindex)
+                        self.pagecontrol.sendPageCtl(intent, pageindex)
                     else:
                         logger.info("[BGunit] pagename not found!")
-                elif "FAQ_FOUND" in intent and soltslen < 2:
+                elif "ORATOR" in intent: #演示整个系统
+                    # platformname = slots[0]['normalized_word']
+                    self.sysIntro.systalk() 
+                elif "FAQ_FOUND" in intent and soltslen < 2: #问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:
                 self.isConversationcomplete = False  # 词槽不明确
-        return reply
+        else:
+            reply = "刚才没听清楚,请再说一遍！"
+            print(reply)
+            self.tts.text_to_speech_and_play(reply)
 
     def get_help_text(self, **kwargs):
-        help_text = "本插件返回对话中意图和词槽，并操控大屏页面\n"
+        help_text = "本插件返回对话中意图和词槽，可以操控大屏页面，或者系统演示\n"
         return help_text
 
     def begin(self):
@@ -271,25 +284,6 @@ class Bgunit:
         else:
             return ""
 
-    def sendPageCtl(self, intent, pageindex):
-        """
-        创建websocket链接，并发送消息
-        :param intent 意图 OPEN_PAGE,OPEN_SYSTEM,OPEN_HIGHLIGHT,CLOSE_PAGE,CLOSE_SYSTEM,CLOSE_HIGHTLIGHT
-        :param pageindex 页面编号,如：100,112,200,300，...... 具体看配置，pageindex.json,highlight.json,system.json
-
-        """
-        try:
-            # 创建websocket链接
-            uri = self.websocketurl+self.screenid
-            ws = websocket.WebSocket()
-            ws.connect(uri, timeout=5, close_timeout=3)
-            # 发送控制消息
-            sendmsg = {"intent": intent, "pageIndex": pageindex}
-            msg = json.dumps(sendmsg)
-            logger.info(msg)
-            ws.send(msg)
-        except Exception as e:
-            logger.warning(e)
 
     def loadpageconfig(self, configfile) -> dict:  # 读取配置参数文件
         """

@@ -10,10 +10,11 @@ import speech_recognition as sr
 import azure.cognitiveservices.speech as speechsdk
 from common.tmp_dir import TmpDir
 from .sdk import XunfeiSpeech
+from voice.voice import Voice
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 
-class BaiduASR:
+class BaiduASR(Voice):
     def __init__(self, APP_ID, API_KEY, SECRET_KEY):
         self.APP_ID = APP_ID
         self.API_KEY = API_KEY
@@ -67,7 +68,7 @@ class BaiduASR:
             return result['result'][0]
 
 
-class XunfeiASR:
+class XunfeiASR(Voice):
     def __init__(self, appid, api_key, api_secret):
         self.appid = appid
         self.api_key = api_key
@@ -114,7 +115,7 @@ class XunfeiASR:
             return XunfeiSpeech.transcribe(audio_path, self.appid, self.api_key, self.api_secret)
 
 
-class OpenaiASR:
+class OpenaiASR(Voice):
     def __init__(self, API_KEY):
         self.API_KEY = API_KEY
         self.r = sr.Recognizer()
@@ -165,7 +166,7 @@ class OpenaiASR:
         return result
 
 
-class AzureASR:
+class AzureASR(Voice):
     def __init__(self, AZURE_API_KEY, AZURE_REGION):
         self.AZURE_API_KEY = AZURE_API_KEY
         self.AZURE_REGION = AZURE_REGION

@@ -13,8 +13,9 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from common.tmp_dir import TmpDir
 from common.log import logger
 from common.utils import getCache, saveCache
+from voice.voice import Voice
 
-class BaiduTTS:
+class BaiduTTS(Voice):
     def __init__(self, APP_ID, API_KEY, SECRET_KEY):
         self.APP_ID = APP_ID
         self.API_KEY = API_KEY
@@ -45,13 +46,12 @@ class BaiduTTS:
                 fileName=saveCache(fileName,text)
                 logger.info(
                     "[Baidu] text2voice text={} voice file name={}".format(text, fileName))
-                # playsound('./audio.mp3')  # playsound无法运行时删去此行改用pygame，若正常运行择一即可
                 play_audio_with_pygame(fileName)  # 注意pygame只能识别mp3格式
             else:
                 print("语音合成失败", result)
 
 
-class Pyttsx3TTS:
+class Pyttsx3TTS(Voice):
     def __init__(self):
         pass
 
@@ -61,7 +61,7 @@ class Pyttsx3TTS:
         engine.runAndWait()
 
 
-class AzureTTS:
+class AzureTTS(Voice):
     def __init__(self, AZURE_API_KEY, AZURE_REGION):
         self.AZURE_API_KEY = AZURE_API_KEY
         self.AZURE_REGION = AZURE_REGION
@@ -94,13 +94,13 @@ class AzureTTS:
                     print("Didy you set the speech resource key and region values?")
 
 
-class EdgeTTS:
+class EdgeTTS(Voice):
     def __init__(self, voice: str = "zh-CN-YunjianNeural", rate: str = "+0%", volume: str = "+0%"):
         self.voice = voice
         self.rate = rate
         self.volume = volume
 
-    async def text_to_speech_and_play(self, text):
+    async def async_text_to_speech_and_play(self, text):
         # voices = await VoicesManager.create()
         # voice = voices.find(Gender="Female", Language="zh")
         # communicate = edge_tts.Communicate(text, random.choice(voice)["Name"])
@@ -113,8 +113,10 @@ class EdgeTTS:
                 "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
             await communicate.save(fileName)
             fileName=saveCache(fileName,text)
-            # playsound('./audio.wav') # playsound无法运行时删去此行改用pygame，若正常运行择一即可
             play_audio_with_pygame(fileName)  # 注意pygame只能识别mp3格式
+
+    def text_to_speech_and_play(self, text):
+         asyncio.run(self.async_text_to_speech_and_play(text))
 
 
 if __name__ == '__main__':
@@ -135,5 +137,5 @@ if __name__ == '__main__':
     # azuretts = AzureTTS(AZURE_API_KEY, AZURE_REGION)
     # azuretts.text_to_speech_and_play("嗯，你好，我是你的智能小伙伴，我的名字叫Murphy，你可以和我畅所欲言，我是很会聊天的哦！")
     edgetts = EdgeTTS()
-    asyncio.run(edgetts.text_to_speech_and_play(
-        "您好，我是你的智能小伙伴，我的名字叫Pingo，你可以和我畅所欲言，我是很会聊天的哦！"))
+    edgetts.text_to_speech_and_play(
+        "您好，我是你的智能小伙伴，我的名字叫Pingo，你可以和我畅所欲言，我是很会聊天的哦！")

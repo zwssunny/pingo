@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import pvporcupine
 from pvrecorder import PvRecorder
 from common.log import logger
+from voice.voice import Voice
 from voice.voice2text import XunfeiASR
 from voice.text2voice import EdgeTTS
 from config import conf, load_config
-from bgunit import Bgunit
+from bgunit.bgunit import bgunit
 from common.utils import clean
 
 
@@ -31,9 +31,9 @@ def Pingo():
     asr = XunfeiASR(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
     tts = EdgeTTS()
     # 创建插件功能
-    chat_module = Bgunit()
-    asyncio.run(tts.text_to_speech_and_play(
-        "您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey pingo!'"))
+    chat_module = bgunit(tts)
+    tts.text_to_speech_and_play(
+        "您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey pingo!'")
 
     recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
     recorder.start()
@@ -45,9 +45,7 @@ def Pingo():
             if result >= 0:
                 recorder.stop()  # 关闭麦克风的占用
                 print("我在,请讲！")
-                # tts.text_to_speech_and_play("我在,请讲！")
-                asyncio.run(tts.text_to_speech_and_play(
-                    "我在,请讲！"))  # 如果用Edgetts需要使用异步执行
+                tts.text_to_speech_and_play("我在,请讲！")  
 
                 num = 4  # 最多循环确认4次
                 chat_module.begin()
@@ -55,12 +53,9 @@ def Pingo():
                     num = num - 1
                     q = asr.speech_to_text()
                     logger.info("recognize_from_microphone, text= %s", q)
-                    # 调用插件功能，返回意图结果
-                    res = chat_module.chat_with_unit(q)
-                    print(res)
-                    # tts.text_to_speech_and_play(res)
-                    # 如果用Edgetts需要使用异步执行
-                    asyncio.run(tts.text_to_speech_and_play(res))
+                    # 调用插件功能，进行意图处理
+                    chat_module.chat_with_unit(q)
+
                 chat_module.end()
                 recorder.start()  # 启用麦克风
     except pvporcupine.PorcupineActivationError as e:
@@ -89,7 +84,7 @@ def Pingo():
     except KeyboardInterrupt:
         logger.info("Stopping ...")
     finally:
-        asyncio.run(tts.text_to_speech_and_play("好的，我退下了，再见！"))
+        tts.text_to_speech_and_play("好的，我退下了，再见！")
         porcupine and porcupine.delete()
         recorder and recorder.delete()
         clean()
