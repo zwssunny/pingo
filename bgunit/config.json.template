@@ -2,8 +2,6 @@
   "service_id": "s...",
   "api_key": "",
   "secret_key": "",
-  "websocketurl": "ws://127.0.0.1:8081/websocket/",
-  "screenid": "dbe5b0425026******",
   "pageintent": ["OPEN_PAGE","CLOSE_PAGE"],
   "systemintent": ["OPEN_SYSTEM","CLOSE_SYSTEM"],
   "highlightintent": ["OPEN_HIGHLIGHT","CLOSE_HIGHLIGHT"]

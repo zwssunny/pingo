@@ -65,4 +65,4 @@ if __name__ == '__main__':
     tts = EdgeTTS()
     sysIntro = sysIntroduction(tts)
     # sysIntro.systalkbyname("广州市交通运输局综合交通监控融合展示平台")
-    sysIntro.menutalk(1)
+    sysIntro.menutalk()
