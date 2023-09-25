@@ -16,7 +16,7 @@ from voice.voice import Voice
 
 
 class bgunit:
-    def __init__(self, tts:Voice):
+    def __init__(self, tts: Voice):
         try:
             conf = self.loadpageconfig("config.json")
             if not conf:
@@ -24,6 +24,7 @@ class bgunit:
             self.service_id = conf["service_id"]
             self.api_key = conf["api_key"]
             self.secret_key = conf["secret_key"]
+            self.askcontinu = conf["askcontinu"]
             # intent
             self.pageintent = conf["pageintent"]
             self.systemintent = conf["systemintent"]
@@ -32,11 +33,11 @@ class bgunit:
             self.pages = self.loadpageconfig("pageindex.json")
             self.systems = self.loadpageconfig("systemindex.json")
             self.highlights = self.loadpageconfig("highlightindex.json")
-            #pagecontrol
-            self.pagecontrol=pagecontrol()
-            #tts
-            self.tts=tts
-            self.sysIntro=sysIntroduction(tts)
+            # pagecontrol
+            self.pagecontrol = pagecontrol()
+            # tts
+            self.tts = tts
+            self.sysIntro = sysIntroduction(tts, self.askcontinu)
             self.access_token = self.get_token()
             self.isConversationcomplete = False  # 该会话是否完成
             logger.info("[BGunit] inited")
@@ -53,7 +54,7 @@ class bgunit:
             logger.debug("[BGunit] Baidu_AI Intent= %s", intent)
             reply = self.getSay(parsed)
             print(reply)
-            self.tts.text_to_speech_and_play(reply)    
+            self.tts.text_to_speech_and_play(reply)
             self.isConversationcomplete = True
             slots = self.getSlots(parsed, intent)
             soltslen = len(slots)
@@ -66,10 +67,10 @@ class bgunit:
                         self.pagecontrol.sendPageCtl(intent, pageindex)
                     else:
                         logger.info("[BGunit] pagename not found!")
-                elif "ORATOR" in intent: #演示整个系统
+                elif "ORATOR" in intent:  # 演示整个系统
                     # platformname = slots[0]['normalized_word']
-                    self.sysIntro.systalk() 
-                elif "FAQ_FOUND" in intent and soltslen < 2: #问题解答
+                    self.sysIntro.systalk()
+                elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:
                 self.isConversationcomplete = False  # 词槽不明确
@@ -280,7 +281,6 @@ class bgunit:
             return ""
         else:
             return ""
-
 
     def loadpageconfig(self, configfile) -> dict:  # 读取配置参数文件
         """

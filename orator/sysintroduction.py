@@ -1,11 +1,11 @@
 # encoding:utf-8
-from pagecontrol.pagecontrol import pagecontrol
-from common.log import logger
-from voice.voice import Voice
 import sqlite3
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from pagecontrol.pagecontrol import pagecontrol
+from common.log import logger
+from voice.voice import Voice
 
 sysdb = "./db/pingo.db"
 
@@ -57,12 +57,12 @@ class sysIntroduction:
         menudesc = menuitem[3]
         logger.info("讲解"+menuname)
         self.tts.text_to_speech_and_play(menuname)
-        self.tts.text_to_speech_and_play(menudesc)
+        self.tts.text_to_speech_and_play(menudesc,self.askcontinu)
 
 
 if __name__ == '__main__':
     from voice.text2voice import EdgeTTS
     tts = EdgeTTS()
-    sysIntro = sysIntroduction(tts)
+    sysIntro = sysIntroduction(tts,True)
     # sysIntro.systalkbyname("广州市交通运输局综合交通监控融合展示平台")
     sysIntro.menutalk()

@@ -10,7 +10,7 @@ class Voice(object):
         """
         raise NotImplementedError
 
-    def text_to_speech_and_play(self, text):
+    def text_to_speech_and_play(self, text, canwait: bool = False):
         """
         Send text to voice service and get voice
         """

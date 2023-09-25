@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+from voice.voice import Voice
+from common.utils import getCache, saveCache
+from common.log import logger
+from common.tmp_dir import TmpDir
 import asyncio
 import os
 import time
@@ -10,10 +14,7 @@ import pyttsx3
 from edge_tts import Communicate
 from .playaudio import play_audio_with_pygame
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from common.tmp_dir import TmpDir
-from common.log import logger
-from common.utils import getCache, saveCache
-from voice.voice import Voice
+
 
 class BaiduTTS(Voice):
     def __init__(self, APP_ID, API_KEY, SECRET_KEY):
@@ -22,13 +23,13 @@ class BaiduTTS(Voice):
         self.SECRET_KEY = SECRET_KEY
         self.client = AipSpeech(self.APP_ID, self.API_KEY, self.SECRET_KEY)
 
-    def text_to_speech_and_play(self, text=""):
+    def text_to_speech_and_play(self, text="", canwait: bool = False):
         if text is None:
             return
-        
-        if getCache(text): #存在缓存
-            fileName=getCache(text)
-            play_audio_with_pygame(fileName)
+
+        if getCache(text):  # 存在缓存
+            fileName = getCache(text)
+            play_audio_with_pygame(fileName, canwait)
         else:
             result = self.client.synthesis(text, 'zh', 1, {
                 'spd': 5,  # 语速
@@ -39,14 +40,14 @@ class BaiduTTS(Voice):
 
             if not isinstance(result, dict):
                 fileName = TmpDir().path() + "reply-" + str(int(time.time())) + \
-                             "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
-                
+                    "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
+
                 with open(fileName, "wb") as f:
                     f.write(result)
-                fileName=saveCache(fileName,text)
+                fileName = saveCache(fileName, text)
                 logger.info(
                     "[Baidu] text2voice text={} voice file name={}".format(text, fileName))
-                play_audio_with_pygame(fileName)  # 注意pygame只能识别mp3格式
+                play_audio_with_pygame(fileName, canwait)  # 注意pygame只能识别mp3格式
             else:
                 print("语音合成失败", result)
 
@@ -76,7 +77,7 @@ class AzureTTS(Voice):
         self.speech_synthesizer = speechsdk.SpeechSynthesizer(speech_config=self.speech_config,
                                                               audio_config=self.audio_config)
 
-    def text_to_speech_and_play(self, text):
+    def text_to_speech_and_play(self, text, canwait: bool = False):
         # Get text from the console and synthesize to the default speaker.
         speech_synthesis_result = self.speech_synthesizer.speak_text_async(
             text).get()
@@ -100,23 +101,23 @@ class EdgeTTS(Voice):
         self.rate = rate
         self.volume = volume
 
-    async def async_text_to_speech_and_play(self, text):
+    async def async_text_to_speech_and_play(self, text, canwait: bool = False):
         # voices = await VoicesManager.create()
         # voice = voices.find(Gender="Female", Language="zh")
         # communicate = edge_tts.Communicate(text, random.choice(voice)["Name"])
-        if getCache(text): #存在缓存
-            fileName=getCache(text)
-            play_audio_with_pygame(fileName)
+        if getCache(text):  # 存在缓存
+            fileName = getCache(text)
+            play_audio_with_pygame(fileName, canwait)
         else:
             communicate = Communicate(text, self.voice)
             fileName = TmpDir().path() + "reply-" + str(int(time.time())) + \
                 "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
             await communicate.save(fileName)
-            fileName=saveCache(fileName,text)
-            play_audio_with_pygame(fileName)  # 注意pygame只能识别mp3格式
+            fileName = saveCache(fileName, text)
+            play_audio_with_pygame(fileName,canwait)  # 注意pygame只能识别mp3格式
 
-    def text_to_speech_and_play(self, text):
-         asyncio.run(self.async_text_to_speech_and_play(text))
+    def text_to_speech_and_play(self, text, canwait: bool = False):
+        asyncio.run(self.async_text_to_speech_and_play(text,canwait))
 
 
 if __name__ == '__main__':
