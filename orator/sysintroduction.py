@@ -3,9 +3,10 @@ import sqlite3
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from pagecontrol.pagecontrol import pagecontrol
-from common.log import logger
 from voice.voice import Voice
+from common.log import logger
+from pagecontrol.pagecontrol import pagecontrol
+
 
 sysdb = "./db/pingo.db"
 
@@ -48,7 +49,20 @@ class sysIntroduction:
         except sqlite3.Error as error:
             logger.error(error)
 
+    def talkitem_byname(self, menuname):
+        try:
+            # 查询菜单记录
+            cursor = self.conn.execute(
+                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM WHERE NAME LIKE '%"+menuname+"'")
+            menucursor = cursor.fetchone()
+            if menucursor:
+                self.menuitemtalk(menucursor)
+        except sqlite3.Error as error:
+            logger.error(error)
+
     def menuitemtalk(self, menuitem):
+        if not menuitem:
+            return
         # 发送页面切换指令
         pageindex = menuitem[2]
         self.pagecontrol.sendPageCtl("OPEN_PAGE", pageindex)
@@ -57,12 +71,13 @@ class sysIntroduction:
         menudesc = menuitem[3]
         logger.info("讲解"+menuname)
         self.tts.text_to_speech_and_play(menuname)
-        self.tts.text_to_speech_and_play(menudesc,self.askcontinu)
+        self.tts.text_to_speech_and_play(menudesc, self.askcontinu)
 
 
 if __name__ == '__main__':
     from voice.text2voice import EdgeTTS
     tts = EdgeTTS()
-    sysIntro = sysIntroduction(tts,True)
+    sysIntro = sysIntroduction(tts, True)
     # sysIntro.systalkbyname("广州市交通运输局综合交通监控融合展示平台")
     sysIntro.menutalk()
+    #sysIntro.talkitem_byname("首页")

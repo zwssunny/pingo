@@ -2,7 +2,8 @@
   "service_id": "s...",
   "api_key": "",
   "secret_key": "",
-  "askcontinu": False,
+  "askcontinu": false,
+  "ctlandtalk": false,
   "pageintent": ["OPEN_PAGE","CLOSE_PAGE"],
   "systemintent": ["OPEN_SYSTEM","CLOSE_SYSTEM"],
   "highlightintent": ["OPEN_HIGHLIGHT","CLOSE_HIGHLIGHT"]

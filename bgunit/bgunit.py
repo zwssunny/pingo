@@ -25,6 +25,7 @@ class bgunit:
             self.api_key = conf["api_key"]
             self.secret_key = conf["secret_key"]
             self.askcontinu = conf["askcontinu"]
+            self.ctlandtalk = conf["ctlandtalk"]
             # intent
             self.pageintent = conf["pageintent"]
             self.systemintent = conf["systemintent"]
@@ -65,6 +66,8 @@ class bgunit:
                     pageindex = self.getIntentPageindex(intent, pagename)
                     if pageindex > -1:  # 找到页面，就发送消息
                         self.pagecontrol.sendPageCtl(intent, pageindex)
+                        if self.ctlandtalk: #是否需要解说
+                            self.sysIntro.talkitem_byname(pagename)
                     else:
                         logger.info("[BGunit] pagename not found!")
                 elif "ORATOR" in intent:  # 演示整个系统
