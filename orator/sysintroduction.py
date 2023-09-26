@@ -1,12 +1,12 @@
 # encoding:utf-8
+
 import sqlite3
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from voice.voice import Voice
-from common.log import logger
 from pagecontrol.pagecontrol import pagecontrol
-
+from common.log import logger
+from voice.voice import Voice
 
 sysdb = "./db/pingo.db"
 
@@ -42,7 +42,7 @@ class sysIntroduction:
             for row in menucursor:
                 if self.askcontinu:
                     menuname = row[0]
-                    willcontinue = input("继续演示["+menuname+"]吗？")
+                    willcontinue = input("继续演示[" + menuname + "]吗？")
                     if willcontinue == "n":
                         return
                 self.menuitemtalk(row)
@@ -52,8 +52,9 @@ class sysIntroduction:
     def talkitem_byname(self, menuname):
         try:
             # 查询菜单记录
+            name_pattern = "%" + menuname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM WHERE NAME LIKE '%"+menuname+"'")
+                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
             menucursor = cursor.fetchone()
             if menucursor:
                 self.menuitemtalk(menucursor)
@@ -69,7 +70,7 @@ class sysIntroduction:
         # 介绍页面功能
         menuname = menuitem[0]
         menudesc = menuitem[3]
-        logger.info("讲解"+menuname)
+        logger.info("讲解" + menuname)
         self.tts.text_to_speech_and_play(menuname)
         self.tts.text_to_speech_and_play(menudesc, self.askcontinu)
 
@@ -80,4 +81,4 @@ if __name__ == '__main__':
     sysIntro = sysIntroduction(tts, True)
     # sysIntro.systalkbyname("广州市交通运输局综合交通监控融合展示平台")
     sysIntro.menutalk()
-    #sysIntro.talkitem_byname("首页")
+    # sysIntro.talkitem_byname("首页")
