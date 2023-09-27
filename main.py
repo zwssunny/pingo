@@ -3,9 +3,8 @@
 import pvporcupine
 from pvrecorder import PvRecorder
 from common.log import logger
-from voice.voice import Voice
-from voice.voice2text import XunfeiASR
-from voice.text2voice import EdgeTTS
+from voice.xunfei.XunfeiVoice import XunfeiVoice
+from voice.edge.EdgeVoice import EdgeVoice
 from config import conf, load_config
 from bgunit.bgunit import bgunit
 from common.utils import clean
@@ -28,8 +27,8 @@ def Pingo():
     Xunfei_APP_ID = conf().get("xunfei_app_id")
     Xunfei_API_KEY = conf().get("xunfei_api_key")
     Xunfei_SECRET_KEY = conf().get("xunfei_secret_key")
-    asr = XunfeiASR(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
-    tts = EdgeTTS()
+    asr = XunfeiVoice(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
+    tts = EdgeVoice()
     # 创建插件功能
     chat_module = bgunit(tts)
     tts.text_to_speech_and_play(
@@ -45,9 +44,9 @@ def Pingo():
             if result >= 0:
                 recorder.stop()  # 关闭麦克风的占用
                 print("我在,请讲！")
-                tts.text_to_speech_and_play("我在,请讲！")  
+                tts.text_to_speech_and_play("我在,请讲！")
 
-                num = 4  # 最多循环确认4次
+                num = 3  # 最多循环确认4次
                 chat_module.begin()
                 while not chat_module.conversation_is_complete() and num > 0:
                     num = num - 1

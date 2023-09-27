@@ -76,9 +76,9 @@ class sysIntroduction:
 
 
 if __name__ == '__main__':
-    from voice.text2voice import EdgeTTS
-    tts = EdgeTTS()
+    from voice.edge.EdgeVoice import EdgeVoice
+    tts = EdgeVoice()
     sysIntro = sysIntroduction(tts, True)
     # sysIntro.systalkbyname("广州市交通运输局综合交通监控融合展示平台")
-    sysIntro.menutalk()
-    # sysIntro.talkitem_byname("首页")
+    # sysIntro.menutalk()
+    sysIntro.talkitem_byname("首页")
