@@ -1,7 +1,6 @@
-# from winsound import PlaySound
 import pygame  # 导入pygame，playsound报错或运行不稳定时直接使用
 # from playsound import playsound # windows环境下playsound运行可能不稳定
-
+# 注意pygame只能识别mp3格式 
 
 def play_audio_with_pygame(audio_file_path, canwait: bool = False):
     if canwait:

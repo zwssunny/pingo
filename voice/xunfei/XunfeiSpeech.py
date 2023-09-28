@@ -86,7 +86,8 @@ class TTS_Ws_Param(object):
         self.CommonArgs = {"app_id": self.APPID}
         # 业务参数(business)，更多个性化参数可在官网查看
         self.BusinessArgs = {
-            "aue": "raw",
+            "aue": "lame",
+            "sfl": 1,
             "auf": "audio/L16;rate=16000",
             "vcn": voice_name,
             "tte": "utf8",
@@ -313,13 +314,15 @@ def transcribe(fpath, appid, api_key, api_secret):
     return gResult
 
 
-def synthesize(msg, appid, api_key, api_secret, voice_name="xiaoyan"):
+def synthesize(msg, appid, api_key, api_secret, filename, voice_name="xiaoyan"):
     """
     科大讯飞TTS
     """
     global ttsWsParam, gTTSPath, gTTSResult
-    with tempfile.NamedTemporaryFile() as f:
-        gTTSPath = f.name
+    # with tempfile.NamedTemporaryFile() as f:
+    #     gTTSPath = f.name
+    gTTSPath=filename
+
     ttsWsParam = TTS_Ws_Param(
         APPID=appid,
         APIKey=api_key,

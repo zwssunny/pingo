@@ -3,15 +3,20 @@
 import time
 import speech_recognition as sr
 from voice.voice import Voice
+from voice.playaudio import play_audio_with_pygame
 from common.tmp_dir import TmpDir
+from common.utils import getCache, saveCache
 from . import XunfeiSpeech
 
+
 class XunfeiVoice(Voice):
-    def __init__(self, appid, api_key, api_secret):
+    def __init__(self, appid, api_key, api_secret, voice_name="xiaoyan"):
         self.appid = appid
         self.api_key = api_key
         self.api_secret = api_secret
+        self.voice_name = voice_name
         self.recognizer = sr.Recognizer()
+
 
     # 从麦克风收集音频并写入文件
     def _record(self, if_cmu: bool = False, rate=16000):
@@ -45,3 +50,16 @@ class XunfeiVoice(Voice):
         # 从文件中读取
         else:
             return XunfeiSpeech.transcribe(audio_path, self.appid, self.api_key, self.api_secret)
+
+    def text_to_speech_and_play(self, text, canwait: bool = False):
+        if getCache(text):  # 存在缓存
+            fileName = getCache(text)
+            play_audio_with_pygame(fileName, canwait)
+        else:
+            fileName = TmpDir().path() + "reply-" + str(int(time.time())) + \
+                "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
+            XunfeiSpeech.synthesize(
+                text, self.appid, self.api_key, self.api_secret, fileName, self.voice_name
+            )
+            fileName = saveCache(fileName, text)
+            play_audio_with_pygame(fileName, canwait)
