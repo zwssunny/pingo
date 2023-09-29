@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from voice.xunfei.XunfeiVoice import XunfeiVoice
 from config import conf, load_config
 
