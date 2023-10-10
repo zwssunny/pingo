@@ -80,4 +80,4 @@ if __name__ == '__main__':
     tts = EdgeVoice()
     sysIntro = sysIntroduction(tts, True)
     # sysIntro.menutalk()
-    sysIntro.talkitem_byname("首页")
+    sysIntro.talkitem_byname("城市交通.道路运行")
