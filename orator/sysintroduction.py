@@ -78,6 +78,6 @@ class sysIntroduction:
 if __name__ == '__main__':
     from voice.edge.EdgeVoice import EdgeVoice
     tts = EdgeVoice()
-    sysIntro = sysIntroduction(tts, True)
-    # sysIntro.menutalk()
-    sysIntro.talkitem_byname("城市交通.道路运行")
+    sysIntro = sysIntroduction(tts, False)
+    sysIntro.menutalk()
+    # sysIntro.talkitem_byname("城市交通.道路运行")
