@@ -1,24 +1,34 @@
 # encoding:utf-8
-
 import sqlite3
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
-from pagecontrol.pagecontrol import pagecontrol
-from common.log import logger
 from voice.voice import Voice
+from common.log import logger
+from pagecontrol.pagecontrol import pagecontrol
+
 
 sysdb = "./db/pingo.db"
 
 
 class sysIntroduction:
     def __init__(self, tts: Voice, askcontinu: bool = False):
+        """
+        系统介绍
+
+        Args:
+            tts (Voice): 语音实例。
+            askcontinu (bool, optional): 是否要人为控制. Defaults to False.
+        """
         self.conn = sqlite3.connect(sysdb)
         self.tts = tts
         self.askcontinu = askcontinu
         self.pagecontrol = pagecontrol()
 
     def systalk(self):
+        """
+        演示整个系统
+        """
         try:
             # 查询系统介绍内容
             cursor = self.conn.execute(
@@ -34,6 +44,9 @@ class sysIntroduction:
             logger.error(error)
 
     def menutalk(self):
+        """
+        解说整个系统的所有菜单页面
+        """
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
@@ -50,6 +63,12 @@ class sysIntroduction:
             logger.error(error)
 
     def talkitem_byname(self, menuname):
+        """
+        解说某个菜单页面
+
+        Args:
+            menuname (Text): 菜单名称
+        """
         try:
             # 查询菜单记录
             name_pattern = "%" + menuname
@@ -62,6 +81,12 @@ class sysIntroduction:
             logger.error(error)
 
     def menuitemtalk(self, menuitem):
+        """
+        解说某个菜单页面
+
+        Args:
+            menuitem (Cursor): 菜单项记录
+        """
         if not menuitem:
             return
         # 发送页面切换指令
@@ -80,4 +105,4 @@ if __name__ == '__main__':
     tts = EdgeVoice()
     sysIntro = sysIntroduction(tts, False)
     sysIntro.menutalk()
-    # sysIntro.talkitem_byname("城市交通.道路运行")
+    # sysIntro.talkitem_byname("城市交通.地铁")
