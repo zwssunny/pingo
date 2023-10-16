@@ -8,7 +8,7 @@ from common.log import logger
 class pagecontrol(object):
     def __init__(self):
         try:
-            conf = self.loadpageconfig("config.json")
+            conf = self.loadconfig("config.json")
             if not conf:
                 raise Exception("config.json not found")
             # websocket
@@ -30,7 +30,7 @@ class pagecontrol(object):
             # 创建websocket链接
             uri = self.websocketurl+self.screenid
             ws = websocket.WebSocket()
-            ws.connect(uri, timeout=5, close_timeout=3)
+            ws.connect(uri, timeout=6, close_timeout=5)
             # 发送控制消息
             sendmsg = {"intent": intent, "pageIndex": pageindex}
             msg = json.dumps(sendmsg)
@@ -39,7 +39,7 @@ class pagecontrol(object):
         except Exception as e:
             logger.warning(e)
 
-    def loadpageconfig(self, configfile) -> dict:  # 读取配置参数文件
+    def loadconfig(self, configfile) -> dict:  # 读取配置参数文件
         """
         加载配置文件，返回词典
         :param configfile 配置文件名称，当前目录中找
