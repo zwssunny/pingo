@@ -50,7 +50,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 if self.askcontinu:
@@ -73,7 +73,24 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + menuname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDE, DESC FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
+            menucursor = cursor.fetchone()
+            if menucursor:
+                self.menuitemtalk(menucursor)
+        except sqlite3.Error as error:
+            logger.error(error)
+            
+    def talkitem_byid(self, menuid):
+        """
+        解说某个菜单页面
+
+        Args:
+            menuid (integer): 菜单id
+        """
+        try:
+            # 查询菜单记录
+            cursor = self.conn.execute(
+                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM WHERE ID = ?", (menuid,))
             menucursor = cursor.fetchone()
             if menucursor:
                 self.menuitemtalk(menucursor)
@@ -104,5 +121,5 @@ if __name__ == '__main__':
     from voice.edge.EdgeVoice import EdgeVoice
     tts = EdgeVoice()
     sysIntro = sysIntroduction(tts, False)
-    sysIntro.menutalk()
-    # sysIntro.talkitem_byname("城市交通.地铁")
+    # sysIntro.menutalk()
+    sysIntro.talkitem_byname("城市交通.地铁")
