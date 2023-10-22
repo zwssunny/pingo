@@ -25,12 +25,15 @@ class bgunit:
             self.service_id = bgconf["service_id"]
             self.api_key = bgconf["api_key"]
             self.secret_key = bgconf["secret_key"]
-            self.canpause = conf().get("canpause")
-            self.ctlandtalk = conf().get("ctlandtalk")
+
             # intent
             self.pageintent = bgconf["pageintent"]
             self.systemintent = bgconf["systemintent"]
             self.highlightintent = bgconf["highlightintent"]
+            #加载系统参数
+            load_config()
+            self.canpause = conf().get("canpause")
+            self.ctlandtalk = conf().get("ctlandtalk")
             # pagecontrol
             self.pagecontrol = pagecontrol()
             # tts
@@ -41,6 +44,7 @@ class bgunit:
             # self.pages = self.loadpageconfig("pageindex.json")
             # self.othersystems = self.loadpageconfig("systemindex.json")
             # self.highlights = self.loadpageconfig("highlightindex.json")
+            #从数据库加载参数
             self.pages=self.sysIntro.loadpageindex()
             self.othersystems = self.sysIntro.loadothersystemindex()
             self.highlights=self.sysIntro.loadhighlightindex()
