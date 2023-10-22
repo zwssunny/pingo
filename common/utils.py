@@ -9,7 +9,7 @@ APP_PATH = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 )
 load_config()
-CACH_PATH = os.path.join(APP_PATH, "cach/"+conf().get("voice"))
+CACH_PATH = os.path.join(APP_PATH, "cach/"+conf().get("voice","zh-CN-YunjianNeural"))
 TMP_PATH = os.path.join(APP_PATH, "tmp")
 
 def getCache(msg):

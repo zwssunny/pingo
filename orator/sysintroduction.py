@@ -412,13 +412,13 @@ if __name__ == '__main__':
     from voice.edge.EdgeVoice import EdgeVoice
     from config import conf, load_config
     load_config()
-    tts = EdgeVoice(voice=conf().get("voice"))
+    tts = EdgeVoice(voice=conf().get("voice","zh-CN-YunjianNeural"))
     sysIntro = sysIntroduction(tts=tts,canpause=False)
-    # sysIntro.billtalk()  # 剧本
+    sysIntro.billtalk()  # 剧本
     # sysIntro.talkallhighlight()
     # sysIntro.talkallfeature()
     # sysIntro.talkallothersystem()
-    sysIntro.talkallmenu() #所有大屏页面
+    # sysIntro.talkallmenu() #所有大屏页面
     # sysIntro.talkmenuitem_byname("地铁")
     # sysIntro.talkothersystem_byname("智慧交通")
     # sysIntro.talkhighlight_byname("非现场执法")
