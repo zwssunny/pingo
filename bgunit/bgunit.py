@@ -30,15 +30,21 @@ class bgunit:
             self.pageintent = conf["pageintent"]
             self.systemintent = conf["systemintent"]
             self.highlightintent = conf["highlightintent"]
-            # pageindex
-            self.pages = self.loadpageconfig("pageindex.json")
-            self.systems = self.loadpageconfig("systemindex.json")
-            self.highlights = self.loadpageconfig("highlightindex.json")
             # pagecontrol
             self.pagecontrol = pagecontrol()
             # tts
             self.tts = tts
-            self.sysIntro = sysIntroduction(tts, self.askcontinu)
+            #orator
+            self.sysIntro = sysIntroduction(tts, self.pagecontrol, self.askcontinu)
+            # pageindex
+            # self.pages = self.loadpageconfig("pageindex.json")
+            # self.othersystems = self.loadpageconfig("systemindex.json")
+            # self.highlights = self.loadpageconfig("highlightindex.json")
+            self.pages=self.sysIntro.loadpageindex()
+            self.othersystems = self.sysIntro.loadothersystemindex()
+            self.highlights=self.sysIntro.loadhighlightindex()
+
+            #UNIT token
             self.access_token = self.get_token()
             self.isConversationcomplete = False  # 该会话是否完成
             logger.info("[BGunit] inited")
@@ -65,14 +71,21 @@ class bgunit:
                     pagename = slots[0]['normalized_word']
                     pageindex = self.getIntentPageindex(intent, pagename)
                     if pageindex > -1:  # 找到页面，就发送消息
-                        self.pagecontrol.sendPageCtl(intent, pageindex)
                         if self.ctlandtalk: #是否需要解说
-                            self.sysIntro.talkitem_byname(pagename)
+                            if intent in self.pageintent:
+                                self.sysIntro.talkmenuitem_byname(pagename)
+                            elif intent in self.systemintent:
+                                self.sysIntro.talkothersystem_byname(pagename)
+                            elif intent in self.highlightintent:
+                                self.sysIntro.talkhighlight_byname(pagename)
+                        else:
+                            self.pagecontrol.sendPageCtl(intent, pageindex)
                     else:
                         logger.info("[BGunit] pagename not found!")
                 elif "ORATOR" in intent:  # 演示整个系统
                     # platformname = slots[0]['normalized_word']
-                    self.sysIntro.systalk()
+                    # self.sysIntro.systalk()
+                    self.sysIntro.billtalk()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:
@@ -310,7 +323,7 @@ class bgunit:
         if intent in self.pageintent:  # 在页面中查找
             pageindex = self.pages.get(pagename, -1)
         elif intent in self.systemintent:  # 在第三方系统菜单中查找
-            pageindex = self.systems.get(pagename, -1)
+            pageindex = self.othersystems.get(pagename, -1)
         elif intent in self.highlightintent:  # 在亮点场景中查找
             pageindex = self.highlights.get(pagename, -1)
         return pageindex
