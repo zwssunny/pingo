@@ -25,8 +25,6 @@ https://console.bce.baidu.com/ai平台申请
     "service_id": "s...", #"机器人ID"
     "api_key": "",
     "secret_key": "",
-    "askcontinu": false, #是否询问继续下个页面？
-    "ctlandtalk": false, #是否调转页面时进行介绍
     "pageintent": ["OPEN_PAGE","CLOSE_PAGE"], #页面操作意图
     "systemintent": ["OPEN_SYSTEM","CLOSE_SYSTEM"], #相关系统操作意图
     "highlightintent": ["OPEN_HIGHLIGHT","CLOSE_HIGHLIGHT"] #亮点场景操作意图

@@ -28,7 +28,11 @@ def Pingo():
     Xunfei_API_KEY = conf().get("xunfei_api_key")
     Xunfei_SECRET_KEY = conf().get("xunfei_secret_key")
     asr = XunfeiVoice(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
-    tts = EdgeVoice()
+    voice=conf().get("voice")
+    if voice:
+        tts = EdgeVoice(voice=voice)
+    else:
+        tts = EdgeVoice()
     # 创建插件功能
     chat_module = bgunit(tts)
     tts.text_to_speech_and_play(

@@ -8,6 +8,7 @@ from common.log import logger
 from pagecontrol.pagecontrol import pagecontrol
 from orator.sysintroduction import sysIntroduction
 from voice.voice import Voice
+from config import conf, load_config
 
 """利用百度UNIT实现智能对话
     如果命中意图，返回意图对应的回复
@@ -18,24 +19,24 @@ from voice.voice import Voice
 class bgunit:
     def __init__(self, tts: Voice):
         try:
-            conf = self.loadpageconfig("config.json")
-            if not conf:
+            bgconf = self.loadpageconfig("config.json")
+            if not bgconf:
                 raise Exception("config.json not found")
-            self.service_id = conf["service_id"]
-            self.api_key = conf["api_key"]
-            self.secret_key = conf["secret_key"]
-            self.askcontinu = conf["askcontinu"]
-            self.ctlandtalk = conf["ctlandtalk"]
+            self.service_id = bgconf["service_id"]
+            self.api_key = bgconf["api_key"]
+            self.secret_key = bgconf["secret_key"]
+            self.canpause = conf().get("canpause")
+            self.ctlandtalk = conf().get("ctlandtalk")
             # intent
-            self.pageintent = conf["pageintent"]
-            self.systemintent = conf["systemintent"]
-            self.highlightintent = conf["highlightintent"]
+            self.pageintent = bgconf["pageintent"]
+            self.systemintent = bgconf["systemintent"]
+            self.highlightintent = bgconf["highlightintent"]
             # pagecontrol
             self.pagecontrol = pagecontrol()
             # tts
             self.tts = tts
             #orator
-            self.sysIntro = sysIntroduction(tts, self.pagecontrol, self.askcontinu)
+            self.sysIntro = sysIntroduction(tts, self.pagecontrol, self.canpause)
             # pageindex
             # self.pages = self.loadpageconfig("pageindex.json")
             # self.othersystems = self.loadpageconfig("systemindex.json")

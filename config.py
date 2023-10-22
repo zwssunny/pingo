@@ -30,6 +30,9 @@ available_setting = {
     "xunfei_app_id": "", # 你的讯飞APP_ID
     "xunfei_api_key": "", # 你的讯飞API_KEY
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
+    "canpause": True, #是否可以暂停
+    "ctlandtalk": True, #是否控制页面并解说内容
+    "voice": "zh-CN-XiaoxiaoNeural",
 }
 
 

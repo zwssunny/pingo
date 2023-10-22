@@ -11,7 +11,7 @@ sysdb = "./db/pingo.db"
 
 
 class sysIntroduction:
-    def __init__(self, tts: Voice, pgectl: pagecontrol=None, askcontinu: bool = False):
+    def __init__(self, tts: Voice, pgectl: pagecontrol=None, canpause: bool = False):
         """
         系统介绍
 
@@ -21,7 +21,7 @@ class sysIntroduction:
         """
         self.conn = sqlite3.connect(sysdb)
         self.tts = tts
-        self.askcontinu = askcontinu
+        self.canpause = canpause
         if pgectl:
             self.pagecontrol = pgectl  
         else:  
@@ -104,11 +104,11 @@ class sysIntroduction:
                 "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
-                if self.askcontinu:
-                    menuname = row[0]
-                    willcontinue = input("继续演示[" + menuname + "]吗？")
-                    if willcontinue == "n":
-                        return
+                # if self.canpause:
+                #     menuname = row[0]
+                #     willcontinue = input("继续演示[" + menuname + "]吗？")
+                #     if willcontinue == "n":
+                #         return
                 self.menuitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
@@ -147,7 +147,7 @@ class sysIntroduction:
             menudesc = menuitem[3]
             logger.info("讲解" + menuname)
             self.tts.text_to_speech_and_play(menuname)
-            self.tts.text_to_speech_and_play(menudesc, self.askcontinu)
+            self.tts.text_to_speech_and_play(menudesc, self.canpause)
 
     def talkmenuitem_byid(self, menuid):
         """
@@ -198,7 +198,7 @@ class sysIntroduction:
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
             self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.askcontinu)
+            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
 
     def talkothersystem_byname(self, othersystemname):
         """
@@ -264,7 +264,7 @@ class sysIntroduction:
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
             self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.askcontinu)
+            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
 
     def talkhighlight_byname(self, highlightname):
         """
@@ -324,7 +324,7 @@ class sysIntroduction:
             itemdesc = itemcursor[2]
             logger.info("讲解" + itemname)
             self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.askcontinu)
+            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
 
     def talkfeature_byname(self, featurename):
         """解说系统特点
@@ -410,11 +410,15 @@ class sysIntroduction:
 
 if __name__ == '__main__':
     from voice.edge.EdgeVoice import EdgeVoice
-    tts = EdgeVoice()
-    sysIntro = sysIntroduction(tts, False)
+    from config import conf, load_config
+    load_config()
+    tts = EdgeVoice(voice=conf().get("voice"))
+    sysIntro = sysIntroduction(tts=tts,canpause=False)
+    # sysIntro.billtalk()  # 剧本
     # sysIntro.talkallhighlight()
     # sysIntro.talkallfeature()
     # sysIntro.talkallothersystem()
-    sysIntro.billtalk()  # 剧本
-    # sysIntro.allmenutalk() #所有大屏页面
-    # sysIntro.talkitem_byname("城市交通.地铁")
+    sysIntro.talkallmenu() #所有大屏页面
+    # sysIntro.talkmenuitem_byname("地铁")
+    # sysIntro.talkothersystem_byname("智慧交通")
+    # sysIntro.talkhighlight_byname("非现场执法")

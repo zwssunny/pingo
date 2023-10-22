@@ -11,5 +11,34 @@
     "azure_region": "",  # 你的azure region
     "xunfei_app_id": "", # 你的讯飞APP_ID
     "xunfei_api_key": "", # 你的讯飞API_KEY
-    "xunfei_secret_key": "" # 你的讯飞SECRET_KEY
+    "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
+    "canpause": true, # 是否可以暂停
+    "ctlandtalk": true, # 是否控制页面并解说内容
+    "voice": "" #声调 
 }
+#声音选项
+"""
+Name: zh-CN-XiaoxiaoNeural
+Gender: Female
+?
+Name: zh-CN-XiaoyiNeural
+Gender: Female
+?
+Name: zh-CN-YunjianNeural
+Gender: Male
+?
+Name: zh-CN-YunxiNeural
+Gender: Male
+?
+Name: zh-CN-YunxiaNeural
+Gender: Male
+?
+Name: zh-CN-YunyangNeural
+Gender: Male
+?
+Name: zh-CN-liaoning-XiaobeiNeural
+Gender: Female
+?
+Name: zh-CN-shaanxi-XiaoniNeural
+Gender: Female
+"""
