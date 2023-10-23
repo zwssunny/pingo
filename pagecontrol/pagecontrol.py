@@ -19,11 +19,12 @@ class pagecontrol(object):
             logger.warn("[pagecontrol] init failed ")
             raise e
     
-    def sendPageCtl(self, intent, pageindex):
+    def sendPageCtl(self, intent, eventid):
         """
         创建websocket链接，并发送消息
+        
         :param intent 意图 OPEN_PAGE,OPEN_SYSTEM,OPEN_HIGHLIGHT,CLOSE_PAGE,CLOSE_SYSTEM,CLOSE_HIGHTLIGHT
-        :param pageindex 页面编号,如：100,112,200,300，...... 具体看配置，pageindex.json,highlight.json,system.json
+        :param pageindex 事件编号,如：1，2，3..... 具体看配置
 
         """
         try:
@@ -32,7 +33,7 @@ class pagecontrol(object):
             ws = websocket.WebSocket()
             ws.connect(uri, timeout=6, close_timeout=6)
             # 发送控制消息
-            sendmsg = {"intent": intent, "pageIndex": pageindex}
+            sendmsg = {"intent": intent, "pageIndex": eventid}
             msg = json.dumps(sendmsg)
             logger.info(msg)
             ws.send(msg)

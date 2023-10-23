@@ -101,7 +101,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 # if self.canpause:
@@ -124,7 +124,7 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + menuname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
             menucursor = cursor.fetchone()
             if menucursor:
                 self.menuitemtalk(menucursor)
@@ -140,14 +140,17 @@ class sysIntroduction:
         """
         if menuitem:
             # 发送页面切换指令
-            pageindex = menuitem[2]
-            self.pagecontrol.sendPageCtl("OPEN_PAGE", pageindex)
+            eventid = menuitem[2]
+            self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
             # 介绍页面功能
             menuname = menuitem[0]
             menudesc = menuitem[3]
             logger.info("讲解" + menuname)
             self.tts.text_to_speech_and_play(menuname)
             self.tts.text_to_speech_and_play(menudesc, self.canpause)
+             # 发送页面关闭指令
+            # eventid = itemcursor[4]
+            # self.pagecontrol.sendPageCtl("CLOSE_PAGE", eventid)             
 
     def talkmenuitem_byid(self, menuid):
         """
@@ -159,7 +162,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM MENUITEM WHERE ID = ?", (menuid,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM WHERE ID = ?", (menuid,))
             menucursor = cursor.fetchone()
             if menucursor:
                 self.menuitemtalk(menucursor)
@@ -176,7 +179,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM OTHERSYSTEM WHERE  ID = ?", (othersystemid,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM WHERE  ID = ?", (othersystemid,))
             itemcursor = cursor.fetchone()
             if itemcursor:
                 self.othersystemitemtalk(itemcursor)
@@ -191,14 +194,17 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            pageindex = itemcursor[2]
-            self.pagecontrol.sendPageCtl("OPEN_SYSTEM", pageindex)
+            eventid = itemcursor[2]
+            self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
             # 介绍页面功能
             itemname = itemcursor[0]
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
             self.tts.text_to_speech_and_play(itemname)
             self.tts.text_to_speech_and_play(itemdesc, self.canpause)
+            # 发送页面关闭指令
+            eventid = itemcursor[4]
+            self.pagecontrol.sendPageCtl("CLOSE_SYSTEM", eventid)         
 
     def talkothersystem_byname(self, othersystemname):
         """
@@ -211,7 +217,7 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + othersystemname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM OTHERSYSTEM WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM WHERE NAME LIKE ?", (name_pattern,))
             itemcursor = cursor.fetchone()
             if itemcursor:
                 self.othersystemitemtalk(itemcursor)
@@ -226,12 +232,13 @@ class sysIntroduction:
         try:
             # 查询记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM OTHERSYSTEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
                 self.othersystemitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
+
     def talkhighlight_byid(self, highlightid):
         """
         解说某个亮点场景
@@ -242,7 +249,7 @@ class sysIntroduction:
         try:
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM HIGHLIGHT WHERE ID = ?", (highlightid,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT WHERE ID = ?", (highlightid,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
                 self.highlightitemtalk(highlightcursor)
@@ -257,14 +264,17 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            pageindex = itemcursor[2]
-            self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", pageindex)
+            eventid = itemcursor[2]
+            self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
             # 介绍页面功能
             itemname = itemcursor[0]
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
             self.tts.text_to_speech_and_play(itemname)
             self.tts.text_to_speech_and_play(itemdesc, self.canpause)
+            # 发送页面关闭指令
+            # eventid = itemcursor[4]
+            # self.pagecontrol.sendPageCtl("CLOSE_HIGHLIGHT", eventid)           
 
     def talkhighlight_byname(self, highlightname):
         """
@@ -277,7 +287,7 @@ class sysIntroduction:
             # 查询亮点场景记录
             name_pattern = "%" + highlightname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM HIGHLIGHT WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT WHERE NAME LIKE ?", (name_pattern,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
                 self.highlightitemtalk(highlightcursor)
@@ -292,7 +302,7 @@ class sysIntroduction:
         try:
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX, DESC FROM HIGHLIGHT ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT ORDER BY ORDERNO")
             highlightcursors = cursor.fetchall()
             for row in highlightcursors:
                 self.highlightitemtalk(row)
@@ -365,7 +375,7 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX FROM MENUITEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
@@ -382,7 +392,7 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX FROM HIGHLIGHT ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT FROM HIGHLIGHT ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
@@ -399,7 +409,7 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, PAGEINDEX FROM OTHERSYSTEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
@@ -414,10 +424,10 @@ if __name__ == '__main__':
     load_config()
     tts = EdgeVoice(voice=conf().get("voice","zh-CN-YunjianNeural"))
     sysIntro = sysIntroduction(tts=tts,canpause=True)
-    sysIntro.billtalk()  # 剧本
+    # sysIntro.billtalk()  # 剧本
     # sysIntro.talkallhighlight()
     # sysIntro.talkallfeature()
-    # sysIntro.talkallothersystem()
+    sysIntro.talkallothersystem()
     # sysIntro.talkallmenu() #所有大屏页面
     # sysIntro.talkmenuitem_byname("地铁")
     # sysIntro.talkothersystem_byname("智慧交通")
