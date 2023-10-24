@@ -422,7 +422,7 @@ if __name__ == '__main__':
     from voice.edge.EdgeVoice import EdgeVoice
     from config import conf, load_config
     load_config()
-    tts = EdgeVoice(voice=conf().get("voice","zh-CN-YunjianNeural"))
+    tts = EdgeVoice(voice_name=conf().get("voice_name","zh-CN-YunjianNeural"))
     sysIntro = sysIntroduction(tts=tts,canpause=True)
     # sysIntro.billtalk()  # 剧本
     # sysIntro.talkallhighlight()

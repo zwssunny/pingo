@@ -14,7 +14,7 @@
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
     "canpause": true, # 是否可以暂停
     "ctlandtalk": true, # 是否控制页面并解说内容
-    "voice": "" #声调 
+    "voice_name": "" #声调 
 }
 #声音选项
 """

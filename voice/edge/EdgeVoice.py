@@ -11,8 +11,8 @@ from common.log import logger
 
 
 class EdgeVoice(Voice):
-    def __init__(self, voice: str = "zh-CN-YunjianNeural", rate: str = "+0%", volume: str = "+0%"):
-        self.voice = voice
+    def __init__(self, voice_name: str = "zh-CN-YunjianNeural", rate: str = "+0%", volume: str = "+0%"):
+        self.voice_name = voice_name
         self.rate = rate
         self.volume = volume
 
@@ -24,7 +24,7 @@ class EdgeVoice(Voice):
             fileName = getCache(text)
             play_audio_with_pygame(fileName, canwait)
         else:
-            communicate = Communicate(text, self.voice)
+            communicate = Communicate(text, self.voice_name)
             fileName = TmpDir().path() + "reply-" + str(int(time.time())) + \
                 "-" + str(hash(text) & 0x7FFFFFFF) + ".mp3"
             await communicate.save(fileName)

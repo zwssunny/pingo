@@ -32,7 +32,7 @@ available_setting = {
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
     "canpause": True, #是否可以暂停
     "ctlandtalk": True, #是否控制页面并解说内容
-    "voice": "zh-CN-XiaoxiaoNeural",
+    "voice_name": "zh-CN-XiaoxiaoNeural",
 }
 
 
