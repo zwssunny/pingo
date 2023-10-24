@@ -84,6 +84,7 @@ def Pingo():
     except KeyboardInterrupt:
         logger.info("Stopping ...")
     finally:
+        conf().save_user_datas()
         tts.text_to_speech_and_play("好的，我退下了，再见！")
         porcupine and porcupine.delete()
         recorder and recorder.delete()
