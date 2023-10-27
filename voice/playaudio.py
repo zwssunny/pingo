@@ -37,7 +37,11 @@ def play_audio_can_wait(audio_file_path):
             pygame.quit()
             break
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_SPACE:
+            if event.key == pygame.K_UP:
+                pygame.mixer.music.set_playback_speed(pygame.mixer.music.get_playback_speed() + 0.1)
+            elif event.key == pygame.K_DOWN:
+                pygame.mixer.music.set_playback_speed(pygame.mixer.music.get_playback_speed() - 0.1)
+            elif event.key == pygame.K_SPACE:
                 pause = not pause
                 if pause:
                     pygame.mixer.music.pause()

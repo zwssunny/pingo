@@ -17,7 +17,7 @@ class sysIntroduction:
 
         Args:
             tts (Voice): 语音实例。
-            askcontinu (bool, optional): 是否要人为控制. Defaults to False.
+            canpause (bool, optional): 是否可暂停. Defaults to False.
         """
         self.conn = sqlite3.connect(sysdb)
         self.tts = tts
@@ -249,7 +249,7 @@ class sysIntroduction:
         try:
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT WHERE ID = ?", (highlightid,))
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.ID = ?", (highlightid,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
                 self.highlightitemtalk(highlightcursor)
@@ -287,7 +287,7 @@ class sysIntroduction:
             # 查询亮点场景记录
             name_pattern = "%" + highlightname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.NAME LIKE ?", (name_pattern,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
                 self.highlightitemtalk(highlightcursor)
@@ -302,7 +302,7 @@ class sysIntroduction:
         try:
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT ORDER BY ORDERNO")
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
             highlightcursors = cursor.fetchall()
             for row in highlightcursors:
                 self.highlightitemtalk(row)
@@ -424,10 +424,12 @@ if __name__ == '__main__':
     load_config()
     tts = EdgeVoice(voice_name=conf().get("voice_name","zh-CN-YunjianNeural"))
     sysIntro = sysIntroduction(tts=tts,canpause=True)
+    # sysIntro.talkhighlight_byname("地铁运营监测")
+    # sysIntro.talkhighlight_byid(1)
     # sysIntro.billtalk()  # 剧本
-    # sysIntro.talkallhighlight()
+    sysIntro.talkallhighlight()
     # sysIntro.talkallfeature()
-    sysIntro.talkallothersystem()
+    # sysIntro.talkallothersystem()
     # sysIntro.talkallmenu() #所有大屏页面
     # sysIntro.talkmenuitem_byname("地铁")
     # sysIntro.talkothersystem_byname("智慧交通")
