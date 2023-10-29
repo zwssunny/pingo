@@ -14,7 +14,21 @@
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
     "canpause": true, # 是否可以暂停
     "ctlandtalk": true, # 是否控制页面并解说内容
-    "voice_name": "" #声调 
+    "voice_name": "zh-CN-XiaoxiaoNeural", #声调 
+    "server": {
+        "enable": true,
+        "host": "0.0.0.0",  # ip 地址
+        "port": 5001,  # 端口号
+        "username": "pingo", # 用户名
+        # cookie 的 secret ，用于对 cookie 的内容进行加密及防止篡改
+        # 建议使用 os.urandom(24) 生成一串随机字符串
+        # 强烈建议修改!!!
+        "cookie_secret": "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+        # 密码的 md5，可以用 python3 pingo.py md5 "密码" 获得
+        # 初始密码为 pingo@2023
+        # 强烈建议修改!!!
+        "validate": "2499d2e04e0f949927690d6375ce1a67"
+    }
 }
 #声音选项
 """

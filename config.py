@@ -16,23 +16,62 @@ available_setting = {
     "keyword_path": "",  # 你的唤醒词检测离线文件地址
     "model_path": "",   # 中文模型地址
     "sensitivity": 0.5,  # 噪音指数
-    # baidu 语音api配置， 使用百度语音识别和语音合成时需要
-    "baidu_app_id": "",  # 你的百度APP_ID
-    "baidu_api_key": "",  # 你的百度API_KEY
-    "baidu_secret_key": "",  # 你的百度SECRET_KEY
-    # 1536普通话(支持简单的英文识别) 1737英语 1637粤语 1837四川话 1936普通话远场
-    "baidu_dev_pid": "1536",
     # azure 语音api配置， 使用azure语音识别和语音合成时需要
     "azure_api_key": "",  # 你的azure key
     "azure_region": "japaneast",  # 你的azure region
     "debug": True,
     "appdata_dir": "",
-    "xunfei_app_id": "", # 你的讯飞APP_ID
-    "xunfei_api_key": "", # 你的讯飞API_KEY
-    "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
     "canpause": True, #是否可以暂停
     "ctlandtalk": True, #是否控制页面并解说内容
-    "voice_name": "zh-CN-XiaoxiaoNeural",
+    "server": {
+        "enable": True,
+        "host": "0.0.0.0",  # ip 地址
+        "port": 5001,  # 端口号
+        "username": "pingo", # 用户名
+        # cookie 的 secret ，用于对 cookie 的内容进行加密及防止篡改
+        # 建议使用 os.urandom(24) 生成一串随机字符串
+        # 强烈建议修改!!!
+        "cookie_secret": "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
+        # 密码的 md5，可以用 python3 main.py md5 "密码" 获得
+        # 初始密码为 pingo@2023
+        # 强烈建议修改!!!
+        "validate": "2499d2e04e0f949927690d6375ce1a67"
+    },
+    "asr_engine": "baidu-asr",
+    # baidu 语音api配置， 使用百度语音识别和语音合成时需要
+    "baidu_yuyin": {
+        "appid": "", #你的百度APP_ID
+        "api_key": "", # 你的百度API_KEY
+        "secret_key": "" # 你的百度SECRET_KEY
+    },
+    "xunfei_yuyin": {
+        "appid": "", # 你的讯飞APP_ID
+        "api_key": "", # 你的讯飞API_KEY
+        "secret_key": "" # 你的讯飞SECRET_KEY
+    },
+    "tts_engine": "edge-tts",
+    "edge-tts": {
+        "voice": "zh-CN-XiaoxiaoNeural"
+    },
+    "nlu_engine": "unit",
+    #百度Unit机器人
+    "unit": {
+        "service_id": "", #"机器人ID"
+        "api_key": "",
+        "secret_key": ""
+    },
+        "pageintent": [
+        "OPEN_PAGE",
+        "CLOSE_PAGE"
+    ],
+    "systemintent": [
+        "OPEN_SYSTEM",
+        "CLOSE_SYSTEM"
+    ],
+    "highlightintent": [
+        "OPEN_HIGHLIGHT",
+        "CLOSE_HIGHLIGHT"
+    ],
 }
 
 

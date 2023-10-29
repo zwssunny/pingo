@@ -5,13 +5,12 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from pagecontrol.pagecontrol import pagecontrol
 from common.log import logger
-from voice.voice import Voice
 
 sysdb = "./db/pingo.db"
 
 
 class sysIntroduction:
-    def __init__(self, tts: Voice, pgectl: pagecontrol=None, canpause: bool = False):
+    def __init__(self, conversation, pgectl: pagecontrol=None, ctlandtalk: bool=False):
         """
         系统介绍
 
@@ -20,8 +19,10 @@ class sysIntroduction:
             canpause (bool, optional): 是否可暂停. Defaults to False.
         """
         self.conn = sqlite3.connect(sysdb)
-        self.tts = tts
-        self.canpause = canpause
+        self.conversation = conversation
+        self.is_stop=False
+        self.ctlandtalk=ctlandtalk #是否控制页面跳转
+
         if pgectl:
             self.pagecontrol = pgectl  
         else:  
@@ -33,16 +34,17 @@ class sysIntroduction:
         """
         try:
             # 查询系统介绍内容
+            self.is_stop=False
             cursor = self.conn.execute(
                 "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
             billcursor = cursor.fetchone()
             if billcursor:
                 billdesc = billcursor[3]
                 billid = billcursor[0]
-                self.tts.text_to_speech_and_play(billdesc)
+                self.conversation.say(billdesc)
                 self.talkAllBillItem(billid)
             else:
-                self.tts.text_to_speech_and_play("找不到剧本")
+                self.conversation.say("找不到剧本")
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -58,11 +60,8 @@ class sysIntroduction:
                 "SELECT TYPENAME,TYPEID, ORDERNO FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
             itemcursor = cursor.fetchall()
             for row in itemcursor:
-                # if self.askcontinu:
-                #     willcontinue = input("继续演示吗？")
-                #     if willcontinue == "n":
-                #         return
-
+                if self.is_stop:
+                    break
                 typename = row[0]
                 typeid = row[1]
                 if typename == 'MENUITEM':
@@ -87,10 +86,10 @@ class sysIntroduction:
             prjcursor = cursor.fetchone()
             if prjcursor:
                 prjdesc = prjcursor[2]
-                self.tts.text_to_speech_and_play(prjdesc)
+                self.conversation.say(prjdesc)
                 self.talkallmenu()
             else:
-                self.tts.text_to_speech_and_play("找不到该系统")
+                self.conversation.say("找不到该系统")
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -100,15 +99,13 @@ class sysIntroduction:
         """
         try:
             # 查询菜单记录
+            self.is_stop=False
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
-                # if self.canpause:
-                #     menuname = row[0]
-                #     willcontinue = input("继续演示[" + menuname + "]吗？")
-                #     if willcontinue == "n":
-                #         return
+                if self.is_stop:
+                    break
                 self.menuitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
@@ -140,14 +137,15 @@ class sysIntroduction:
         """
         if menuitem:
             # 发送页面切换指令
-            eventid = menuitem[2]
-            self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
+            if self.ctlandtalk:
+                eventid = menuitem[2]
+                self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
             # 介绍页面功能
             menuname = menuitem[0]
             menudesc = menuitem[3]
             logger.info("讲解" + menuname)
-            self.tts.text_to_speech_and_play(menuname)
-            self.tts.text_to_speech_and_play(menudesc, self.canpause)
+            self.conversation.say(menuname)
+            self.conversation.say(menudesc)
              # 发送页面关闭指令
             # eventid = itemcursor[4]
             # self.pagecontrol.sendPageCtl("CLOSE_PAGE", eventid)             
@@ -194,17 +192,19 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            eventid = itemcursor[2]
-            self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
+            if self.ctlandtalk:
+                eventid = itemcursor[2]
+                self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
             # 介绍页面功能
             itemname = itemcursor[0]
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
-            self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
+            self.conversation.say(itemname)
+            self.conversation.say(itemdesc)
             # 发送页面关闭指令
-            eventid = itemcursor[4]
-            self.pagecontrol.sendPageCtl("CLOSE_SYSTEM", eventid)         
+            if self.ctlandtalk:
+                eventid = itemcursor[4]
+                self.pagecontrol.sendPageCtl("CLOSE_SYSTEM", eventid)         
 
     def talkothersystem_byname(self, othersystemname):
         """
@@ -230,11 +230,14 @@ class sysIntroduction:
 
         """
         try:
+            self.is_stop=False
             # 查询记录
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
+                if self.is_stop:
+                    break
                 self.othersystemitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
@@ -264,17 +267,19 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            eventid = itemcursor[2]
-            self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
+            if self.ctlandtalk:  
+                eventid = itemcursor[2]
+                self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
             # 介绍页面功能
             itemname = itemcursor[0]
             itemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
-            self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
+            self.conversation.say(itemname)
+            self.conversation.say(itemdesc)
             # 发送页面关闭指令
-            # eventid = itemcursor[4]
-            # self.pagecontrol.sendPageCtl("CLOSE_HIGHLIGHT", eventid)           
+            # if self.ctlandtalk:
+                # eventid = itemcursor[4]
+                # self.pagecontrol.sendPageCtl("CLOSE_HIGHLIGHT", eventid)           
 
     def talkhighlight_byname(self, highlightname):
         """
@@ -300,11 +305,14 @@ class sysIntroduction:
 
         """
         try:
+            self.is_stop=False
             # 查询亮点场景记录
             cursor = self.conn.execute(
                 "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
             highlightcursors = cursor.fetchall()
             for row in highlightcursors:
+                if self.is_stop:
+                    break
                 self.highlightitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
@@ -333,8 +341,8 @@ class sysIntroduction:
             itemname = itemcursor[0]
             itemdesc = itemcursor[2]
             logger.info("讲解" + itemname)
-            self.tts.text_to_speech_and_play(itemname)
-            self.tts.text_to_speech_and_play(itemdesc, self.canpause)
+            self.conversation.say(itemname)
+            self.conversation.say(itemdesc)
 
     def talkfeature_byname(self, featurename):
         """解说系统特点
@@ -358,11 +366,14 @@ class sysIntroduction:
 
         """
         try:
+            self.is_stop=False
             # 查询记录
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO,  DESC FROM FEATURES ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
+                if self.is_stop:
+                    break
                 self.featureitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
@@ -375,7 +386,7 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT FROM MENUITEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, CLOSEEVENT FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
@@ -392,7 +403,7 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT FROM HIGHLIGHT ORDER BY ORDERNO")
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
@@ -409,21 +420,24 @@ class sysIntroduction:
             results={}
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, CLOSEEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 results[row[0]]=row[2]
 
             return results
         except sqlite3.Error as error:
-            logger.error(error)     
+            logger.error(error)    
+
+    def stop(self):
+         self.is_stop=True
 
 if __name__ == '__main__':
-    from voice.edge.EdgeVoice import EdgeVoice
-    from config import conf, load_config
+    from config import load_config
+    from robot.conversation import Conversation
     load_config()
-    tts = EdgeVoice(voice_name=conf().get("voice_name","zh-CN-YunjianNeural"))
-    sysIntro = sysIntroduction(tts=tts,canpause=True)
+    conversation=Conversation()
+    sysIntro = sysIntroduction(conversation=conversation)
     # sysIntro.talkhighlight_byname("地铁运营监测")
     # sysIntro.talkhighlight_byid(1)
     # sysIntro.billtalk()  # 剧本
