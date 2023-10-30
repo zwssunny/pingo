@@ -13,7 +13,6 @@ def initDetector(pingo: Pingo):
     初始化离线唤醒热词监听器，支持 snowboy 和 porcupine 两大引擎
     """
     global porcupine, recorder, detector
-    logger.info("使用 porcupine 进行离线唤醒")
 
     import pvporcupine
     from pvrecorder import PvRecorder
@@ -85,3 +84,4 @@ def initDetector(pingo: Pingo):
     finally:
         porcupine and porcupine.delete()
         recorder and recorder.delete()
+        pingo and pingo.conversation and pingo.conversation.quit()

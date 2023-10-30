@@ -128,6 +128,15 @@ class Config(dict):
         except Exception as e:
             logger.info("[Config] User datas error: {}".format(e))
 
+    def getText(self):
+        config_path = "./config.json"
+        config_str = read_file(config_path)
+        return config_str
+    
+    def dump(configStr):
+        config_path = "./config.json"
+        with open(config_path, "w") as f:
+            f.write(configStr)
 
 config = Config()
 

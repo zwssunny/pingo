@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from common import utils
 from common.log import logger
-from robot.sdk import unit
+from robot.sdk import baiduUnit
 
 
 class AbstractNLU(object):
@@ -98,6 +98,8 @@ class UnitNLU(AbstractNLU):
     def __init__(self):
         super(self.__class__, self).__init__()
 
+        self.unit=baiduUnit.baiduUnit()
+
     @classmethod
     def get_config(cls):
         """
@@ -125,7 +127,7 @@ class UnitNLU(AbstractNLU):
         ):
             logger.critical(f"{self.SLUG} NLU 失败：参数错误！", stack_info=True)
             return None
-        return unit.getUnit(
+        return self.unit.getUnit(
             query, args["service_id"], args["api_key"], args["secret_key"]
         )
 
@@ -136,7 +138,7 @@ class UnitNLU(AbstractNLU):
         :param parsed: 解析结果
         :returns: 意图数组
         """
-        return unit.getIntent(parsed)
+        return self.unit.getIntent(parsed)
 
     def hasIntent(self, parsed, intent):
         """
@@ -146,7 +148,7 @@ class UnitNLU(AbstractNLU):
         :param intent: 意图的名称
         :returns: True: 包含; False: 不包含
         """
-        return unit.hasIntent(parsed, intent)
+        return self.unit.hasIntent(parsed, intent)
 
     def getSlots(self, parsed, intent):
         """
@@ -157,7 +159,7 @@ class UnitNLU(AbstractNLU):
         :returns: 词槽列表。你可以通过 name 属性筛选词槽，
         再通过 normalized_word 属性取出相应的值
         """
-        return unit.getSlots(parsed, intent)
+        return self.unit.getSlots(parsed, intent)
 
     def getSlotWords(self, parsed, intent, name):
         """
@@ -168,7 +170,7 @@ class UnitNLU(AbstractNLU):
         :param name: 词槽名
         :returns: 命中该词槽的值的列表。
         """
-        return unit.getSlotWords(parsed, intent, name)
+        return self.unit.getSlotWords(parsed, intent, name)
 
     def getSlotOriginalWords(self, parsed, intent, name):
         """
@@ -179,7 +181,7 @@ class UnitNLU(AbstractNLU):
         :param name: 词槽名
         :returns: 命中该词槽的值的列表。
         """
-        return unit.getSlotOriginalWords(parsed, intent, name)
+        return self.unit.getSlotOriginalWords(parsed, intent, name)
 
     def getSay(self, parsed, intent):
         """
@@ -189,7 +191,7 @@ class UnitNLU(AbstractNLU):
         :param intent: 意图的名称
         :returns: UNIT 的回复文本
         """
-        return unit.getSay(parsed, intent)
+        return self.unit.getSay(parsed, intent)
 
 
 def get_engine_by_slug(slug=None) -> AbstractNLU:

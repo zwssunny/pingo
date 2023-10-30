@@ -177,7 +177,7 @@ def asr_on_open(ws):
     global asrWsParam
 
     def run(*args):
-        frameSize = 1220  # 每一帧的音频大小
+        frameSize = 6400  # 每一帧的音频大小1220
         intervel = 0.04  # 发送音频间隔(单位:s)
         status = STATUS_FIRST_FRAME  # 音频的状态信息，标识音频是第一帧，还是中间帧、最后一帧
         with open(asrWsParam.AudioFile, "rb") as fp:

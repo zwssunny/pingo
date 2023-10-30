@@ -1,5 +1,4 @@
 import os
-import yaml
 import json
 import time
 import base64
@@ -18,8 +17,8 @@ import tornado.httpserver
 from tornado.websocket import WebSocketHandler
 from urllib.parse import unquote
 
-from config import conf, load_config
-from common.log import logger
+from config import conf, load_config, read_file
+from common.log import logger, readLog
 from robot import History
 from common import utils
 
@@ -46,12 +45,12 @@ class BaseHandler(tornado.web.RequestHandler):
             return False
         return str(
             self.get_secure_cookie("validation"), encoding="utf-8"
-        ) == conf.get("server.validate", "")
+        ) == conf().get("server.validate", "")
 
     def validate(self, validation):
         if validation and '"' in validation:
             validation = validation.replace('"', "")
-        return validation == conf.get("server.validate", "") or validation == str(
+        return validation == conf().get("server")["validate"] or validation == str(
             self.get_cookie("validation")
         )
 
@@ -77,7 +76,7 @@ class MessageUpdatesHandler(BaseHandler):
             self.write(json.dumps(res))
         else:
             cursor = self.get_argument("cursor", None)
-            history = History()
+            history = History.History()
             messages = history.get_messages_since(cursor)
             while not messages:
                 # Save the Future returned here so we can cancel it in
@@ -166,14 +165,14 @@ class ChatHandler(BaseHandler):
             elif self.get_argument("type") == "voice":
                 voice_data = self.get_argument("voice")
                 tmpfile = utils.write_temp_file(base64.b64decode(voice_data), ".wav")
-                fname, suffix = os.path.splitext(tmpfile)
-                nfile = fname + "-16k" + suffix
+                # fname, suffix = os.path.splitext(tmpfile)
+                # nfile = fname + "-16k" + suffix
                 # downsampling
-                soxCall = "sox " + tmpfile + " " + nfile + " rate 16k"
-                subprocess.call([soxCall], shell=True, close_fds=True)
-                utils.check_and_delete(tmpfile)
+                # soxCall = "sox " + tmpfile + " " + nfile + " rate 16k"
+                # subprocess.call([soxCall], shell=True, close_fds=True)
+                # utils.check_and_delete(tmpfile)
                 conversation.doConverse(
-                    nfile,
+                    tmpfile,
                     onSay=lambda msg, audio, plugin: self.on_resp(msg, audio, plugin),
                     onStream=lambda data, resp_uuid: self.onStream(
                         data, resp_uuid)
@@ -211,7 +210,7 @@ class GetLogHandler(BaseHandler):
             self.write(json.dumps(res))
         else:
             lines = self.get_argument("lines", default=200)
-            res = {"code": 0, "message": "ok", "log": logging.readLog(lines)}
+            res = {"code": 0, "message": "ok", "log": readLog(lines)}
             self.write(json.dumps(res))
         self.finish()
 
@@ -250,7 +249,7 @@ class ConfigPageHandler(BaseHandler):
         if not self.isValidated():
             self.redirect("/login")
         else:
-            self.render("config.html", sensitivity=conf.get("sensitivity"))
+            self.render("config.html", sensitivity=conf().get("sensitivity"))
 
 
 class ConfigHandler(BaseHandler):
@@ -265,11 +264,11 @@ class ConfigHandler(BaseHandler):
                 res = {
                     "code": 0,
                     "message": "ok",
-                    "config": conf.getText(),
-                    "sensitivity": conf.get("sensitivity", 0.5),
+                    "config": conf().getText(),
+                    "sensitivity": conf().get("sensitivity", 0.5),
                 }
             else:
-                res = {"code": 0, "message": "ok", "value": conf.get(key)}
+                res = {"code": 0, "message": "ok", "value": conf().get(key)}
             self.write(json.dumps(res))
         self.finish()
 
@@ -278,12 +277,13 @@ class ConfigHandler(BaseHandler):
             configStr = self.get_argument("config")
             try:
                 cfg = unquote(configStr)
-                yaml.safe_load(cfg)
-                conf.dump(cfg)
+                # cfg=yaml.safe_load(cfg)
+                cfg=json.loads(cfg)
+                conf().dump(cfg)
                 res = {"code": 0, "message": "ok"}
                 self.write(json.dumps(res))
             except:
-                res = {"code": 1, "message": "YAML解析失败，请检查内容"}
+                res = {"code": 1, "message": "json解析失败，请检查内容"}
                 self.write(json.dumps(res))
         else:
             res = {"code": 1, "message": "illegal visit"}
@@ -298,9 +298,12 @@ class APIHandler(BaseHandler):
             self.redirect("/login")
         else:
             content = ""
-            r = requests.get("/api.md")
+            #直接读本地文档
+            # r = requests.get("/api.md")
+            filepath=os.path.join(utils.APP_PATH, "server/templates/api.md")
+            rtext=read_file(filepath)
             content = markdown.markdown(
-                r.text,
+                rtext,
                 extensions=[
                     "codehilite",
                     "tables",
@@ -320,15 +323,13 @@ class LoginHandler(BaseHandler):
             self.render("login.html", error=None)
 
     def post(self):
-        if self.get_argument("username") == conf.get(
+        if self.get_argument("username") == conf().get(
             "server.username"
         ) and hashlib.md5(
             self.get_argument("password").encode("utf-8")
-        ).hexdigest() == conf.get(
-            "server.validate"
-        ):
+        ).hexdigest() == conf().get("server")["validate"]:
             logger.info("login success")
-            self.set_secure_cookie("validation", conf.get("server.validate"))
+            self.set_secure_cookie("validation", conf().get("server")["validate"])
             self.redirect("/")
         else:
             self.render("login.html", error="登录失败")
@@ -342,7 +343,7 @@ class LogoutHandler(BaseHandler):
 
 
 settings = {
-    "cookie_secret": conf.get(
+    "cookie_secret": conf().get(
         "server.cookie_secret", "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__"
     ),
     "template_path": os.path.join(utils.APP_PATH, "server/templates"),
@@ -374,7 +375,7 @@ application = tornado.web.Application(
         (
             r"/audio/(.+\.(?:mp3|wav|pcm))",
             tornado.web.StaticFileHandler,
-            {"path": utils.TMP_PATH},
+            {"path": utils.CACH_PATH},
         ),
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": "server/static"}),
     ],
@@ -386,8 +387,8 @@ def start_server(con, pg):
     global conversation, pingo
     conversation = con
     pingo = pg
-    if conf.get("server.enable", False):
-        port = conf.get("server.port", "5001")
+    if conf().get("server.enable", False):
+        port = conf().get("server.port", "5001")
         try:
             asyncio.set_event_loop(asyncio.new_event_loop())
             application.listen(int(port))

@@ -25,26 +25,36 @@ class Pingo(object):
         self.conversation = Conversation() 
         self.conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey pingo!'") 
     
-    def _signal_handler(self, signal, frame):
+    def sigterm_handler_wrap(self, _signo):
+        old_handler = signal.getsignal(_signo)
         self._interrupted = True
-        conf().save_user_datas()
-        utils.clean()   
-    
+        def func(_signo, _stack_frame):
+            logger.info("signal {} received, exiting...".format(_signo))
+            conf().save_user_datas()
+            utils.clean()  
+            if callable(old_handler):  #  check old_handler
+                return old_handler(_signo, _stack_frame)
+            sys.exit(0)
+        signal.signal(_signo, func)
+
     def _interrupt_callback(self):
         return self._interrupted
                    
     def run(self):
-        self.init()
-        # capture SIGINT signal, e.g., Ctrl+C
-        signal.signal(signal.SIGINT, self._signal_handler)
-        # 后台管理端
-        # server.run(self.conversation, self, debug=self._debug)
         try:
+            self.init()
+            # capture SIGINT signal, e.g., Ctrl+C
+            # ctrl + c
+            self.sigterm_handler_wrap(signal.SIGINT)
+            # kill signal
+            self.sigterm_handler_wrap(signal.SIGTERM)
+            # 后台管理端
+            # server.run(self.conversation, self, debug=self._debug)
             # 初始化离线唤醒
             detector.initDetector(self)
-        except AttributeError:
-            logger.error("初始化离线唤醒功能失败", stack_info=True)
-            pass
+        except Exception as e:
+            logger.error("Pingo startup failed!")
+            logger.exception(e)
 
     def restart(self):
         """

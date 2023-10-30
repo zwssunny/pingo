@@ -1,8 +1,10 @@
 
+import os
 import re
 import time
 import uuid
 import speech_recognition as sr
+from common import utils
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
@@ -19,6 +21,8 @@ class Conversation(object):
         self.isConversationcomplete =False
         self.isRecording = False
         self.hasPardon = False
+        self.onSay = None
+        self.onStream = None
         self.recognizer = sr.Recognizer()
 
     def reInit(self):
@@ -35,16 +39,37 @@ class Conversation(object):
             self.tts = TTS.get_engine_by_slug(conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
             self.player = Player.Player()
-            self.introduction = sysIntroduction(self, ctlandtalk=self.ctlandtalk)
+            self.introduction = sysIntroduction(conversation=self, ctlandtalk=self.ctlandtalk)
         except Exception as e:
             logger.critical(f"对话初始化失败：{e}", stack_info=True)
+    
+    def quit(self):
+        if self.player:
+            self.player.quit()
 
+    def getHistory(self):
+        return self.history
+    
     def interrupt(self):
+        """打断会话过程，不会恢复
+        """        
         if self.introduction:
             self.introduction.stop()
         if self.player and self.player.is_playing():
             self.player.stop()
-            
+
+    def pause(self):
+        """暂停会话，可以通过unpause()恢复
+        """        
+        if self.player and self.player.is_playing():
+            self.player.pause()
+
+    def unpause(self):
+        """继续播放声音
+        """        
+        if self.player:
+            self.player.unpause()
+
     def appendHistory(self, t, text, UUID="", plugin=""):
         """将会话历史加进历史记录"""
         if t in (0, 1) and text:
@@ -79,12 +104,17 @@ class Conversation(object):
     def say(self, msg,  plugin="", append_history=True):
         if not msg:
             return
-      
+             
         if append_history:
             self.appendHistory(1, msg, plugin=plugin)
+        # msg = utils.stripPunctuation(msg).strip()
+     
+
         voice = self.tts.get_speech(msg)
-        logger.info(f"TTS合成成功。msg: {msg}")
+        # logger.info(f"TTS合成成功。msg: {msg}")
         self.player.play_audio(voice)
+
+        self._after_play(msg, voice, plugin)
 
     def pardon(self):
         if not self.hasPardon:
@@ -94,11 +124,33 @@ class Conversation(object):
             self.say("没听清呢")
             self.hasPardon = False
 
+    def doConverse(self, fp, callback=None, onSay=None, onStream=None):
+        self.interrupt()
+        try:
+            query = self.asr.transcribe(fp)
+        except Exception as e:
+            logger.critical(f"ASR识别失败：{e}", stack_info=True)
+        try:
+            self.doResponse(query, callback, onSay, onStream)
+        except Exception as e:
+            logger.critical(f"回复失败：{e}", stack_info=True)
+
+    def _after_play(self, msg, audios, plugin=""):
+        serverhost=conf().get("server")
+        cached_audios = [
+            f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
+            for voice in audios
+        ]
+        if self.onSay:
+            logger.info(f"onSay: {msg}, {cached_audios}")
+            self.onSay(msg, cached_audios, plugin=plugin)
+            self.onSay = None
+
     def doParse(self, query):
         args = conf().get("unit")
         return self.nlu.parse(query, **args)
     
-    def doResponse(self, query, UUID=""):
+    def doResponse(self, query, UUID="",onSay=None, onStream=None):
         """
         响应指令
 
@@ -107,6 +159,12 @@ class Conversation(object):
         """
         self.interrupt()
         self.appendHistory(0, query, UUID)
+
+        if onSay:
+            self.onSay = onSay
+
+        if onStream:
+            self.onStream = onStream
 
         if query.strip() == "":
             self.pardon()
@@ -175,6 +233,7 @@ class Conversation(object):
         """
         voice=self._record()
         if voice:
+            logger.info("调用ARS引擎")
             query = self.asr.transcribe(voice)
             return query
         
