@@ -7,11 +7,12 @@ import pickle
 
 from common.log import logger
 
+has_init=False
 # 将所有可用的配置项写在字典里, 请使用小写字母
 # 此处的配置值无实际意义，程序不会读取此处的配置，仅用于提示格式，请将配置加入到config.json中
 available_setting = {
     # openai api配置
-    "openai_api_key": "",  # openai api key
+    "debug":  False,  # openai api key
     "picovoice_api_key": "",  # 你的picovoice key
     "keyword_path": "",  # 你的唤醒词检测离线文件地址
     "model_path": "",   # 中文模型地址
@@ -42,12 +43,16 @@ available_setting = {
     "baidu_yuyin": {
         "appid": "", #你的百度APP_ID
         "api_key": "", # 你的百度API_KEY
-        "secret_key": "" # 你的百度SECRET_KEY
+        "secret_key": "", # 你的百度SECRET_KEY
+        "dev_pid": 1536,
+        "per": 1,
+        "lan": "zh" 
     },
     "xunfei_yuyin": {
         "appid": "", # 你的讯飞APP_ID
         "api_key": "", # 你的讯飞API_KEY
-        "secret_key": "" # 你的讯飞SECRET_KEY
+        "api_secret": "", # 你的讯飞SECRET_KEY
+        "voice": "xiaoyan" #音调
     },
     "tts_engine": "edge-tts",
     "edge-tts": {
@@ -102,7 +107,6 @@ class Config(dict):
             return default
         except Exception as e:
             raise e
-
     # Make sure to return a dictionary to ensure atomic
     def get_user_data(self, user) -> dict:
         if self.user_datas.get(user) is None:
@@ -140,9 +144,19 @@ class Config(dict):
 
 config = Config()
 
+def reload_config():
+    """重新加载参数
+    """    
+    global has_init
+    has_init=False
+    load_config()
 
 def load_config():
     global config
+    global has_init
+    if  has_init:
+        return
+    
     config_path = "./config.json"
     if not os.path.exists(config_path):
         logger.info("配置文件不存在，将使用config-template.json模板")
@@ -177,6 +191,7 @@ def load_config():
 
     # logger.info("[INIT] load config: {}".format(config))
 
+    has_init=True
     config.load_user_datas()
 
 

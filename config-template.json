@@ -1,5 +1,5 @@
 {
-    "openai_api_key":  "", # 你的openai key
+    "debug":  false, # 你的openai key
     "picovoice_api_key": "",# 你的picovoice key
     "keyword_path": "",# 你的唤醒词检测离线文件地址
     "model_path": "",  # 中文模型地址

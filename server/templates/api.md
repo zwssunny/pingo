@@ -34,8 +34,10 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 | 取值 | 说明 |
 | ---- |  ---- |
 | 0    | 重启 pingo-robot |
-| 1    | 打开勿扰模式 |
-| 2    | 关闭勿扰模式 |
+| 1    | 播放 |
+| 2    | 暂停播放 |
+| 3    | 继续播放 |
+| 4    | 停止播放 |
 
 - 示例：
 
@@ -148,7 +150,7 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 | 参数名 |  是否必须 | 说明  |
 | ---   | ------- | ----- |
 | validate | 是 | 参见 [鉴权](#_1) |
-| key | 可选 | 某个配置的键值。例如：`robot_name_cn` 。如果要多级key的对应value，则使用 `/一级key/二级key/...` 的形式，例如 `/server/host` 可以取 `server` 的 `host` 配置。 |
+| key | 可选 | 某个配置的键值。例如：`robot_name_cn` 。如果要key的对应多子节点，则使用 server={'host': '0.0.0.0','port': '5001'} 的形式，例如 `server["host"]` 可以取 `server` 的 `host` 配置。 |
 
 - 示例：
 
@@ -176,7 +178,7 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 | 参数名 |  是否必须 | 说明  |
 | ---   | ------- | ----- |
 | validate | 是 | 参见 [鉴权](#_1) |
-| config | 是 | 配置内容，必须为 yaml 可解析的文本经过 urlencode 后的值 |
+| config | 是 | 配置内容，必须为 json 可解析的文本经过 urlencode 后的值 |
 
 - 示例：
 

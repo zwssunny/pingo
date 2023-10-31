@@ -35,7 +35,7 @@ $(function() {
                 if (config == '') {
                     $('#config-placeholder').append(`
     <center>
-    <p> 找不到配置文件 <code>~/.wukong/config.yml</code> ，请先创建一份！</p>
+    <p> 找不到配置文件 <code>./config.json</code> ，请先创建一份！</p>
     </center>
 `);
                 } else {
@@ -43,7 +43,7 @@ $(function() {
     <form class="form config-form" action="#">
     <div class="input-group" id="container">
       <div class="input-group-prepend">
-        <span class="input-group-text">config.yml</span>
+        <span class="input-group-text">config.json</span>
       </div>
         <textarea rows="20" class="form-control" id="config-input" placer='1' aria-label="With textarea">${config}</textarea>
     </div>

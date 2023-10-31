@@ -43,6 +43,7 @@ class Pingo(object):
             logger.info("signal {} received, exiting...".format(_signo))
             conf().save_user_datas()
             utils.clean()  
+            server.stop()
             if callable(old_handler):  #  check old_handler
                 return old_handler(_signo, _stack_frame)
             sys.exit(0)
@@ -72,10 +73,6 @@ class Pingo(object):
         重启 pingo-robot
         """
         logger.critical("程序重启...")
-        try:
-            self.detector.terminate()
-        except AttributeError:
-            pass
         python = sys.executable
         os.execl(python, python, *sys.argv)
 

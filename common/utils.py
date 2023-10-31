@@ -12,7 +12,7 @@ APP_PATH = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 )
 load_config()
-CACH_PATH = os.path.join(APP_PATH, "cach/"+conf().get("edge-tts")["voice"])
+CACH_PATH = os.path.join(APP_PATH, "cach", conf().get("edge-tts")["voice"])
 TMP_PATH = os.path.join(APP_PATH, "tmp")
 TEMPLATE_PATH = os.path.join(APP_PATH, "server", "templates")
 DATA_PATH = os.path.join(APP_PATH, "static")

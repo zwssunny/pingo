@@ -219,7 +219,7 @@ def get_engine_by_slug(slug=None) -> AbstractNLU:
         if len(selected_engines) > 1:
             logger.warning(f"注意: 有多个 NLU 名称与指定的引擎名 {slug} 匹配")
         engine = selected_engines[0]
-        logger.info(f"使用 {engine.SLUG} NLU 引擎")
+        logger.debug(f"使用 {engine.SLUG} NLU 引擎")
         return engine.get_instance()
 
 

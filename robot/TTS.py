@@ -37,7 +37,7 @@ class BaiduTTS(AbstractTTS):
     使用百度语音合成技术
     要使用本模块, 首先到 yuyin.baidu.com 注册一个开发者账号,
     之后创建一个新应用, 然后在应用管理的"查看key"中获得 API Key 和 Secret Key
-    填入 config.yml 中.
+    填入 config.json 中.
     ...
         baidu_yuyin:
             appid: '9670645'
@@ -71,7 +71,7 @@ class BaiduTTS(AbstractTTS):
             if not isinstance(result, dict):
                 tmpfile = utils.write_temp_file(result, ".mp3")
                 temfile=utils.saveCache(temfile,phrase)
-                logger.info(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
+                logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
                 return tmpfile
             else:
                 logger.critical(f"{self.SLUG} 合成失败！", stack_info=True)
@@ -130,7 +130,7 @@ class EdgeTTS(AbstractTTS):
                 tts = edge_tts.Communicate(text=phrase, voice=self.voice)
                 await tts.save(tmpfile)   
                 tmpfile = utils.saveCache(tmpfile, phrase) 
-            logger.info(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
+            logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
             return tmpfile
         except Exception as e:
             logger.critical(f"{self.SLUG} 合成失败：{str(e)}！", stack_info=True)
@@ -168,7 +168,7 @@ def get_engine_by_slug(slug=None)->AbstractTTS:
         if len(selected_engines) > 1:
             logger.warning(f"注意: 有多个 TTS 名称与指定的引擎名 {slug} 匹配")
         engine = selected_engines[0]
-        logger.info(f"使用 {engine.SLUG} TTS 引擎")
+        logger.debug(f"使用 {engine.SLUG} TTS 引擎")
         return engine.get_instance()
 
 

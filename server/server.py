@@ -182,7 +182,7 @@ class ChatHandler(BaseHandler):
                 # utils.check_and_delete(tmpfile)
                 conversation.doConverse(
                     tmpfile,
-                    onSay=lambda msg, audio, plugin: self.on_resp(msg, audio, plugin),
+                    onSay=lambda msg, audio, plugin: self.onResp(msg, audio, plugin),
                     onStream=lambda data, resp_uuid: self.onStream(
                         data, resp_uuid)
 
@@ -234,7 +234,7 @@ class LogPageHandler(BaseHandler):
 
 class OperateHandler(BaseHandler):
     def post(self):
-        global pingo
+        global conversation, pingo
         if self.validate(self.get_argument("validate", default=None)):
             type = self.get_argument("type")
             if type in ["restart", "0"]:
@@ -243,10 +243,30 @@ class OperateHandler(BaseHandler):
                 self.finish()
                 time.sleep(3)
                 pingo.restart()
+            elif type in ["play","1"]:
+                res = {"code": 0, "message": "play ok"}
+                self.write(json.dumps(res))
+                self.finish()
+                conversation.billtalk()
+            elif type in ["pause","2"]:
+                res = {"code": 0, "message": "pause ok"}
+                self.write(json.dumps(res))
+                self.finish()   
+                conversation.pause()
+            elif type in ["unpause","3"]:
+                res = {"code": 0, "message": "unpause ok"}
+                self.write(json.dumps(res))
+                self.finish()
+                conversation.unpause()
+            elif type in ["stop","4"]:
+                res = {"code": 0, "message": "stop ok"}
+                self.write(json.dumps(res))
+                self.finish() 
+                conversation.interrupt()    
             else:
                 res = {"code": 1, "message": f"illegal type {type}"}
                 self.write(json.dumps(res))
-                self.finish()
+                self.finish()                           
         else:
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
@@ -395,7 +415,7 @@ def start_server(con, pg):
     if serverconf["enable"]:
         port =serverconf["port"]
         try:
-            asyncio.set_event_loop(asyncio.new_event_loop())
+            # asyncio.set_event_loop(asyncio.new_event_loop())
             application.listen(int(port))
             tornado.ioloop.IOLoop.instance().start()
         except Exception as e:
@@ -406,3 +426,6 @@ def run(conversation, pingo, debug=False):
     settings["debug"] = debug
     t = threading.Thread(target=lambda: start_server(conversation, pingo))
     t.start()
+
+def stop():
+    tornado.ioloop.IOLoop.instance().stop()

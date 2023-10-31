@@ -154,7 +154,7 @@ def asr_on_message(ws, message):
                 for w in i["cw"]:
                     result += w["w"]
             gResult = gResult + result
-            logger.info(
+            logger.debug(
                 "sid:%s call success!,data is:%s"
                 % (sid, json.dumps(data, ensure_ascii=False))
             )

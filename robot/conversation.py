@@ -47,6 +47,9 @@ class Conversation(object):
         if self.player:
             self.player.quit()
 
+    def playbill(self):
+        self.introduction.billtalk()
+        
     def getHistory(self):
         return self.history
     
