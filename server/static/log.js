@@ -1,6 +1,6 @@
 function refresh(msg) {
     $.ajax({
-        url: '/getlog',
+        url: '/log',
         type: "GET",
         data: $.param({'validate': getCookie('validation')}),
         success: function(res) {

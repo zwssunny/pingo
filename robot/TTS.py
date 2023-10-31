@@ -2,6 +2,7 @@ import os
 import uuid
 import edge_tts
 import asyncio
+import nest_asyncio
 from abc import ABCMeta, abstractmethod
 from aip import AipSpeech
 from common import utils
@@ -9,6 +10,7 @@ from common.log import logger
 from config import conf, load_config
 from robot.sdk import XunfeiSpeech
 
+nest_asyncio.apply()
 class AbstractTTS(object):
     """
     Generic parent class for all TTS engines
@@ -135,9 +137,10 @@ class EdgeTTS(AbstractTTS):
             return None
 
     def get_speech(self, phrase):
-        event_loop = asyncio.new_event_loop()
-        tmpfile = event_loop.run_until_complete(self.async_get_speech(phrase))
-        event_loop.close()
+        # event_loop = asyncio.new_event_loop()
+        # tmpfile = event_loop.run_until_complete(self.async_get_speech(phrase))
+        # event_loop.close()
+        tmpfile =asyncio.run(self.async_get_speech(phrase))
         return tmpfile
 
 def get_engine_by_slug(slug=None)->AbstractTTS:

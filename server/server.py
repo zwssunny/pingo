@@ -38,6 +38,7 @@ suggestions = [
 
 #加载参数
 load_config()
+serverconf=conf().get("server")
 
 class BaseHandler(tornado.web.RequestHandler):
     def isValidated(self):
@@ -45,21 +46,29 @@ class BaseHandler(tornado.web.RequestHandler):
             return False
         return str(
             self.get_secure_cookie("validation"), encoding="utf-8"
-        ) == conf().get("server.validate", "")
+        ) == serverconf["validate"]
 
     def validate(self, validation):
         if validation and '"' in validation:
             validation = validation.replace('"', "")
-        return validation == conf().get("server")["validate"] or validation == str(
+        return validation == serverconf["validate"] or validation == str(
             self.get_cookie("validation")
         )
 
 
 class MainHandler(BaseHandler):
     def get(self):
+        global conversation, pingo, suggestions
         if not self.isValidated():
             self.redirect("/login")
             return
+        if conversation:
+            suggestion = random.choice(suggestions)
+            self.render(
+                "index.html",
+                suggestion=suggestion,
+                location=self.request.host,
+            )
         else:
             self.render("index.html")
 
@@ -323,13 +332,11 @@ class LoginHandler(BaseHandler):
             self.render("login.html", error=None)
 
     def post(self):
-        if self.get_argument("username") == conf().get(
-            "server.username"
-        ) and hashlib.md5(
+        if self.get_argument("username") == serverconf["username"] and hashlib.md5(
             self.get_argument("password").encode("utf-8")
-        ).hexdigest() == conf().get("server")["validate"]:
+        ).hexdigest() == serverconf["validate"]:
             logger.info("login success")
-            self.set_secure_cookie("validation", conf().get("server")["validate"])
+            self.set_secure_cookie("validation", serverconf["validate"])
             self.redirect("/")
         else:
             self.render("login.html", error="登录失败")
@@ -343,9 +350,7 @@ class LogoutHandler(BaseHandler):
 
 
 settings = {
-    "cookie_secret": conf().get(
-        "server.cookie_secret", "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__"
-    ),
+    "cookie_secret": serverconf["cookie_secret"],
     "template_path": os.path.join(utils.APP_PATH, "server/templates"),
     "static_path": os.path.join(utils.APP_PATH, "server/static"),
     "login_url": "/login",
@@ -387,8 +392,8 @@ def start_server(con, pg):
     global conversation, pingo
     conversation = con
     pingo = pg
-    if conf().get("server.enable", False):
-        port = conf().get("server.port", "5001")
+    if serverconf["enable"]:
+        port =serverconf["port"]
         try:
             asyncio.set_event_loop(asyncio.new_event_loop())
             application.listen(int(port))

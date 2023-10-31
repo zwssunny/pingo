@@ -34,62 +34,10 @@
 </nav>
 
 <div class="jumbotron">
-  <h1 class="display-4"><image src="./static/robot.png" width=128px attr="pingo-robot"/> pingo-robot</h1>
-  <p class="lead">pingo-robot 是一个简单灵活的中文语音对话机器人。</p>
+  <h1 class="display-4"><image src="./static/robot.ico" width=128px attr="pingo-robot"/> pingo-robot</h1>
+  <p class="lead">pingo-robot 是一个简单灵活的中文语音导航系统。</p>
   <hr class="my-4">
   <p><i class="fas fa-info-circle"></i> 本站点是 pingo-robot 的后台管理端，仅供远程交互，不支持离线唤醒。</p>
-  {% if notices %}
-    {% for notice in notices %}
-      <p><i class="fas fa-bell"></i> {{ linkify(notice) }}</p>
-    {% end %}
-  {% end %}
-</div>
-
-<div class="container">
-{% if update_info and 'main' in update_info or 'contrib' in update_info %}
-<div class="alert update-alert alert-success alert-dismissible fade show" role="alert">
-  有新的更新可用，<a href="#" id="check-update" data-toggle="modal" data-target="#updateModal">快看看吧</a> 。
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
-<!-- Modal -->
-<div class="modal fade" id="updateModal" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="updateModalLabel">更新信息</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <ul>
-        {% if 'main' in update_info %}
-        <li><strong>主仓库更新</strong>（{{ update_info['main']['version'] }}）：{{ update_info['main']['description'] }}</li>
-        {% end %}
-        {% if 'contrib' in update_info %}
-        <li><strong>插件更新</strong>（{{ update_info['contrib']['version'] }}）：{{ update_info['contrib']['description'] }}</li>
-        {% end %}
-        </ul>
-        一次更新只需要花费几分钟的时间，完成后 pingo-robot 将自动重启。
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">先不更新</button>
-        <button type="button" class="btn btn-primary UPDATE">
-          <span class="spinner-border spinner-border-sm UPDATE-SPIN" role="status" aria-hidden="true" hidden></span>
-          更新
-        </button>
-      </div>
-    </div>
-  </div>
-</div>
-{% end %}
-{% if 'hahack.com' in location %}
-  <div class="alert alert-warning" role="alert">
-    注意：你正在使用 demo 站点。出于账号安全考虑，该站点只演示了百度 UNIT 对话能力。要使用离线唤醒、ChatGPT 等对话能力及技能插件，请自行部署配置。
-  </div>
-{% end %}
 </div>
 
 <div class="container" id="container">
@@ -110,27 +58,6 @@
 
 
   <hr class="divider">
-
-  <div class="sponsors">
-        <h2 class="featurette-heading">赞助商</h2>
-        <p class="lead">感谢以下企业/组织对本项目的赞助：</p>
-      <p align="center">
-  <a href="https://opencollective.com/pingo-robot/sponsor/0/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/0/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/1/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/1/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/2/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/2/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/3/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/3/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/4/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/4/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/5/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/5/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/6/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/6/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/7/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/7/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/8/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/8/avatar.svg"></a>
-<a href="https://opencollective.com/pingo-robot/sponsor/9/website" target="_blank"><img src="https://opencollective.com/pingo-robot/sponsor/9/avatar.svg"></a>
-      </p>
-      <blockquote>
-        <p class="text-muted quote">欢迎<a href="https://opencollective.com/pingo-robot/contribute/tier/8131-sponsor" target="_blank">成为这个项目的赞助商（sponsor）</a>，您将可以把一个带链接的 logo 放在 pingo-robot 后台管理端的首页、捐赠页面以及 Github 项目首页中。</p>
-      </blockquote>
-    </div>
-
 </div>
 
 <br/>

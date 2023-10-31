@@ -114,7 +114,7 @@ class Conversation(object):
         # logger.info(f"TTS合成成功。msg: {msg}")
         self.player.play_audio(voice)
 
-        self._after_play(msg, voice, plugin)
+        self._after_play(msg, [voice], plugin)
 
     def pardon(self):
         if not self.hasPardon:

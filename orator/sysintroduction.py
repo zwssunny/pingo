@@ -18,7 +18,7 @@ class sysIntroduction:
             tts (Voice): 语音实例。
             canpause (bool, optional): 是否可暂停. Defaults to False.
         """
-        self.conn = sqlite3.connect(sysdb)
+        self.conn = sqlite3.connect(sysdb, check_same_thread=False)
         self.conversation = conversation
         self.is_stop=False
         self.ctlandtalk=ctlandtalk #是否控制页面跳转

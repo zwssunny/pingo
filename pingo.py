@@ -10,7 +10,7 @@ from common.log import logger
 from robot import detector
 from config import conf, load_config
 from robot.conversation import Conversation
-# from server import server
+from server import server
 
 class Pingo(object):
     _debug = False
@@ -22,6 +22,17 @@ class Pingo(object):
     def init(self):
         self.detector = None
         self._interrupted = False
+        serverhost=conf().get("server",{"host": "0.0.0.0","port": "5001"})
+        print(
+            """
+            后台管理端：http://{}:{}
+            如需退出，可以按 Ctrl+C 组合键
+
+""".format(
+                serverhost["host"],
+                serverhost["port"],
+            )
+        )
         self.conversation = Conversation() 
         self.conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey pingo!'") 
     
@@ -49,7 +60,7 @@ class Pingo(object):
             # kill signal
             self.sigterm_handler_wrap(signal.SIGTERM)
             # 后台管理端
-            # server.run(self.conversation, self, debug=self._debug)
+            server.run(self.conversation, self, debug=self._debug)
             # 初始化离线唤醒
             detector.initDetector(self)
         except Exception as e:
