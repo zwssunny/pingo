@@ -47,8 +47,8 @@ class Conversation(object):
         if self.player:
             self.player.quit()
 
-    def playbill(self):
-        self.introduction.billtalk()
+    def billtalk(self, billID=None, onPlaybill=None):
+        self.introduction.billtalk(billID,onPlaybill)
         
     def getHistory(self):
         return self.history
@@ -115,9 +115,10 @@ class Conversation(object):
 
         voice = self.tts.get_speech(msg)
         # logger.info(f"TTS合成成功。msg: {msg}")
+        self._befor_play(msg, [voice], plugin)
         self.player.play_audio(voice)
 
-        self._after_play(msg, [voice], plugin)
+       
 
     def pardon(self):
         if not self.hasPardon:
@@ -138,16 +139,16 @@ class Conversation(object):
         except Exception as e:
             logger.critical(f"回复失败：{e}", stack_info=True)
 
-    def _after_play(self, msg, audios, plugin=""):
-        serverhost=conf().get("server")
-        cached_audios = [
-            f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
-            for voice in audios
-        ]
+    def _befor_play(self, msg, audios, plugin=""):
         if self.onSay:
+            serverhost=conf().get("server")
+            cached_audios = [
+                f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
+                for voice in audios
+            ]
             logger.info(f"onSay: {msg}, {cached_audios}")
             self.onSay(msg, cached_audios, plugin=plugin)
-            self.onSay = None
+            # self.onSay = None
 
     def doParse(self, query):
         args = conf().get("unit")
@@ -194,7 +195,7 @@ class Conversation(object):
                     elif intent in self.highlightintent:
                         self.introduction.talkhighlight_byname(pagename)
                 elif "ORATOR" in intent:  # 演示整个系统
-                    self.introduction.billtalk()
+                    self.billtalk()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:

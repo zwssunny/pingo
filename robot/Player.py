@@ -4,7 +4,7 @@ class Player:
     def __init__(self) :
         pygame.init()
         pygame.mixer.init()
-        self.pause = False
+        self.is_pause = False
         self.MUSIC_END = pygame.USEREVENT+1
         pygame.mixer.music.set_endevent(self.MUSIC_END)
         self.music=pygame.mixer.music
@@ -13,7 +13,7 @@ class Player:
         if self.music.get_busy():  #如果在播放状态，则停止它
             self.music.stop()
 
-        self.pause = False
+        self.is_pause = False
         self.music.load(audio_file_path)
         self.music.play()
         while True:
@@ -26,7 +26,7 @@ class Player:
         if self.music.get_busy():  #如果在播放状态，则停止它
             self.music.stop()
 
-        self.pause = False
+        self.is_pause = False
         self.music.load(audio_file_path)
         self.music.play()
         # 设置主屏窗口
@@ -39,8 +39,8 @@ class Player:
                 break
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
-                    self.pause = not self.pause
-                    if self.pause:
+                    self.is_pause = not self.is_pause
+                    if self.is_pause:
                         self.music.pause()
                     else:
                         self.music.unpause()
@@ -50,17 +50,17 @@ class Player:
         pygame.display.quit()
 
     def pause(self):   
-        if self.pause==False:
+        if self.is_pause==False:
             self.music.pause()
-            self.pause=True
+            self.is_pause=True
 
     def unpause(self):
-        if self.pause==True:
+        if self.is_pause==True:
             self.music.unpause()
-            self.pause=False
+            self.is_pause=False
 
     def stop(self):
-        self.pause=False
+        self.is_pause=False
         self.music.stop() 
 
     def is_playing(self):

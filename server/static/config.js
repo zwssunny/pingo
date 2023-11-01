@@ -1,5 +1,5 @@
 function saveConfig(msg) {
-    if (window.location.href.indexOf('bot.hahack.com') >= 0) {
+    if (window.location.href.indexOf('bot.zhanws.com') >= 0) {
         bootbox.alert("demo 站点禁止修改配置!");
         return;
     }

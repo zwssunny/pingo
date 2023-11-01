@@ -22,6 +22,7 @@ class Pingo(object):
     def init(self):
         self.detector = None
         self._interrupted = False
+        self._debug =conf().get("debug")
         serverhost=conf().get("server",{"host": "0.0.0.0","port": "5001"})
         print(
             """
@@ -43,7 +44,7 @@ class Pingo(object):
             logger.info("signal {} received, exiting...".format(_signo))
             conf().save_user_datas()
             utils.clean()  
-            server.stop()
+            # server.stop()
             if callable(old_handler):  #  check old_handler
                 return old_handler(_signo, _stack_frame)
             sys.exit(0)

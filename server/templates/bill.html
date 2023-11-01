@@ -12,13 +12,13 @@
       <li class="nav-item">
         <a class="nav-link" href="/">会话</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item active">
         <a class="nav-link" href="/billpage">剧本</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item ">
         <a class="nav-link" href="/configpage">配置</a>
       </li>
-      <li class="nav-item active">
+      <li class="nav-item">
         <a class="nav-link" href="/logpage">日志</a>
       </li>
       <li class="nav-item">
@@ -31,25 +31,25 @@
   </div>
 </nav>
 
-<div class="container log">
+<div class="container bill">
   <div class="alert alert-info" role="alert">
-    <i class="fas fa-bell"></i> 日志不会自动刷新，要查看最新日志，请点击【刷新日志】按钮。
+    <i class="fas fa-bell"></i> 演讲剧本，按照一定的规则和顺序讲解和切换系统页面。
   </div>
-  <label for="config-form">日志内容</label>
-  <form class="form log-form" action="#">
-    <div class="input-group" id="container">
-      <div class="input-group-prepend">
-        <span class="input-group-text">pingo.log</span>
-      </div>
-        <textarea rows="25" class="form-control" id="log-input" placer='1' aria-label="pingo.log" readonly></textarea>
-    </div>
-    <hr>
+  <div class="bill-form">
     <center>
-    <button type="button" class="btn btn-primary mb-2" id="REFRESH"><i class="fas fa-sync"></i> 刷新日志</button>
+      <form class="form-row" action="#">
+  	  <label for="bills-select" class="col-sm-2 col-form-label col-form-label-lg">剧本列表：</label>
+      <div class="col-3" id="bills-placeholder"> </div>
+ 	    &nbsp;
+    	<button type="button" class="btn btn-primary mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
+    	<button type="button" class="btn btn-primary mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
+    	<button type="button" class="btn btn-primary mb-2" id="UNPAUSE"><i class="fas fa-play-pause"></i> 继续</button>&nbsp;
+    	<button type="button" class="btn btn-danger mb-2" id="STOP"><i class="fas fa-stop"></i> 停止</button>
+      </form>
     </center>
-  </form>
-</div>
+  </div><!-- <div class="bill-form"> -->
 
+</div>
 
 <ul id="recorder" class="mfb-component--br mfb-zoomin" data-mfb-toggle="hover">
       <li class="mfb-component__wrap">
@@ -72,8 +72,8 @@
       </li>
 </ul>
 
-
 <script src="{{static_url('main.js')}}" crossorigin="anonymous"></script>
-<script src="{{static_url('log.js')}}" crossorigin="anonymous"></script>
+<script src="{{static_url('bill.js')}}" crossorigin="anonymous"></script>
+<script src="{{static_url('bootbox.js')}}" crossorigin="anonymous"></script>
 <script src="./static/recorder.min.js"></script>
 {% end %}

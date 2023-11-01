@@ -5,7 +5,7 @@ import base64
 import random
 import hashlib
 import asyncio
-import requests
+import sqlite3
 import markdown
 import threading
 import subprocess
@@ -23,19 +23,20 @@ from robot import History
 from common import utils
 
 
-conversation, pingo = None, None
+conversation, pingo,webThread= None, None, None
 
 suggestions = [
     "开始演示",
     "平台特点",
     "融合平台",
     "亮点场景",
-    "相关系统",
+    "智慧交通",
     "打开综合交通",
     "打开首页",
     "打开公交",
 ]
 
+sysdb = "./db/pingo.db"
 #加载参数
 load_config()
 serverconf=conf().get("server")
@@ -130,6 +131,13 @@ class ChatWebSocketHandler(WebSocketHandler, BaseHandler):
         }
         self.write_message(json.dumps(response))
 
+    def send_playstate(self,playstate,msg=""):
+        response={
+            "action": "playoperate",
+            "playstate": playstate,
+            "text": msg,  
+        }
+        self.write_message(json.dumps(response))
 
 class ChatHandler(BaseHandler):
     def onResp(self, msg, audio, plugin):
@@ -162,6 +170,7 @@ class ChatHandler(BaseHandler):
                     res = {"code": 1, "message": "query text is empty"}
                     self.write(json.dumps(res))
                 else:
+                    t = threading.Thread(target=lambda:
                     conversation.doResponse(
                         query,
                         uuid,
@@ -169,7 +178,8 @@ class ChatHandler(BaseHandler):
                             msg, audio, plugin
                         ),
                         onStream=lambda data, resp_uuid: self.onStream(data, resp_uuid),
-                    )
+                    ))
+                    t.start()
 
             elif self.get_argument("type") == "voice":
                 voice_data = self.get_argument("voice")
@@ -180,13 +190,15 @@ class ChatHandler(BaseHandler):
                 # soxCall = "sox " + tmpfile + " " + nfile + " rate 16k"
                 # subprocess.call([soxCall], shell=True, close_fds=True)
                 # utils.check_and_delete(tmpfile)
+                t = threading.Thread(target=lambda:
                 conversation.doConverse(
                     tmpfile,
                     onSay=lambda msg, audio, plugin: self.onResp(msg, audio, plugin),
                     onStream=lambda data, resp_uuid: self.onStream(
                         data, resp_uuid)
 
-                )
+                ))
+                t.start()
             else:
                 res = {"code": 1, "message": "illegal type"}
                 self.write(json.dumps(res))
@@ -233,6 +245,11 @@ class LogPageHandler(BaseHandler):
 
 
 class OperateHandler(BaseHandler):
+    def onPlaybill(self,playstate):
+        # 通过 ChatWebSocketHandler 发送给前端
+        for client in ChatWebSocketHandler.clients:
+            client.send_playstate(playstate)
+
     def post(self):
         global conversation, pingo
         if self.validate(self.get_argument("validate", default=None)):
@@ -242,27 +259,30 @@ class OperateHandler(BaseHandler):
                 self.write(json.dumps(res))
                 self.finish()
                 time.sleep(3)
-                pingo.restart()
+                threading.Thread(target=lambda: pingo.restart()).start()
             elif type in ["play","1"]:
+                Billid=self.get_argument("billid")
                 res = {"code": 0, "message": "play ok"}
                 self.write(json.dumps(res))
                 self.finish()
-                conversation.billtalk()
+                # 考虑线程执行，否则会等很久
+                t = threading.Thread(target=lambda: conversation.billtalk(billID=Billid, onPlaybill=lambda playstate: self.onPlaybill(playstate)))
+                t.start()
             elif type in ["pause","2"]:
                 res = {"code": 0, "message": "pause ok"}
                 self.write(json.dumps(res))
                 self.finish()   
-                conversation.pause()
+                threading.Thread(target=lambda: conversation.pause()).start()
             elif type in ["unpause","3"]:
                 res = {"code": 0, "message": "unpause ok"}
                 self.write(json.dumps(res))
                 self.finish()
-                conversation.unpause()
+                threading.Thread(target=lambda: conversation.unpause()).start()
             elif type in ["stop","4"]:
                 res = {"code": 0, "message": "stop ok"}
                 self.write(json.dumps(res))
                 self.finish() 
-                conversation.interrupt()    
+                threading.Thread(target=lambda: conversation.interrupt()).start()    
             else:
                 res = {"code": 1, "message": f"illegal type {type}"}
                 self.write(json.dumps(res))
@@ -367,7 +387,35 @@ class LogoutHandler(BaseHandler):
         if self.isValidated():
             self.set_secure_cookie("validation", "")
         self.redirect("/login")
+class BillpageHandler(BaseHandler):
+    def get(self):
+        if not self.isValidated():
+            self.redirect("/login")
+        else:
+            self.render("bill.html")    
 
+class BillHandler(BaseHandler):
+    def get(self):
+        if not self.validate(self.get_argument("validate", default=None)):
+            res = {"code": 1, "message": "illegal visit"}
+            self.write(json.dumps(res))
+        else:
+            bills=[]
+            conn = sqlite3.connect(sysdb, check_same_thread=False)
+            cursor = conn.execute("SELECT ID, NAME,VOICE, DESC FROM BILL")
+            billscursor = cursor.fetchall()
+            for bill in  billscursor:
+                billjson={"ID": bill[0], "NAME": bill[1]}
+                bills.append(billjson)
+            conn.close() 
+               
+            res = {
+                "code": 0,
+                "message": "ok",
+                "bills": bills,
+                }
+            self.write(json.dumps(res))
+        self.finish()
 
 settings = {
     "cookie_secret": serverconf["cookie_secret"],
@@ -392,6 +440,8 @@ application = tornado.web.Application(
         (r"/log", GetLogHandler),
         (r"/logout", LogoutHandler),
         (r"/api", APIHandler),
+        (r"/billpage", BillpageHandler),
+        (r"/bill", BillHandler),
         (
             r"/photo/(.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF))",
             tornado.web.StaticFileHandler,
@@ -417,15 +467,18 @@ def start_server(con, pg):
         try:
             # asyncio.set_event_loop(asyncio.new_event_loop())
             application.listen(int(port))
-            tornado.ioloop.IOLoop.instance().start()
+            tornado.ioloop.IOLoop.current().start()
         except Exception as e:
             logger.critical(f"服务器启动失败: {e}", stack_info=True)
 
 
 def run(conversation, pingo, debug=False):
+    global webThread
     settings["debug"] = debug
-    t = threading.Thread(target=lambda: start_server(conversation, pingo))
-    t.start()
+    webThread = threading.Thread(target=lambda: start_server(conversation, pingo))
+    webThread.start()
 
 def stop():
-    tornado.ioloop.IOLoop.instance().stop()
+    global webThread
+    if webThread:
+        tornado.ioloop.IOLoop.current().close()

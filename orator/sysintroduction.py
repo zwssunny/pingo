@@ -22,21 +22,27 @@ class sysIntroduction:
         self.conversation = conversation
         self.is_stop=False
         self.ctlandtalk=ctlandtalk #是否控制页面跳转
+        self.onPlaybill=None
 
         if pgectl:
             self.pagecontrol = pgectl  
         else:  
             self.pagecontrol = pagecontrol()
 
-    def billtalk(self):
+    def billtalk(self, billID=None, onPlaybill=None):
         """
         演示默认剧本
         """
         try:
-            # 查询系统介绍内容
             self.is_stop=False
-            cursor = self.conn.execute(
-                "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
+            self.onPlaybill=onPlaybill
+            # 查询系统介绍内容
+            if billID==None:
+                cursor = self.conn.execute(
+                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
+            else:
+                cursor = self.conn.execute(
+                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ID= ?",(billID,))
             billcursor = cursor.fetchone()
             if billcursor:
                 billdesc = billcursor[3]
@@ -61,9 +67,15 @@ class sysIntroduction:
             itemcursor = cursor.fetchall()
             for row in itemcursor:
                 if self.is_stop:
+                    if self.onPlaybill:
+                        self.onPlaybill(4) #结束
+                        self.onPlaybill=None
                     break
                 typename = row[0]
                 typeid = row[1]
+
+                if self.onPlaybill:
+                    self.onPlaybill(1) #播放
                 if typename == 'MENUITEM':
                     self.talkmenuitem_byid(typeid)
                 elif typename == 'FEATURES':
@@ -72,6 +84,9 @@ class sysIntroduction:
                     self.talkothersystem_byid(typeid)
                 elif typename == 'HIGHLIGHT':
                     self.talkhighlight_byid(typeid)
+            #结束循环
+            if self.onPlaybill:
+                self.onPlaybill(4) #结束
         except sqlite3.Error as error:
             logger.error(error)
 

@@ -53,39 +53,7 @@ function showProgress() {
     progressJs().increase();
 }
 
-function upgrade() {
-    var args = {'validate': getCookie('validation')}
-    $.ajax({
-        url: '/upgrade',
-        type: "POST",
-        data: $.param(args),        
-        success: function(res) {
-            $('.UPDATE-SPIN')[0].hidden = true;
-            $('.UPDATE')[0].disabled = false;
-            res = JSON.parse(res);
-            if (res.code == 0) {
-                toastr.success('更新成功，5秒后将自动重启')
-                
-                $('#updateModal').modal('hide')
-                progressJs().start();
-                setInterval("showProgress()", 1000);
-                setTimeout(()=>{
-                    progressJs().end();
-                    clearInterval();
-                    location.reload();
-                }, 5000);
-            } else {
-                toastr.error(res.message, '更新失败');
-                $('#updateModal').modal('hide')
-            }            
-        },
-        error: function() {
-            
-            toastr.error('服务器异常', '更新失败');
-            $('#updateModal').modal('hide')
-        }
-    });
-}
+
 
 //用于生成uuid
 function S4() {
@@ -100,12 +68,12 @@ var socket = new WebSocket("ws://" + location.host + "/websocket");
 
 // 监听WebSocket打开事件
 socket.onopen = function (e) {
-    console.log("WebSocket连接已打开");
+    console.log("mainWebSocket连接已打开");
 };
 
 // 监听WebSocket关闭事件
 socket.onclose = function (e) {
-    console.log("WebSocket连接已关闭");
+    console.log("mainWebSocket连接已关闭");
 };
 
 var rawData = {}
@@ -147,6 +115,7 @@ $(document).ready(function() {
         var uuid = 'chat' + guid();
         var query = $("input#query")[0].value;
         if (query.trim() == '') {
+            disabled.enable();
             toastr.error('请输入有效的命令');
             return;
         }
@@ -172,13 +141,6 @@ $(document).ready(function() {
                 toastr.error('服务器异常', '指令发送失败');
             }
         });
-    });
-
-
-    $('.UPDATE').on('click', function(e) {
-    $('.UPDATE-SPIN')[0].hidden = false;
-       $(this)[0].disabled = true;
-       upgrade();
     });
 
     updater.poll();
