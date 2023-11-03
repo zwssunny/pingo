@@ -82,61 +82,31 @@ jQuery.fn.enable = function(opt_enable) {
 };
 
 $(function() {
-    $.ajax({
-        url: '/bill',
-        type: "GET",
-        data: {'validate': getCookie('validation')},
-        success: function(res) {
-            var data = JSON.parse(res);            
-            if (data.code == 0) {
-                let bills = data.bills;
-                selectitems=''
-                bills.forEach( function(item){
-                  if(item.ISDEFAULT==1)
-                    selectitems+='<option  selected="selected" value='+item.ID+'>'+item.NAME+'</option> '
-                  else
-                    selectitems+='<option value='+item.ID+'>'+item.NAME+'</option> ' 
-                } ) 
-                  
-                    $('#bills-placeholder').append(`
-    <div class="input-group" id="container">
-    <select class="form-control" id="bills-select" name="bills-select">`+selectitems +`</select>
-    </div>
-
-`);
-     
-                $('button#STOP').on('click', function(e) {
-                    var e = $('#bills-select');  
-                    var selected_value = e.val();
-                    talkbill(4,selected_value,'停止');
-                    buttonstate(4)
-                });
-                $('button#PLAY').on('click', function(e) {
-                    var e = $('#bills-select');  
-                    var selected_value = e.val();
-                    talkbill(1,selected_value,'播放');
-                    buttonstate(1)
-                });
-                $('button#PAUSE').on('click', function(e) {
-                    var e = $('#bills-select');  
-                    var selected_value = e.val();
-                    talkbill(2,selected_value,'暂停');
-                    buttonstate(2)
-                });
-                $('button#UNPAUSE').on('click', function(e) {
-                    var e = $('#bills-select');  
-                    var selected_value = e.val();
-                    talkbill(3,selected_value,'继续');
-                    buttonstate(1)
-                });
-            } else {
-                toastr.error(data.message, '指令发送失败');
-            }
-        },
-        error: function() {
-            toastr.error('服务器异常', '指令发送失败');
-        }
-    });   
+    
+    $('button#STOP').on('click', function(e) {
+        var e = $('#bills-select');  
+        var selected_value = e.val();
+        talkbill(4,selected_value,'停止');
+        buttonstate(4)
+    });
+    $('button#PLAY').on('click', function(e) {
+        var e = $('#bills-select');  
+        var selected_value = e.val();
+        talkbill(1,selected_value,'播放');
+        buttonstate(1)
+    });
+    $('button#PAUSE').on('click', function(e) {
+        var e = $('#bills-select');  
+        var selected_value = e.val();
+        talkbill(2,selected_value,'暂停');
+        buttonstate(2)
+    });
+    $('button#UNPAUSE').on('click', function(e) {
+        var e = $('#bills-select');  
+        var selected_value = e.val();
+        talkbill(3,selected_value,'继续');
+        buttonstate(1)
+    });
     //调整按钮初始化状态
     buttonstate(4);
 });

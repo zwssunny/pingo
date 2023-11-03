@@ -23,7 +23,7 @@ from robot import History
 from common import utils
 
 
-conversation, pingo,webThread= None, None, None
+conversation, pingo, webApp= None, None, None
 
 suggestions = [
     "开始演示",
@@ -392,7 +392,15 @@ class BillpageHandler(BaseHandler):
         if not self.isValidated():
             self.redirect("/login")
         else:
-            self.render("bill.html")    
+            bills=[]
+            conn = sqlite3.connect(sysdb, check_same_thread=False)
+            cursor = conn.execute("SELECT ID, NAME,ISDEFAULT FROM BILL")
+            billscursor = cursor.fetchall()
+            for bill in  billscursor:
+                billjson={"ID": bill[0], "NAME": bill[1],"ISDEFAULT": bill[2]}
+                bills.append(billjson)
+            conn.close() 
+            self.render("bill.html", bills=bills)    
 
 class BillHandler(BaseHandler):
     def get(self):
@@ -460,25 +468,25 @@ application = tornado.web.Application(
 
 def start_server(con, pg):
     global conversation, pingo
+    global webApp
     conversation = con
     pingo = pg
     if serverconf["enable"]:
         port =serverconf["port"]
         try:
             # asyncio.set_event_loop(asyncio.new_event_loop())
-            application.listen(int(port))
+            webApp =application.listen(int(port))
             tornado.ioloop.IOLoop.current().start()
         except Exception as e:
             logger.critical(f"服务器启动失败: {e}", stack_info=True)
 
 
 def run(conversation, pingo, debug=False):
-    global webThread
     settings["debug"] = debug
-    webThread = threading.Thread(target=lambda: start_server(conversation, pingo))
-    webThread.start()
+    threading.Thread(target=lambda: start_server(conversation, pingo)).start()
 
 def stop():
-    global webThread
-    if webThread:
+    global webApp
+    if webApp:
+        webApp.stop()
         tornado.ioloop.IOLoop.current().close()

@@ -67,9 +67,6 @@ class sysIntroduction:
             itemcursor = cursor.fetchall()
             for row in itemcursor:
                 if self.is_stop:
-                    if self.onPlaybill:
-                        self.onPlaybill(4) #结束
-                        self.onPlaybill=None
                     break
                 typename = row[0]
                 typeid = row[1]
@@ -121,7 +118,13 @@ class sysIntroduction:
             for row in menucursor:
                 if self.is_stop:
                     break
+                if self.onPlaybill:
+                    self.onPlaybill(1) #播放
                 self.menuitemtalk(row)
+
+            if self.onPlaybill:
+                self.onPlaybill(4) #结束
+                self.onPlaybill=None
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -253,7 +256,12 @@ class sysIntroduction:
             for row in itemcursors:
                 if self.is_stop:
                     break
+                if self.onPlaybill:
+                    self.onPlaybill(1) #播放
                 self.othersystemitemtalk(row)
+            
+            if self.onPlaybill:
+                self.onPlaybill(4)
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -328,7 +336,12 @@ class sysIntroduction:
             for row in highlightcursors:
                 if self.is_stop:
                     break
+                if self.onPlaybill:
+                    self.onPlaybill(1) #播放
                 self.highlightitemtalk(row)
+            
+            if self.onPlaybill:
+                self.onPlaybill(4) #停止
         except sqlite3.Error as error:
             logger.error(error)
 

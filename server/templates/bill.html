@@ -33,13 +33,23 @@
 
 <div class="container bill">
   <div class="alert alert-info" role="alert">
-    <i class="fas fa-bell"></i> 演讲剧本，按照一定的规则和顺序讲解和切换系统页面。
+    <i class="fas fa-bell"></i> 演讲剧本，按照一定的规则和顺序讲解系统功能,并可切换系统页面。
   </div>
   <div class="bill-form">
     <center>
       <form class="form-row" action="#">
   	  <label for="bills-select" class="col-sm-2 col-form-label col-form-label-lg">剧本列表：</label>
-      <div class="col-3" id="bills-placeholder"> </div>
+      <div class="col-3" id="bills-placeholder">
+        <select class="form-control" id="bills-select" name="bills-select">
+         {% for item in bills %} 
+            {% if (item["ISDEFAULT"]==1) %}
+              <option  selected="selected" value={{ item["ID"] }}>{{ item["NAME"] }}</option> 
+            {% else %}
+              <option  value={{ item["ID"] }}>{{ item["NAME"] }}</option>  
+            {% end %}
+          {% end %}
+        </select>
+      </div>
  	    &nbsp;
     	<button type="button" class="btn btn-primary mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
     	<button type="button" class="btn btn-primary mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
@@ -48,7 +58,7 @@
       </form>
     </center>
   </div><!-- <div class="bill-form"> -->
-
+  <table id="billItemsTable"></table>
 </div>
 
 <ul id="recorder" class="mfb-component--br mfb-zoomin" data-mfb-toggle="hover">
