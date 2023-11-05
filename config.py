@@ -137,9 +137,9 @@ class Config(dict):
         config_str = read_file(config_path)
         return config_str
     
-    def dump(configStr):
+    def dump(self,configStr):
         config_path = "./config.json"
-        with open(config_path, "w") as f:
+        with open(config_path, mode="w", encoding="utf-8") as f:
             f.write(configStr)
 
 config = Config()

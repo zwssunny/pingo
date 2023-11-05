@@ -2,6 +2,7 @@
 import sqlite3
 import sys
 import os
+import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from pagecontrol.pagecontrol import pagecontrol
 from common.log import logger
@@ -63,24 +64,29 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT TYPENAME,TYPEID, ORDERNO FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
+                "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
             itemcursor = cursor.fetchall()
             for row in itemcursor:
                 if self.is_stop:
                     break
                 typename = row[0]
                 typeid = row[1]
+                #演讲前等待时间
+                itemsleep=int(row[3])
+                itemdesc=row[4]
+                # if itemsleep>0:
+                #     time.sleep(itemsleep)
 
                 if self.onPlaybill:
                     self.onPlaybill(1) #播放
                 if typename == 'MENUITEM':
-                    self.talkmenuitem_byid(typeid)
+                    self.talkmenuitem_byid(typeid,itemsleep,itemdesc)
                 elif typename == 'FEATURES':
-                    self.talkfeature_byid(typeid)
+                    self.talkfeature_byid(typeid,itemsleep,itemdesc)
                 elif typename == 'OTHERSYSTEM':
-                    self.talkothersystem_byid(typeid)
+                    self.talkothersystem_byid(typeid,itemsleep,itemdesc)
                 elif typename == 'HIGHLIGHT':
-                    self.talkhighlight_byid(typeid)
+                    self.talkhighlight_byid(typeid,itemsleep,itemdesc)
             #结束循环
             if self.onPlaybill:
                 self.onPlaybill(4) #结束
@@ -113,7 +119,7 @@ class sysIntroduction:
             # 查询菜单记录
             self.is_stop=False
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 if self.is_stop:
@@ -139,14 +145,14 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + menuname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM WHERE NAME LIKE ?", (name_pattern,))
             menucursor = cursor.fetchone()
             if menucursor:
                 self.menuitemtalk(menucursor)
         except sqlite3.Error as error:
             logger.error(error)
 
-    def menuitemtalk(self, menuitem):
+    def menuitemtalk(self, menuitem,itemsleep=None,itemdesc=None):
         """
         解说某个菜单页面
 
@@ -158,9 +164,20 @@ class sysIntroduction:
             if self.ctlandtalk:
                 eventid = menuitem[2]
                 self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
+
+            if itemsleep is None:
+                sleeptimes=int(menuitem[5])
+            else:
+                sleeptimes=itemsleep
+            if sleeptimes>0:
+                time.sleep(sleeptimes)
             # 介绍页面功能
             menuname = menuitem[0]
-            menudesc = menuitem[3]
+            if itemdesc is None:
+                menudesc = menuitem[3]
+            else:
+                menudesc=itemdesc
+
             logger.info("讲解" + menuname)
             self.conversation.say(menuname)
             self.conversation.say(menudesc)
@@ -168,7 +185,7 @@ class sysIntroduction:
             # eventid = itemcursor[4]
             # self.pagecontrol.sendPageCtl("CLOSE_PAGE", eventid)             
 
-    def talkmenuitem_byid(self, menuid):
+    def talkmenuitem_byid(self, menuid,itemsleep=None,itemdesc=None):
         """
         解说某个菜单页面
 
@@ -178,14 +195,14 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM MENUITEM WHERE ID = ?", (menuid,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM WHERE ID = ?", (menuid,))
             menucursor = cursor.fetchone()
             if menucursor:
-                self.menuitemtalk(menucursor)
+                self.menuitemtalk(menucursor,itemsleep,itemdesc)
         except sqlite3.Error as error:
             logger.error(error)
 
-    def talkothersystem_byid(self, othersystemid):
+    def talkothersystem_byid(self, othersystemid,itemsleep=None,itemdesc=None):
         """
         解说某个第三方系统
 
@@ -195,14 +212,14 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM WHERE  ID = ?", (othersystemid,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM WHERE  ID = ?", (othersystemid,))
             itemcursor = cursor.fetchone()
             if itemcursor:
-                self.othersystemitemtalk(itemcursor)
+                self.othersystemitemtalk(itemcursor,itemsleep,itemdesc)
         except sqlite3.Error as error:
             logger.error(error)
 
-    def othersystemitemtalk(self, itemcursor):
+    def othersystemitemtalk(self, itemcursor,itemsleep=None,itemdesc=None):
         """介绍第三方系统
 
         Args:
@@ -213,12 +230,24 @@ class sysIntroduction:
             if self.ctlandtalk:
                 eventid = itemcursor[2]
                 self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
+
+            if itemsleep is None:
+                sleeptimes=int(itemcursor[5])
+            else:
+                sleeptimes=itemsleep
+            if sleeptimes>0:
+                time.sleep(sleeptimes)         
+
             # 介绍页面功能
             itemname = itemcursor[0]
-            itemdesc = itemcursor[3]
+            if itemdesc is None:
+                oitemdesc = itemcursor[3]
+            else:
+                oitemdesc=itemdesc
+            
             logger.info("讲解" + itemname)
             self.conversation.say(itemname)
-            self.conversation.say(itemdesc)
+            self.conversation.say(oitemdesc)
             # 发送页面关闭指令
             if self.ctlandtalk:
                 eventid = itemcursor[4]
@@ -235,7 +264,7 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + othersystemname
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM WHERE NAME LIKE ?", (name_pattern,))
             itemcursor = cursor.fetchone()
             if itemcursor:
                 self.othersystemitemtalk(itemcursor)
@@ -251,7 +280,7 @@ class sysIntroduction:
             self.is_stop=False
             # 查询记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM OTHERSYSTEM ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
                 if self.is_stop:
@@ -265,7 +294,7 @@ class sysIntroduction:
         except sqlite3.Error as error:
             logger.error(error)
 
-    def talkhighlight_byid(self, highlightid):
+    def talkhighlight_byid(self, highlightid,itemsleep=None,itemdesc=None):
         """
         解说某个亮点场景
 
@@ -275,14 +304,14 @@ class sysIntroduction:
         try:
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.ID = ?", (highlightid,))
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.ID = ?", (highlightid,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
-                self.highlightitemtalk(highlightcursor)
+                self.highlightitemtalk(highlightcursor,itemsleep,itemdesc)
         except sqlite3.Error as error:
             logger.error(error)
 
-    def highlightitemtalk(self, itemcursor):
+    def highlightitemtalk(self, itemcursor,itemsleep=None,itemdesc=None):
         """解说某亮点场景
 
         Args:
@@ -293,12 +322,24 @@ class sysIntroduction:
             if self.ctlandtalk:  
                 eventid = itemcursor[2]
                 self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
+
+            if itemsleep is None:
+                sleeptimes=int(itemcursor[5])
+            else:
+                sleeptimes=itemsleep
+            if sleeptimes>0:
+                time.sleep(sleeptimes)
+
             # 介绍页面功能
             itemname = itemcursor[0]
-            itemdesc = itemcursor[3]
+            if itemdesc is None:
+                hitemdesc = itemcursor[3]
+            else:
+                hitemdesc=itemdesc
+            hitemdesc = itemcursor[3]
             logger.info("讲解" + itemname)
             self.conversation.say(itemname)
-            self.conversation.say(itemdesc)
+            self.conversation.say(hitemdesc)
             # 发送页面关闭指令
             # if self.ctlandtalk:
                 # eventid = itemcursor[4]
@@ -315,7 +356,7 @@ class sysIntroduction:
             # 查询亮点场景记录
             name_pattern = "%" + highlightname
             cursor = self.conn.execute(
-                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.NAME LIKE ?", (name_pattern,))
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID WHERE H.NAME LIKE ?", (name_pattern,))
             highlightcursor = cursor.fetchone()
             if highlightcursor:
                 self.highlightitemtalk(highlightcursor)
@@ -331,7 +372,7 @@ class sysIntroduction:
             self.is_stop=False
             # 查询亮点场景记录
             cursor = self.conn.execute(
-                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
+                "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
             highlightcursors = cursor.fetchall()
             for row in highlightcursors:
                 if self.is_stop:
@@ -345,7 +386,7 @@ class sysIntroduction:
         except sqlite3.Error as error:
             logger.error(error)
 
-    def talkfeature_byid(self, featureid):
+    def talkfeature_byid(self, featureid,itemsleep=None,itemdesc=None):
         """
         解说系统特点
 
@@ -356,21 +397,32 @@ class sysIntroduction:
             # 查询菜单记录
 
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO,  DESC FROM FEATURES WHERE ID = ?", (featureid,))
+                "SELECT NAME, ORDERNO,  DESC,SLEEP FROM FEATURES WHERE ID = ?", (featureid,))
             itemcursor = cursor.fetchone()
             if itemcursor:
-                self.featureitemtalk(itemcursor)
+                self.featureitemtalk(itemcursor,itemsleep,itemdesc)
         except sqlite3.Error as error:
             logger.error(error)
 
-    def featureitemtalk(self, itemcursor):
+    def featureitemtalk(self, itemcursor,itemsleep=None,itemdesc=None):
         if itemcursor:
             # 介绍页面功能
+            if itemsleep is None:
+                sleeptimes=int(itemcursor[3])
+            else:
+                sleeptimes=itemsleep
+            if sleeptimes>0:
+                time.sleep(sleeptimes)
+
             itemname = itemcursor[0]
-            itemdesc = itemcursor[2]
+            if itemdesc is None:
+                fitemdesc = itemcursor[2]
+            else:
+                fitemdesc=itemdesc
+
             logger.info("讲解" + itemname)
             self.conversation.say(itemname)
-            self.conversation.say(itemdesc)
+            self.conversation.say(fitemdesc)
 
     def talkfeature_byname(self, featurename):
         """解说系统特点
@@ -382,7 +434,7 @@ class sysIntroduction:
             # 查询菜单记录
             name_pattern = "%" + featurename
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO,  DESC FROM FEATURES WHERE NAME LIKE ?", (name_pattern,))
+                "SELECT NAME, ORDERNO,  DESC, SLEEP FROM FEATURES WHERE NAME LIKE ?", (name_pattern,))
             itemcursor = cursor.fetchone()
             if itemcursor:
                 self.featureitemtalk(itemcursor)
@@ -397,7 +449,7 @@ class sysIntroduction:
             self.is_stop=False
             # 查询记录
             cursor = self.conn.execute(
-                "SELECT NAME, ORDERNO,  DESC FROM FEATURES ORDER BY ORDERNO")
+                "SELECT NAME, ORDERNO,  DESC, SLEEP FROM FEATURES ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
                 if self.is_stop:
@@ -469,7 +521,8 @@ if __name__ == '__main__':
     # sysIntro.talkhighlight_byname("地铁运营监测")
     # sysIntro.talkhighlight_byid(1)
     # sysIntro.billtalk()  # 剧本
-    sysIntro.talkallhighlight()
+    sysIntro.talkAllBillItem(1)
+    # sysIntro.talkallhighlight()
     # sysIntro.talkallfeature()
     # sysIntro.talkallothersystem()
     # sysIntro.talkallmenu() #所有大屏页面

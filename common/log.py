@@ -2,8 +2,6 @@ import logging
 import os
 import sys
 
-from common import utils
-
 PAGE = 4096
 
 
@@ -78,7 +76,10 @@ def readLog(lines=200):
     :param lines: 最大的行数
     :returns: 最新指定行数的 log
     """
-    log_path = os.path.join(utils.APP_PATH, "pingo.log")
+    app_path = os.path.normpath(
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
+)
+    log_path = os.path.join(app_path, "pingo.log")
     if os.path.exists(log_path):
         return tail(log_path, lines)
     return ""

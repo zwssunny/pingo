@@ -15,7 +15,7 @@
       <li class="nav-item active">
         <a class="nav-link" href="/billpage">剧本</a>
       </li>
-      <li class="nav-item ">
+      <li class="nav-item "> 
         <a class="nav-link" href="/configpage">配置</a>
       </li>
       <li class="nav-item">
@@ -36,9 +36,9 @@
     <i class="fas fa-bell"></i> 演讲剧本，按照一定的规则和顺序讲解系统功能,并可切换系统页面。
   </div>
   <div class="bill-form">
-    <center>
+    <!-- <center> -->
       <form class="form-row" action="#">
-  	  <label for="bills-select" class="col-sm-2 col-form-label col-form-label-lg">剧本列表：</label>
+  	  <label for="bills-select" class="col-form-label-lg">当前剧本:</label>
       <div class="col-3" id="bills-placeholder">
         <select class="form-control" id="bills-select" name="bills-select">
          {% for item in bills %} 
@@ -51,14 +51,105 @@
         </select>
       </div>
  	    &nbsp;
-    	<button type="button" class="btn btn-primary mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
-    	<button type="button" class="btn btn-primary mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
-    	<button type="button" class="btn btn-primary mb-2" id="UNPAUSE"><i class="fas fa-play-pause"></i> 继续</button>&nbsp;
-    	<button type="button" class="btn btn-danger mb-2" id="STOP"><i class="fas fa-stop"></i> 停止</button>
+    	<button type="button" class="btn btn-success mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
+    	<button type="button" class="btn btn-warning mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
+    	<button type="button" class="btn btn-info mb-2" id="UNPAUSE"><i class="fas fa-forward"></i> 继续</button>&nbsp;
+    	<button type="button" class="btn btn-danger mb-2" id="STOP"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
+      <button type="button" class="btn btn-info mb-2" id="btBillEdit"><i class="fas fa-edit"></i> 修改</button>&nbsp;
+      <button type="button" class="btn btn-info mb-2" id="btBillCopy"><i class="fas fa-copy"></i> 克隆</button>&nbsp;
       </form>
-    </center>
+    <!-- </center> -->
   </div><!-- <div class="bill-form"> -->
-  <table id="billItemsTable"></table>
+    <div id="toolbar" class="btn-group">
+      <button id="btn_add" type="button" class="btn btn-info mb-2">
+          <span class="fas fa-plus" aria-hidden="true"></span>新增节点
+      </button>
+    </div>
+  <table id="billItemsTable"  data-toolbar="#toolbar"></table>
+</div>
+<!--添加的编辑节点框-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel">
+  <div class="modal-dialog modal-max" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="editModalLabel">编辑节点</h4>
+          </div>
+          <div class="modal-body">
+              <form id="form_edit">
+                  <div class="form-group">
+                    <label class="control-label">页面名称：</label>
+                    <input type="text" class="form-control"  name="itemname" id="itemname" disabled>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label">顺序号：</label>
+                    <input type="number" class="form-control"  name="itemorderno" id="itemsleep" >
+                </div>
+                  <div class="form-group">
+                      <label class="control-label">等待时间(秒)：</label>
+                      <input type="number" class="form-control"  name="itemsleep" id="itemorderno" >
+                  </div>
+                   <div class="form-group">
+                      <label class="control-label">演讲词：</label>
+                      <textarea rows="20" class="form-control" name="itemdesc" id="itemdesc" placer='1' aria-label="With textarea"></textarea>
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary"  id="but_submit_add">确认修改</button>
+          </div>
+      </div>
+  </div>
+</div>
+<!--编辑剧本框-->
+<div class="modal fade" id="editBillModal" tabindex="-1" role="dialog" aria-labelledby="editBillModalLabel">
+  <div class="modal-dialog modal-max" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+              <h4 class="modal-title" id="editBillModalLabel">编辑剧本</h4>
+          </div>
+          <div class="modal-body">
+              <form id="form_billedit">
+                  <div class="form-group">
+                    <label class="control-label">剧本名称：</label>
+                    <input type="text" class="form-control"  name="billname" id="billname">
+                  </div>
+                  <div class="form-group">
+                      <label class="control-label">声音：</label>
+                      <select class="form-control" id="billvoice" name="billvoice">
+                        <option selected="selected" value="zh-CN-XiaoxiaoNeural">Xiaoxiao(女声)</option> 
+                        <option  value="zh-CN-XiaoyiNeural">Xiaoyi(女声)</option> 
+                        <option  value="zh-CN-YunjianNeural">Yunjian(男声)</option> 
+                        <option  value="zh-CN-YunxiaNeural">Yunxia(男声)"</option> 
+                        <option  value="zh-CN-liaoning-XiaobeiNeural">liaoning-Xiaobei(女生)</option> 
+                        <option  value="zh-CN-shaanxi-XiaoniNeural">shaanxi-Xiaoni(女生)</option> 
+                      </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label">系统默认剧本：</label>
+                    <select class="form-control" id="billisdefault" name="billisdefault">
+                      <option selected="selected" value="1">是</option> 
+                      <option  value="0">否</option> 
+                    </select>
+                  </div>
+                   <div class="form-group">
+                      <label class="control-label">开场白：</label>
+                      <textarea rows="20" class="form-control" name="billdesc" id="billdesc" placer='1' aria-label="With textarea"></textarea>
+                  </div>
+                  <div class="form-group">
+                      <label class="control-label">创建时间：</label>
+                      <input type="datetime" class="form-control"  name="billdatetime" id="billdatetime" readonly >
+                  </div>
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary"  id="bill_submit_add">确认修改</button>
+          </div>
+      </div>
+  </div>
 </div>
 
 <ul id="recorder" class="mfb-component--br mfb-zoomin" data-mfb-toggle="hover">
@@ -86,4 +177,5 @@
 <script src="{{static_url('bill.js')}}" crossorigin="anonymous"></script>
 <script src="{{static_url('bootbox.js')}}" crossorigin="anonymous"></script>
 <script src="./static/recorder.min.js"></script>
+<script src="./static/bootstrap-datetimepicker.js"></script>
 {% end %}
