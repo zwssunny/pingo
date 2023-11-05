@@ -3,8 +3,8 @@ import os
 import re
 import time
 import uuid
+import threading
 import speech_recognition as sr
-from common import utils
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
@@ -23,6 +23,7 @@ class Conversation(object):
         self.hasPardon = False
         self.onSay = None
         self.onStream = None
+        self.onPlaybill = None
         self.recognizer = sr.Recognizer()
 
     def reInit(self):
@@ -47,8 +48,9 @@ class Conversation(object):
         if self.player:
             self.player.quit()
 
-    def billtalk(self, billID=None, onPlaybill=None):
-        self.introduction.billtalk(billID,onPlaybill)
+    def billtalk(self, billID=None):
+
+        self.introduction.billtalk(billID, self.onPlaybill)
         
     def getHistory(self):
         return self.history
@@ -128,14 +130,14 @@ class Conversation(object):
             self.say("没听清呢")
             self.hasPardon = False
 
-    def doConverse(self, fp, callback=None, onSay=None, onStream=None):
+    def doConverse(self, fp, callback=None, onSay=None, onStream=None, onPlaybill=None):
         self.interrupt()
         try:
             query = self.asr.transcribe(fp)
         except Exception as e:
             logger.critical(f"ASR识别失败：{e}", stack_info=True)
         try:
-            self.doResponse(query, callback, onSay, onStream)
+            self.doResponse(query, callback, onSay, onStream, onPlaybill)
         except Exception as e:
             logger.critical(f"回复失败：{e}", stack_info=True)
 
@@ -154,7 +156,7 @@ class Conversation(object):
         args = conf().get("unit")
         return self.nlu.parse(query, **args)
     
-    def doResponse(self, query, UUID="",onSay=None, onStream=None):
+    def doResponse(self, query, UUID="",onSay=None, onStream=None,onPlaybill=None):
         """
         响应指令
 
@@ -169,6 +171,9 @@ class Conversation(object):
 
         if onStream:
             self.onStream = onStream
+
+        if onPlaybill:
+            self.onPlaybill=onPlaybill
 
         if query.strip() == "":
             self.pardon()
@@ -195,7 +200,7 @@ class Conversation(object):
                     elif intent in self.highlightintent:
                         self.introduction.talkhighlight_byname(pagename)
                 elif "ORATOR" in intent:  # 演示整个系统
-                    self.billtalk()
+                    threading.Thread(target=lambda: self.billtalk()).start()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:

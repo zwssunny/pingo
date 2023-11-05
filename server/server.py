@@ -162,6 +162,11 @@ class ChatHandler(BaseHandler):
         for client in ChatWebSocketHandler.clients:
             client.send_response(data, uuid, "")
 
+    def onPlaybill(self, playstate):
+        # 通过 ChatWebSocketHandler 发送给前端
+        for client in ChatWebSocketHandler.clients:
+            client.send_playstate(playstate)
+
     def post(self):
         global conversation
         if self.validate(self.get_argument("validate", default=None)):
@@ -181,6 +186,7 @@ class ChatHandler(BaseHandler):
                                              ),
                                              onStream=lambda data, resp_uuid: self.onStream(
                                                  data, resp_uuid),
+                                            onPlaybill=lambda playstate: self.onPlaybill(playstate)
                                          ))
                     t.start()
 
@@ -200,7 +206,8 @@ class ChatHandler(BaseHandler):
                                          onSay=lambda msg, audio, plugin: self.onResp(
                                              msg, audio, plugin),
                                          onStream=lambda data, resp_uuid: self.onStream(
-                                             data, resp_uuid)
+                                             data, resp_uuid),
+                                         onPlaybill=lambda playstate: self.onPlaybill(playstate)
 
                                      ))
                 t.start()
@@ -250,11 +257,6 @@ class LogPageHandler(BaseHandler):
 
 
 class OperateHandler(BaseHandler):
-    def onPlaybill(self, playstate):
-        # 通过 ChatWebSocketHandler 发送给前端
-        for client in ChatWebSocketHandler.clients:
-            client.send_playstate(playstate)
-
     def post(self):
         global conversation, pingo
         if self.validate(self.get_argument("validate", default=None)):
@@ -272,7 +274,7 @@ class OperateHandler(BaseHandler):
                 self.finish()
                 # 考虑线程执行，否则会等很久
                 t = threading.Thread(target=lambda: conversation.billtalk(
-                    billID=Billid, onPlaybill=lambda playstate: self.onPlaybill(playstate)))
+                    billID=Billid ))
                 t.start()
             elif type in ["pause", "2"]:
                 res = {"code": 0, "message": "pause ok"}

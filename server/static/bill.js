@@ -128,7 +128,7 @@ function getBillId()
         { field: 'TYPENAME', title: '节点分类', sortable: true },
         { field: 'TYPEID', title: '节点ID', visible: false },
         { field: 'NAME',title: '名称', sortable: true },
-        { field: 'SLEEP',title: '等待-秒', sortable: true },
+        { field: 'SLEEP',title: '等待时间(秒)', sortable: true },
         { field: 'DESC', title: '演讲词', visible: false
         // , editable: {
         //     title: "请输入演讲词：",
@@ -314,11 +314,11 @@ $(function() {
     });
 
     //日期时间控件
-    $("#billdatetime").datetimepicker({
-        language: "zh-cn",
-        format: "yyyy-mm-dd hh:ii",
-        autoclose: true
-      });
+    // $("#billdatetime").datetimepicker({
+    //     language: "zh-cn",
+    //     format: "yyyy-mm-dd hh:ii",
+    //     autoclose: true
+    //   });
     //调整按钮初始化状态
     buttonstate(4);
     //初始化节目表
@@ -410,7 +410,7 @@ $(function() {
             $("#billvoice").val("");
             $("#billisdefault").val("");
             $("#billdesc").text("");
-            $("#billdatetime").val("");
+            $("#billdatetime").val(getCurrentTime());
         });
         //提交剧本保存
         $("#bill_submit_add").click(function () {

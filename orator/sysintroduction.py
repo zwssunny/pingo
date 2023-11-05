@@ -24,6 +24,7 @@ class sysIntroduction:
         self.is_stop=False
         self.ctlandtalk=ctlandtalk #是否控制页面跳转
         self.onPlaybill=None
+        self.curBillId=None
 
         if pgectl:
             self.pagecontrol = pgectl  
@@ -36,7 +37,11 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
-            self.onPlaybill=onPlaybill
+            if onPlaybill:
+                self.onPlaybill=onPlaybill
+
+            if self.onPlaybill:
+                self.onPlaybill(1) #播放
             # 查询系统介绍内容
             if billID==None:
                 cursor = self.conn.execute(
@@ -47,9 +52,9 @@ class sysIntroduction:
             billcursor = cursor.fetchone()
             if billcursor:
                 billdesc = billcursor[3]
-                billid = billcursor[0]
+                self.curBillId = billcursor[0]
                 self.conversation.say(billdesc)
-                self.talkAllBillItem(billid)
+                self.talkAllBillItem(self.curBillId)
             else:
                 self.conversation.say("找不到剧本")
         except sqlite3.Error as error:
