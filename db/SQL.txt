@@ -1,67 +1,160 @@
- CREATE TABLE PROJECT(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   BUILDER    TEXT,
-   CONTRACTOR  TEXT,
-   SUPERVISOR  TEXT,
-   DESC        TEXT
+/*
+ Navicat Premium Data Transfer
+
+ Source Server         : pingo
+ Source Server Type    : SQLite
+ Source Server Version : 3035005
+ Source Schema         : main
+
+ Target Server Type    : SQLite
+ Target Server Version : 3035005
+ File Encoding         : 65001
+
+ Date: 05/11/2023 17:16:30
+*/
+
+PRAGMA foreign_keys = false;
+
+-- ----------------------------
+-- Table structure for BILL
+-- ----------------------------
+DROP TABLE IF EXISTS "BILL";
+CREATE TABLE "BILL" (
+  "ID" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "VOICE" TEXT,
+  "DATETIME" TEXT,
+  "ISDEFAULT" BOOLEAN NOT NULL DEFAULT 0,
+  "DESC" TEXT
 );
 
- CREATE TABLE MENUITEM(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   OPENEVENT    INT NOT NULL,
-   CLOSEEVENT    INT NOT NULL DEFAULT -1,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for BILLITEM
+-- ----------------------------
+DROP TABLE IF EXISTS "BILLITEM";
+CREATE TABLE "BILLITEM" (
+  "ID" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "BILLID" INTEGER NOT NULL,
+  "TYPENAME" TEXT NOT NULL,
+  "TYPEID" INTEGER NOT NULL,
+  "ORDERNO" INTEGER NOT NULL,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1,
+  "DESC" TEXT,
+  "SLEEP" integer DEFAULT 2
+);
 
-  CREATE TABLE HIGHLIGHT(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   OPENEVENT    INT NOT NULL,
-   CLOSEEVENT    INT NOT NULL DEFAULT -1,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for FEATURES
+-- ----------------------------
+DROP TABLE IF EXISTS "FEATURES";
+CREATE TABLE "FEATURES" (
+  "ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "ORDERNO" INT NOT NULL,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1,
+  "DESC" TEXT,
+  "SLEEP" integer DEFAULT 2
+);
 
-  CREATE TABLE FEATURES(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for HIGHLIGHT
+-- ----------------------------
+DROP TABLE IF EXISTS "HIGHLIGHT";
+CREATE TABLE "HIGHLIGHT" (
+  "ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "ORDERNO" INT NOT NULL,
+  "MENUITEMID" INT NOT NULL,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1
+);
 
-  CREATE TABLE OTHERSYSTEM(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   OPENEVENT    INT NOT NULL,
-   CLOSEEVENT    INT NOT NULL DEFAULT -1,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for MENUITEM
+-- ----------------------------
+DROP TABLE IF EXISTS "MENUITEM";
+CREATE TABLE "MENUITEM" (
+  "ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "ORDERNO" INT NOT NULL,
+  "OPENEVENT" INT NOT NULL,
+  "CLOSEEVENT" integer NOT NULL DEFAULT -1,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1,
+  "DESC" TEXT,
+  "SLEEP" integer DEFAULT 2
+);
 
-  CREATE TABLE BILL(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   NAME        TEXT    NOT NULL,
-   VOICE       TEXT,
-   DATETIME    TEXT,
-   ISDEFAULT      BOOLEAN NOT NULL DEFAULT 0,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for OTHERSYSTEM
+-- ----------------------------
+DROP TABLE IF EXISTS "OTHERSYSTEM";
+CREATE TABLE "OTHERSYSTEM" (
+  "ID" INTEGER PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "ORDERNO" integer NOT NULL,
+  "OPENEVENT" integer NOT NULL,
+  "CLOSEEVENT" integer NOT NULL DEFAULT -1,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1,
+  "DESC" TEXT,
+  "SLEEP" integer DEFAULT 2
+);
 
-  CREATE TABLE BILLITEM(
-   ID INTEGER  PRIMARY KEY  AUTOINCREMENT,
-   BILLID   INTEGER NOT NULL,
-   TYPENAME        TEXT    NOT NULL,
-   TYPEID    INTEGER NOT NULL,
-   ORDERNO       INT     NOT NULL,
-   ENABLE      BOOLEAN NOT NULL DEFAULT 1,
-   DESC        TEXT
- );
+-- ----------------------------
+-- Table structure for PROJECT
+-- ----------------------------
+DROP TABLE IF EXISTS "PROJECT";
+CREATE TABLE "PROJECT" (
+  "ID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+  "NAME" TEXT NOT NULL,
+  "ORDERNO" INT NOT NULL,
+  "BUILDER" TEXT,
+  "CONTRACTOR" TEXT,
+  "SUPERVISOR" TEXT,
+  "DESC" TEXT,
+  "ENABLE" BOOLEAN NOT NULL DEFAULT 1
+);
+
+-- ----------------------------
+-- Table structure for sqlite_sequence
+-- ----------------------------
+DROP TABLE IF EXISTS "sqlite_sequence";
+CREATE TABLE "sqlite_sequence" (
+  "name",
+  "seq"
+);
+
+-- ----------------------------
+-- Auto increment value for BILL
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 5 WHERE name = 'BILL';
+
+-- ----------------------------
+-- Auto increment value for BILLITEM
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 50 WHERE name = 'BILLITEM';
+
+-- ----------------------------
+-- Auto increment value for FEATURES
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 6 WHERE name = 'FEATURES';
+
+-- ----------------------------
+-- Auto increment value for HIGHLIGHT
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 11 WHERE name = 'HIGHLIGHT';
+
+-- ----------------------------
+-- Auto increment value for MENUITEM
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 29 WHERE name = 'MENUITEM';
+
+-- ----------------------------
+-- Auto increment value for OTHERSYSTEM
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 5 WHERE name = 'OTHERSYSTEM';
+
+-- ----------------------------
+-- Auto increment value for PROJECT
+-- ----------------------------
+UPDATE "sqlite_sequence" SET seq = 1 WHERE name = 'PROJECT';
+
+PRAGMA foreign_keys = true;
