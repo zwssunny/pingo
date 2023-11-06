@@ -16,6 +16,7 @@ import tornado.httpserver
 
 from tornado.websocket import WebSocketHandler
 from urllib.parse import unquote
+from common.tmp_dir import TmpDir
 
 from config import conf, load_config, read_file
 from common.log import logger, readLog
@@ -192,8 +193,11 @@ class ChatHandler(BaseHandler):
 
             elif self.get_argument("type") == "voice":
                 voice_data = self.get_argument("voice")
-                tmpfile = utils.write_temp_file(
-                    base64.b64decode(voice_data), ".wav")
+                # tmpfile = utils.write_temp_file(
+                #     base64.b64decode(voice_data), ".wav")
+                tmpfile = TmpDir().path() + "speech-" + str(int(time.time())) + ".wav"
+                with open(tmpfile, "wb") as f:
+                    f.write(base64.b64decode(voice_data))
                 # fname, suffix = os.path.splitext(tmpfile)
                 # nfile = fname + "-16k" + suffix
                 # downsampling
