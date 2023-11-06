@@ -8,7 +8,7 @@ import asyncio
 import sqlite3
 import markdown
 import threading
-import subprocess
+import ssl
 import tornado.web
 import tornado.ioloop
 import tornado.options
@@ -602,8 +602,15 @@ def start_server(con, pg):
     if serverconf["enable"]:
         port = serverconf["port"]
         try:
-            # asyncio.set_event_loop(asyncio.new_event_loop())
-            webApp = application.listen(int(port))
+        
+            # 启用 SSL/TLS
+            ssl_path_crt = os.path.join(utils.APP_PATH, 'pem','pingo.crt')
+            ssl_path_key = os.path.join(utils.APP_PATH, 'pem','pingo.key')
+            ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_ctx.load_cert_chain(certfile=ssl_path_crt, keyfile=ssl_path_key)
+
+            webApp =tornado.httpserver.HTTPServer(application, ssl_options=ssl_ctx)
+            webApp.listen(int(port))
             tornado.ioloop.IOLoop.current().start()
         except Exception as e:
             logger.critical(f"服务器启动失败: {e}", stack_info=True)

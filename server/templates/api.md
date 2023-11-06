@@ -182,9 +182,6 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 
 - 示例：
 
-``` sh
-$ curl -X localhost:5001/config -d "config=robot_name_cn%3A+'%E5%AD%99%E6%82%9F%E7%A9%BA'%0Afirst_name%3A+'%E4%BC%9F%E6%B4%B2'%0Alast_name%3A+'%E6%BD%98'%0Atimezone%3A+HKT%0Alocation%3A+'%E6%B7%B1%E5%9C%B3'%0A%0A%23+%E5%90%8E%E5%8F%B0%E7%AE%A1%E7%90%86%E7%AB%AF%0Aserver%3A%0A++++enable%3A+true%0A++++host%3A+'0.0.0.0'++%23+ip+%E5%9C%B0%E5%9D%80%0A++++port%3A+'5001'+++++%23+%E7%AB%AF%E5%8F%A3%E5%8F%B7++++%0A++++username%3A+'pingo'..."
-```
 
 - 返回：
 
@@ -194,3 +191,72 @@ $ curl -X localhost:5001/config -d "config=robot_name_cn%3A+'%E5%AD%99%E6%82%9F%
 | message | 结果说明 |
 
 
+## 剧本
+
+### 获取剧本列表
+
+用于获取系统已存在的剧本 。
+
+- url：/bills
+- method: GET
+- 参数：
+
+| 参数名 |  是否必须 | 说明  |
+| ---   | ------- | ----- |
+| validate | 是 | 参见 [鉴权](#_1) |
+| billid | 否 | 如果提供特定的剧本ID，则返回当前剧本记录，否则返回所有剧本列 |
+
+- 返回：
+
+| 字段名 |  说明  |
+| ---   | ----- |
+| code  | 返回码。0：成功；1：失败 |
+| message | 结果说明 |
+| bills | 返回记录列表，一条或者多条 |
+
+
+### 获取节目列表
+
+用于获取系统已存在的剧本 。
+
+- url：/billitems
+- method: GET
+- 参数：
+
+| 参数名 |  是否必须 | 说明  |
+| ---   | ------- | ----- |
+| validate | 是 | 参见 [鉴权](#_1) |
+| billid | 是 | 提供特定的剧本ID |
+| itemid | 否 | 如果提供特定的节点ID，则返回该条记录，否则返回该剧本ID下所有节点|
+
+- 返回：
+
+| 字段名 |  说明  |
+| ---   | ----- |
+| code  | 返回码。0：成功；1：失败 |
+| message | 结果说明 |
+| billItems | 返回记录列表，一条或者多条 |
+
+
+### 更新节点
+
+用于获取系统已存在的剧本 。
+
+- url：/billitems
+- method: POST
+- 参数：
+
+| 参数名 |  是否必须 | 说明  |
+| ---   | ------- | ----- |
+| validate | 是 | 参见 [鉴权](#_1) |
+| id | 是 | 提供特定的节点ID |
+| orderno | 是 | 演示顺序号|
+| sleep | 是 | 等待时间，秒|
+| desc | 是 | 演示词|
+
+- 返回：
+
+| 字段名 |  说明  |
+| ---   | ----- |
+| code  | 返回码。0：成功；1：失败 |
+| message | 结果说明 |
