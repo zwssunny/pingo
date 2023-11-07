@@ -46,7 +46,7 @@ function buttonstate( playstate){
   if (playstate==1)
   {
     $('button#UNPAUSE').disable();
-    $('button#STOP').enable();
+    $('button#showstopModal').enable();
     $('button#PLAY').disable();
     $('button#PAUSE').enable();
     $('#bills-select').disable();
@@ -57,7 +57,7 @@ function buttonstate( playstate){
   }
   else if(playstate==2){
     $('button#UNPAUSE').enable();
-    $('button#STOP').enable();
+    $('button#showstopModal').enable();
     $('button#PLAY').disable();
     $('button#PAUSE').disable();
     $('#bills-select').disable();
@@ -68,7 +68,7 @@ function buttonstate( playstate){
   else
   {
     $('button#UNPAUSE').disable();
-    $('button#STOP').disable();
+    $('button#showstopModal').disable();
     $('button#PLAY').enable();
     $('button#PAUSE').disable();
     $('#bills-select').enable();
@@ -296,6 +296,7 @@ $(function() {
         selected_value=getBillId();
         talkbill(4,selected_value,'停止');
         buttonstate(4);
+        $("#stopModal").modal('hide');
     });
     $('button#PLAY').on('click', function(e) {
         selected_value=getBillId();
