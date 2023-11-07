@@ -13,7 +13,7 @@
         <a class="nav-link" href="/">会话</a>
       </li>
       <li class="nav-item active">
-        <a class="nav-link" href="/billpage">剧本</a>
+        <a class="nav-link" href="/billpage">演讲</a>
       </li>
       <li class="nav-item "> 
         <a class="nav-link" href="/configpage">配置</a>
@@ -38,7 +38,7 @@
   <div class="bill-form">
     <!-- <center> -->
       <form class="form-row" action="#">
-  	  <label for="bills-select" class="col-form-label-lg">当前剧本:</label>
+  	  <label for="bills-select" class="col-form-label-lg">演讲方案:</label>
       <div class="col-3" id="bills-placeholder">
         <select class="form-control" id="bills-select" name="bills-select">
          {% for item in bills %} 
@@ -54,16 +54,16 @@
     	<button type="button" class="btn btn-success mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
     	<button type="button" class="btn btn-warning mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
     	<button type="button" class="btn btn-info mb-2" id="UNPAUSE"><i class="fas fa-forward"></i> 继续</button>&nbsp;
-    	<button type="button" class="btn btn-danger mb-2" id="STOP"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
+    	<button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#stopModal"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
       <button type="button" class="btn btn-info mb-2" id="btBillEdit"><i class="fas fa-edit"></i> 修改</button>&nbsp;
       <button type="button" class="btn btn-info mb-2" id="btBillCopy"><i class="fas fa-copy"></i> 克隆</button>&nbsp;
       </form>
     <!-- </center> -->
   </div><!-- <div class="bill-form"> -->
     <div id="toolbar" class="btn-group">
-      <button id="btn_add" type="button" class="btn btn-info mb-2">
+      <!-- <button id="btn_add" type="button" class="btn btn-info mb-2">
           <span class="fas fa-plus" aria-hidden="true"></span>新增节点
-      </button>
+      </button> -->
     </div>
   <table id="billItemsTable"  data-toolbar="#toolbar"></table>
 </div>
@@ -108,7 +108,7 @@
       <div class="modal-content">
           <div class="modal-header">
               <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-              <h4 class="modal-title" id="editBillModalLabel">编辑剧本</h4>
+              <h4 class="modal-title" id="editBillModalLabel">编辑演讲方案</h4>
           </div>
           <div class="modal-body">
               <form id="form_billedit">
@@ -153,7 +153,27 @@
       </div>
   </div>
 </div>
-
+<!-- 停止演讲 -->
+<div class="modal fade" id="stopModal" tabindex="-1" role="dialog" aria-labelledby="stopModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="stopModalLabel">你确定吗？</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        确定要停止当前演讲吗？
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">只是手抖</button>
+        <button type="button" class="btn btn-primary" id="STOP" data-dismiss="modal">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 录音 -->
 <ul id="recorder" class="mfb-component--br mfb-zoomin" data-mfb-toggle="hover">
       <li class="mfb-component__wrap">
         <a href="#" id="record" class="mfb-component__button--main">

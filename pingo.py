@@ -13,8 +13,6 @@ from robot.conversation import Conversation
 from server import server
 
 class Pingo(object):
-    _debug = False
-
     def __init__(self):
         # load config
         load_config()

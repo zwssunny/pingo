@@ -157,7 +157,7 @@ function getBillId()
     result += "<a href='javascript:;' class='btn btn-primary mb-2' style='margin:5px' onclick=\"EditViewById("+id+")\" title='编辑演讲内容'>";
     result += "<span class='fas fa-edit'></span>编辑</a>";
     if (row["TYPENAME"]=="FEATURES") {
-        result += "<a href='javascript:;' class='btn btn-danger mb-2'  style='margin:5px' onclick=\"DeleteByIds("+id+")\" title='删除后不能恢复'>";
+        result += "<a href='javascript:;' class='btn btn-danger mb-2'  style='margin:5px' onclick=\"DeleteById("+id+")\" title='删除后不能恢复'>";
         result += "<span class='fas fa-trash'></span>删除</a>";
     }
     return result;
@@ -252,7 +252,7 @@ function EditViewById(id){
             }
         });
     };
-//刷新剧本列表
+//刷新演讲方案列表
 function refreshBillsList() {
     //保存选中
     selected_value=getBillId()
@@ -276,11 +276,11 @@ function refreshBillsList() {
             }
             else
             {
-                toastr.error('找不到记录', '获取剧本数据失败');
+                toastr.error('找不到记录', '获取数据失败');
             }
         },
         error: function() {
-            toastr.error('服务器异常', '获取剧本数据失败');
+            toastr.error('服务器异常', '获取数据失败');
         }
     });  
    //恢复触发事件
@@ -323,7 +323,7 @@ $(function() {
     buttonstate(4);
     //初始化节目表
     InitBillItemsTable();
-    //剧本变化时刷新节目单
+    //方案变化时刷新节目单
     $('#bills-select').change(function () {
         $('#billItemsTable').bootstrapTable('refresh');
     });
@@ -369,7 +369,7 @@ $(function() {
         $('#billItemsTable').bootstrapTable('refresh');
         $("#editModal").modal('hide');
     });
-    //编辑剧本
+    //编辑方案
     $('button#btBillEdit').on('click', function(e) {
         $.ajax({
             url: '/bills',
@@ -393,16 +393,16 @@ $(function() {
                 }
                 else
                 {
-                    toastr.error('找不到记录', '获取剧本数据失败');
+                    toastr.error('找不到记录', '获取数据失败');
                 }
             },
             error: function() {
-                toastr.error('服务器异常', '获取剧本数据失败');
+                toastr.error('服务器异常', '获取数据失败');
             }
         });
 
     });
-        //关闭剧本编辑窗体后清空
+        //关闭方案编辑窗体后清空
         $('#editBillModal').on('hidden.bs.modal', function () {
             // 清空表单
             $('#form_billedit')[0].reset();
@@ -412,7 +412,7 @@ $(function() {
             $("#billdesc").text("");
             $("#billdatetime").val(getCurrentTime());
         });
-        //提交剧本保存
+        //提交方案保存
         $("#bill_submit_add").click(function () {
             // 判断是否修改
             var dataform = $("#form_billedit").serializeArray();
@@ -430,7 +430,7 @@ $(function() {
                 data: billdata,
                 success: function(res) {
                     var data = JSON.parse(res);
-                    msg='更新剧本';
+                    msg='更新演讲方案';
                     if (data.code == 0) {
                         toastr.success(msg+'成功');
                     } else {
@@ -445,7 +445,7 @@ $(function() {
             refreshBillsList();
             $("#editBillModal").modal('hide');
         });
-    //克隆剧本
+    //克隆演讲方案
     $('button#btBillCopy').on('click', function(e) {
         selected_value=getBillId();
         alert("未实现")
