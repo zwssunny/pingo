@@ -25,6 +25,7 @@ class sysIntroduction:
         self.ctlandtalk=ctlandtalk #是否控制页面跳转
         self.onPlaybill=None
         self.curBillId=None
+        self.playstatus=0
 
         if pgectl:
             self.pagecontrol = pgectl  
@@ -37,11 +38,12 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
+            self.playstatus=1
             if onPlaybill:
                 self.onPlaybill=onPlaybill
 
             if self.onPlaybill:
-                self.onPlaybill(1) #播放
+                self.onPlaybill(self.playstatus) #播放
             # 查询系统介绍内容
             if billID==None:
                 cursor = self.conn.execute(
@@ -83,7 +85,7 @@ class sysIntroduction:
                 #     time.sleep(itemsleep)
 
                 if self.onPlaybill:
-                    self.onPlaybill(1) #播放
+                    self.onPlaybill(self.playstatus) #播放
                 if typename == 'MENUITEM':
                     self.talkmenuitem_byid(typeid,itemsleep,itemdesc)
                 elif typename == 'FEATURES':
@@ -93,8 +95,9 @@ class sysIntroduction:
                 elif typename == 'HIGHLIGHT':
                     self.talkhighlight_byid(typeid,itemsleep,itemdesc)
             #结束循环
+            self.playstatus=4
             if self.onPlaybill:
-                self.onPlaybill(4) #结束
+                self.onPlaybill(self.playstatus) #结束
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -123,6 +126,7 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             self.is_stop=False
+            self.playstatus=1
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
@@ -130,11 +134,11 @@ class sysIntroduction:
                 if self.is_stop:
                     break
                 if self.onPlaybill:
-                    self.onPlaybill(1) #播放
+                    self.onPlaybill(self.playstatus) #播放
                 self.menuitemtalk(row)
-
+            self.playstatus=4
             if self.onPlaybill:
-                self.onPlaybill(4) #结束
+                self.onPlaybill(self.playstatus) #结束
                 self.onPlaybill=None
         except sqlite3.Error as error:
             logger.error(error)
@@ -283,6 +287,7 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
+            self.playstatus=1
             # 查询记录
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM ORDER BY ORDERNO")
@@ -291,11 +296,13 @@ class sysIntroduction:
                 if self.is_stop:
                     break
                 if self.onPlaybill:
-                    self.onPlaybill(1) #播放
+                    self.onPlaybill(self.playstatus) #播放
                 self.othersystemitemtalk(row)
-            
+
+            self.playstatus=4 
+
             if self.onPlaybill:
-                self.onPlaybill(4)
+                self.onPlaybill(self.playstatus)
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -375,6 +382,7 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
+            self.playstatus=1
             # 查询亮点场景记录
             cursor = self.conn.execute(
                 "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
@@ -383,11 +391,13 @@ class sysIntroduction:
                 if self.is_stop:
                     break
                 if self.onPlaybill:
-                    self.onPlaybill(1) #播放
+                    self.onPlaybill(self.playstatus) #播放
                 self.highlightitemtalk(row)
-            
+                
+            self.playstatus=4
+
             if self.onPlaybill:
-                self.onPlaybill(4) #停止
+                self.onPlaybill(self.playstatus) #停止
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -516,6 +526,7 @@ class sysIntroduction:
 
     def stop(self):
          self.is_stop=True
+         self.playstatus=4
 
 if __name__ == '__main__':
     from config import load_config

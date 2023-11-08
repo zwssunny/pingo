@@ -64,16 +64,16 @@ function guid() {
 }
 
 // 创建WebSocket连接
-var socket = new WebSocket("ws://" + location.host + "/websocket");
+var socket = new WebSocket("wss://" + location.host + "/websocket");
 
 // 监听WebSocket打开事件
 socket.onopen = function (e) {
-    console.log("mainWebSocket连接已打开");
+    console.log("indexWebSocket连接已打开");
 };
 
 // 监听WebSocket关闭事件
 socket.onclose = function (e) {
-    console.log("mainWebSocket连接已关闭");
+    console.log("indexWebSocket连接已关闭");
 };
 
 var rawData = {}

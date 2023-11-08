@@ -67,13 +67,14 @@ class Conversation(object):
         """暂停会话，可以通过unpause()恢复
         """        
         if self.player and self.player.is_playing():
+            self.introduction.playstatus=2
             self.player.pause()
 
     def unpause(self):
         """继续播放声音
         """        
         if self.player:
-            self.player.unpause()
+           self.player.unpause()
 
     def appendHistory(self, t, text, UUID="", plugin=""):
         """将会话历史加进历史记录"""
@@ -205,7 +206,7 @@ class Conversation(object):
                     self.isConversationcomplete = False  # 问题不明确
             else:
                 self.isConversationcomplete = False  # 词槽不明确
-        else:
+        else: #后续可以交给chatgpt
             self.pardon()
     # 从麦克风收集音频并写入文件
     def _record(self, rate=16000):

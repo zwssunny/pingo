@@ -296,6 +296,10 @@ class OperateHandler(BaseHandler):
                 self.finish()
                 threading.Thread(
                     target=lambda: conversation.interrupt()).start()
+            elif type in ["playstatus","5"]:
+                res = {"code": 0, "message": "get playstatus ok", "playstatus": conversation.introduction.playstatus,"curbillid": conversation.introduction.curBillId}
+                self.write(json.dumps(res))
+                self.finish()
             else:
                 res = {"code": 1, "message": f"illegal type {type}"}
                 self.write(json.dumps(res))
@@ -435,7 +439,7 @@ class BillsHandler(BaseHandler):
             conn.close()
             self.write(json.dumps(bills))
         self.finish()
-    #更新剧本
+    #更新演讲方案
     def post(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
@@ -456,11 +460,38 @@ class BillsHandler(BaseHandler):
             sql="UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
             cursor.execute(sql,(name,voice,isdefault,datetime,desc,id,))
             conn.commit()
+            conn.close()
             #logger.log(desc)
-            res = {"code": 0, "message": "更新剧本"}
+            res = {"code": 0, "message": "更新演讲方案"}
             self.write(json.dumps(res))
         self.finish()
+    #克隆演讲方案
+    def put(self):
+        if not self.validate(self.get_argument("validate", default=None)):
+            res = {"code": 1, "message": "illegal visit"}
+            self.write(json.dumps(res))
+        else:
+            id=self.get_argument("id")
+            conn = sqlite3.connect(sysdb, check_same_thread=False)
+            cursor=conn.cursor()
+            sql="INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? " 
+            cursor.execute(sql,(id,))
+            sql="SELECT LAST_INSERT_ROWID()"
+            cursor.execute(sql)
+            newbillcursor=cursor.fetchone()
+            if newbillcursor:
+                newbillid=newbillcursor[0]
+                if int(newbillid)>0:
+                    sql="INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
+                    cursor.execute(sql,(newbillid,id,))
+                    conn.commit()
+            else:
+                conn.rollback()    
+            conn.close()
 
+            res = {"code": 0, "newbillid": newbillid,"message": "克隆演讲方案"}
+            self.write(json.dumps(res))
+        self.finish()
 
 class BillItemsHandler(BaseHandler):
     def get(self):
@@ -528,7 +559,7 @@ class BillItemsHandler(BaseHandler):
             id=self.get_argument("id")
             conn = sqlite3.connect(sysdb, check_same_thread=False)
             cursor=conn.cursor()
-            cursor.execute("DELETE BILLITEM WHERE ID=? ",(id,))
+            cursor.execute("DELETE FROM BILLITEM WHERE ID=? ",(id,))
             conn.commit()
             #logger.log(desc)
             res = {"code": 0, "message": "删除节点"}

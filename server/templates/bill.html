@@ -33,7 +33,7 @@
 
 <div class="container bill">
   <div class="alert alert-info" role="alert">
-    <i class="fas fa-bell"></i> 演讲剧本，按照一定的规则和顺序讲解系统功能,并可切换系统页面。
+    <i class="fas fa-bell"></i> 演讲方案，按照一定的规则和顺序讲解系统功能,并可切换系统页面。
   </div>
   <div class="bill-form">
     <!-- <center> -->
@@ -56,7 +56,7 @@
     	<button type="button" class="btn btn-info mb-2" id="UNPAUSE"><i class="fas fa-forward"></i> 继续</button>&nbsp;
     	<button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#stopModal" id="showstopModal"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
       <button type="button" class="btn btn-info mb-2" id="btBillEdit"><i class="fas fa-edit"></i> 修改</button>&nbsp;
-      <button type="button" class="btn btn-info mb-2" id="btBillCopy"><i class="fas fa-copy"></i> 克隆</button>&nbsp;
+      <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#cloneModal" id="btBillCopy"><i class="fas fa-copy"></i> 克隆</button>&nbsp;
       </form>
     <!-- </center> -->
   </div><!-- <div class="bill-form"> -->
@@ -100,6 +100,26 @@
               <button type="button" class="btn btn-primary"  id="but_submit_add">确认修改</button>
           </div>
       </div>
+  </div>
+</div>
+<!-- 删除节点 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">你确定吗？</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        确定要删除该节点吗？
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">只是手抖</button>
+        <button type="button" class="btn btn-primary" id="DELETE" data-dismiss="modal">删除</button>
+      </div>
+    </div>
   </div>
 </div>
 <!--编辑剧本框-->
@@ -153,6 +173,27 @@
       </div>
   </div>
 </div>
+<!-- 克隆方案 -->
+<div class="modal fade" id="cloneModal" tabindex="-1" role="dialog" aria-labelledby="cloneModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cloneModalLabel">你确定吗？</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        确定要克隆当前演讲方案吗？
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">只是手抖</button>
+        <button type="button" class="btn btn-primary" id="CLONE" data-dismiss="modal">克隆</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 停止演讲 -->
 <div class="modal fade" id="stopModal" tabindex="-1" role="dialog" aria-labelledby="stopModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
