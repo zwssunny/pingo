@@ -12,28 +12,34 @@ APP_PATH = os.path.normpath(
     os.path.join(os.path.dirname(os.path.abspath(__file__)), os.pardir)
 )
 load_config()
-CACH_PATH = os.path.join(APP_PATH, "cach", conf().get("edge-tts")["voice"])
+VOICENAME= conf().get("edge-tts")["voice"]
+CACH_PATH = os.path.join(APP_PATH, "cach")
 TMP_PATH = os.path.join(APP_PATH, "tmp")
 TEMPLATE_PATH = os.path.join(APP_PATH, "server", "templates")
 DATA_PATH = os.path.join(APP_PATH, "static")
 
-def getCache(msg):
+def getCache(msg,voicename=None):
     """获取缓存的语音"""
     md5 = hashlib.md5(msg.encode("utf-8")).hexdigest()
+    if voicename is None:
+        voicename=VOICENAME
     cache_paths = [
-        os.path.join(CACH_PATH, md5 + ext)
+        os.path.join(CACH_PATH,voicename, md5 + ext)
         for ext in [".mp3", ".wav", ".asiff"]
     ]
     return next((path for path in cache_paths if os.path.exists(path)), None)
 
 
-def saveCache(voice, msg):
+def saveCache(voice, msg,voicename=None):
     """保存语音到缓存"""
     _, ext = os.path.splitext(voice)
     md5 = hashlib.md5(msg.encode("utf-8")).hexdigest()
-    if not os.path.exists(CACH_PATH):
-        os.makedirs(CACH_PATH)
-    target = os.path.join(CACH_PATH, md5 + ext)
+    if voicename is None:
+        voicename=VOICENAME
+    voicename_path=os.path.join(CACH_PATH,voicename)
+    if not os.path.exists(voicename_path):
+        os.makedirs(voicename_path)
+    target = os.path.join(voicename_path, md5 + ext)
     shutil.copyfile(voice, target)
     return target
 

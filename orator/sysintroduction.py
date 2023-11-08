@@ -11,7 +11,7 @@ sysdb = "./db/pingo.db"
 
 
 class sysIntroduction:
-    def __init__(self, conversation, pgectl: pagecontrol=None, ctlandtalk: bool=False):
+    def __init__(self, conversation,  ctlandtalk: bool=False):
         """
         系统介绍
 
@@ -21,22 +21,21 @@ class sysIntroduction:
         """
         self.conn = sqlite3.connect(sysdb, check_same_thread=False)
         self.conversation = conversation
+        self.pagecontrol = pagecontrol()
         self.is_stop=False
         self.ctlandtalk=ctlandtalk #是否控制页面跳转
         self.onPlaybill=None
         self.curBillId=None
         self.playstatus=0
 
-        if pgectl:
-            self.pagecontrol = pgectl  
-        else:  
-            self.pagecontrol = pagecontrol()
-
     def billtalk(self, billID=None, onPlaybill=None):
         """
         演示默认剧本
         """
         try:
+            ##保存原来的tts
+            oldtts=self.conversation.tts
+
             self.is_stop=False
             self.playstatus=1
             if onPlaybill:
@@ -45,22 +44,31 @@ class sysIntroduction:
             if self.onPlaybill:
                 self.onPlaybill(self.playstatus) #播放
             # 查询系统介绍内容
-            if billID==None:
-                cursor = self.conn.execute(
-                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
-            else:
+            if billID:
                 cursor = self.conn.execute(
                     "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ID= ?",(billID,))
+            else:
+                cursor = self.conn.execute(
+                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
             billcursor = cursor.fetchone()
             if billcursor:
                 billdesc = billcursor[3]
                 self.curBillId = billcursor[0]
+
+                voice=billcursor[2]
+                if voice: 
+                    self.conversation.tts=self.conversation.newvoice(voice)
+                #说说开场白    
                 self.conversation.say(billdesc)
+                #开始演示所有节目
                 self.talkAllBillItem(self.curBillId)
             else:
-                self.conversation.say("找不到剧本")
+                self.conversation.say("找不到演讲方案")
         except sqlite3.Error as error:
             logger.error(error)
+        finally:
+            #恢复原来声音
+            self.conversation.tts=oldtts
 
     def talkAllBillItem(self, billID):
         """ 解说的该剧本所有节点，并逐个解说页面
@@ -81,8 +89,6 @@ class sysIntroduction:
                 #演讲前等待时间
                 itemsleep=int(row[3])
                 itemdesc=row[4]
-                # if itemsleep>0:
-                #     time.sleep(itemsleep)
 
                 if self.onPlaybill:
                     self.onPlaybill(self.playstatus) #播放

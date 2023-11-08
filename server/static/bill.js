@@ -130,39 +130,13 @@ function getBillId()
                 return"启用";
             else
                 return "禁用";
-        }
-        // ,editable: {
-        //     title:"请选择是否启用：",
-        //     type: "select",
-        //     source: [{value:"1",text:"启用"},{value:"0",text: "禁用"}]
-        //     }
-        }, 
-        { field: 'ORDERNO', title: '演示顺序', sortable: true
-        // , editable: {
-        //     title:"请输入序号：",
-        //     type: "text",
-        //     validate:function(v){
-        //         v=v.trim();
-        //         v=parseInt(v);
-        //         if(isNaN(v)){return "请输入有效整数";}
-        //     }
-        //     } 
-        },
+        }}, 
+        { field: 'ORDERNO', title: '演示顺序', sortable: true },
         { field: 'TYPENAME', title: '节点分类', sortable: true },
         { field: 'TYPEID', title: '节点ID', visible: false },
         { field: 'NAME',title: '名称', sortable: true },
         { field: 'SLEEP',title: '等待时间(秒)', sortable: true },
-        { field: 'DESC', title: '演讲词', visible: false
-        // , editable: {
-        //     title: "请输入演讲词：",
-        //     type: "textarea",
-        //     validate: function (v) {
-        //         v=v.trim();
-        //         if(v.length>1000){return "长度不能大于1000";}
-        //     }
-
-        //     } 
-        }, 
+        { field: 'DESC', title: '演讲词', visible: false  }, 
         { field: 'ID',title: '操作', align: 'center', valign: 'middle', formatter: actionFormatter }  
     ];
  //操作栏的格式化
@@ -531,5 +505,27 @@ $(function() {
         });
         //关闭窗体
         $("#deleteModal").modal('hide');
+    });
+    //声音测试TESTVOICE
+    $('button#TESTVOICE').on('click', function(e) {
+        voice=$('#billvoice').val()
+        var voicedata={'validate': getCookie('validation'),"voice": voice}
+        $.ajax({
+            url: '/voice',
+            type: "POST",
+            data: voicedata,
+            success: function(res) {
+                var data = JSON.parse(res);
+                msg='测试声音';
+                if (data.code == 0) {
+                    toastr.success(msg+'成功');
+                } else {
+                    toastr.error(data.message, msg+'失败');
+                }
+            },
+            error: function() {
+                toastr.error('服务器异常', '克隆失败');
+            }
+        });
     });
 });

@@ -48,8 +48,22 @@ class Conversation(object):
         if self.player:
             self.player.quit()
 
-    def billtalk(self, billID=None):
+    def newvoice(self,voice):
+        return TTS.EdgeTTS(voice)
+    
+    def testvoice(self,text,voice=None):
+        try:
+            ##保存原来的tts
+            oldtts=self.tts
+            if voice:
+                self.tts=self.newvoice(voice)
+            self.say(text)
+        except Exception as e:
+            logger.error("测试语音出错{e}",e)
+        finally:
+            self.tts=oldtts
 
+    def billtalk(self, billID=None):
         self.introduction.billtalk(billID, self.onPlaybill)
         
     def getHistory(self):
@@ -74,6 +88,7 @@ class Conversation(object):
         """继续播放声音
         """        
         if self.player:
+           self.introduction.playstatus=1
            self.player.unpause()
 
     def appendHistory(self, t, text, UUID="", plugin=""):

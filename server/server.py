@@ -565,6 +565,21 @@ class BillItemsHandler(BaseHandler):
             res = {"code": 0, "message": "删除节点"}
             self.write(json.dumps(res))
         self.finish()
+class VoiceHandler(BaseHandler):
+    def post(self):
+        global conversation
+        if not self.validate(self.get_argument("validate", default=None)):
+            res = {"code": 1, "message": "illegal visit"}
+            self.write(json.dumps(res))
+        else:
+            voice=self.get_argument("voice",default=None)
+            if voice:
+                conversation.testvoice(voice=voice,text="您好，您听到的是方案设定声音")
+            else:
+                conversation.testvoice(text="您好，您听到的是系统默认声音")
+            res = {"code": 0, "message": "删除节点"}
+            self.write(json.dumps(res))
+        self.finish()
 
 class SwitchEnableStatusHandler(BaseHandler):
         #更新节点
@@ -612,6 +627,7 @@ application = tornado.web.Application(
         (r"/billpage", BillpageHandler),
         (r"/billitems", BillItemsHandler),
         (r"/switchenable", SwitchEnableStatusHandler),
+         (r"/voice", VoiceHandler),
         (
             r"/photo/(.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF))",
             tornado.web.StaticFileHandler,
@@ -620,7 +636,7 @@ application = tornado.web.Application(
         (
             r"/audio/(.+\.(?:mp3|wav|pcm))",
             tornado.web.StaticFileHandler,
-            {"path": utils.CACH_PATH},
+            {"path": os.path.join(utils.CACH_PATH,utils.VOICENAME)},
         ),
         (r"/static/(.*)", tornado.web.StaticFileHandler,
          {"path": "server/static"}),

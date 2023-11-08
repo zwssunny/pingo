@@ -24,7 +24,7 @@ class Pingo(object):
         serverhost=conf().get("server",{"host": "0.0.0.0","port": "5001"})
         print(
             """
-            后台管理端：http://{}:{}
+            后台管理端：https://{}:{}
             如需退出，可以按 Ctrl+C 组合键
 
 """.format(
@@ -33,7 +33,7 @@ class Pingo(object):
             )
         )
         self.conversation = Conversation() 
-        self.conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey pingo!'") 
+        self.conversation.say("您好,我的名字叫Bingo,很高兴见到您！说话之前记得叫我 ‘Hey Bingo!'") 
     
     def sigterm_handler_wrap(self, _signo):
         old_handler = signal.getsignal(_signo)
@@ -70,7 +70,7 @@ class Pingo(object):
 
     def restart(self):
         """
-        重启 pingo-robot
+        重启 Bingo-robot
         """
         logger.critical("程序重启...")
         python = sys.executable

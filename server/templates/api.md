@@ -18,7 +18,7 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 
 ## 管理
 
-用于管理 pingo-robot ，包括重启/打开勿扰模式/关闭勿扰模式。
+用于管理 Bingo-robot ，包括重启/打开勿扰模式/关闭勿扰模式。
 
 - url：/operate
 - method: POST
@@ -33,7 +33,7 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 
 | 取值 | 说明 |
 | ---- |  ---- |
-| 0    | 重启 pingo-robot |
+| 0    | 重启 Bingo-robot |
 | 1    | 播放 |
 | 2    | 暂停播放 |
 | 3    | 继续播放 |
@@ -54,7 +54,7 @@ $ curl -X POST localhost:5001/operate -d "type=restart&validate=f4bde2a342c7c75a
 
 ## 日志
 
-用于查看 pingo-robot 保存的日志。出于性能上的考虑，默认只返回最后 200 行的内容，相当于做了一次 `tail -n 200` 。
+用于查看 Bingo-robot 保存的日志。出于性能上的考虑，默认只返回最后 200 行的内容，相当于做了一次 `tail -n 200` 。
 
 - url：/log
 - method: GET
@@ -113,7 +113,7 @@ $ curl -X POST localhost:5001/chat -d "type=text&query=%E7%8E%B0%E5%9C%A8%E5%87%
 
 ### 对话历史
 
-用于查看 pingo-robot 启动到现在的所有会话记录。
+用于查看 Bingo-robot 启动到现在的所有会话记录。
 
 - url：/history
 - method: GET
@@ -141,7 +141,7 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 
 ### 查看配置
 
-用于查看 pingo-robot 现有的配置。
+用于查看 Bingo-robot 现有的配置。
 
 - url：/config
 - method: GET
@@ -169,7 +169,7 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 
 ### 修改配置
 
-用于配置 pingo-robot 。
+用于配置 Bingo-robot 。
 
 - url：/config
 - method: POST

@@ -123,13 +123,13 @@ class EdgeTTS(AbstractTTS):
 
     async def async_get_speech(self, phrase):
         try:
-            if utils.getCache(phrase):  # 存在缓存
+            if utils.getCache(phrase,self.voice):  # 存在缓存
                 tmpfile = utils.getCache(phrase)
             else:
                 tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".mp3")
                 tts = edge_tts.Communicate(text=phrase, voice=self.voice)
                 await tts.save(tmpfile)   
-                tmpfile = utils.saveCache(tmpfile, phrase) 
+                tmpfile = utils.saveCache(tmpfile, phrase,self.voice) 
             logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
             return tmpfile
         except Exception as e:
