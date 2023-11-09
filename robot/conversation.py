@@ -79,17 +79,21 @@ class Conversation(object):
 
     def pause(self):
         """暂停会话，可以通过unpause()恢复
-        """        
+        """      
+       
         if self.player and self.player.is_playing():
-            self.introduction.playstatus=2
             self.player.pause()
+            
+        self.introduction.setplaystatusChange(2) 
 
     def unpause(self):
         """继续播放声音
         """        
+
         if self.player:
-           self.introduction.playstatus=1
            self.player.unpause()
+
+        self.introduction.setplaystatusChange(1)
 
     def appendHistory(self, t, text, UUID="", plugin=""):
         """将会话历史加进历史记录"""

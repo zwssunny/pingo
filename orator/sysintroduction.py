@@ -35,14 +35,11 @@ class sysIntroduction:
         try:
             ##保存原来的tts
             oldtts=self.conversation.tts
-
             self.is_stop=False
-            self.playstatus=1
             if onPlaybill:
                 self.onPlaybill=onPlaybill
 
-            if self.onPlaybill:
-                self.onPlaybill(self.playstatus) #播放
+            self.setplaystatusChange(1)
             # 查询系统介绍内容
             if billID:
                 cursor = self.conn.execute(
@@ -69,6 +66,7 @@ class sysIntroduction:
         finally:
             #恢复原来声音
             self.conversation.tts=oldtts
+            self.setplaystatusChange(4)
 
     def talkAllBillItem(self, billID):
         """ 解说的该剧本所有节点，并逐个解说页面
@@ -90,8 +88,8 @@ class sysIntroduction:
                 itemsleep=int(row[3])
                 itemdesc=row[4]
 
-                if self.onPlaybill:
-                    self.onPlaybill(self.playstatus) #播放
+                self.setplaystatusChange(1)#播放
+                
                 if typename == 'MENUITEM':
                     self.talkmenuitem_byid(typeid,itemsleep,itemdesc)
                 elif typename == 'FEATURES':
@@ -101,9 +99,6 @@ class sysIntroduction:
                 elif typename == 'HIGHLIGHT':
                     self.talkhighlight_byid(typeid,itemsleep,itemdesc)
             #结束循环
-            self.playstatus=4
-            if self.onPlaybill:
-                self.onPlaybill(self.playstatus) #结束
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -132,20 +127,15 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             self.is_stop=False
-            self.playstatus=1
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
                 if self.is_stop:
                     break
-                if self.onPlaybill:
-                    self.onPlaybill(self.playstatus) #播放
+                self.setplaystatusChange(1)
                 self.menuitemtalk(row)
-            self.playstatus=4
-            if self.onPlaybill:
-                self.onPlaybill(self.playstatus) #结束
-                self.onPlaybill=None
+            self.setplaystatusChange(4)
         except sqlite3.Error as error:
             logger.error(error)
 
@@ -293,7 +283,7 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
-            self.playstatus=1
+            self.setplaystatusChange(1)
             # 查询记录
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM ORDER BY ORDERNO")
@@ -305,12 +295,10 @@ class sysIntroduction:
                     self.onPlaybill(self.playstatus) #播放
                 self.othersystemitemtalk(row)
 
-            self.playstatus=4 
-
-            if self.onPlaybill:
-                self.onPlaybill(self.playstatus)
+            self.setplaystatusChange(4)
         except sqlite3.Error as error:
             logger.error(error)
+            self.setplaystatusChange(4)
 
     def talkhighlight_byid(self, highlightid,itemsleep=None,itemdesc=None):
         """
@@ -388,7 +376,7 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
-            self.playstatus=1
+            self.setplaystatusChange(1)
             # 查询亮点场景记录
             cursor = self.conn.execute(
                 "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
@@ -399,13 +387,10 @@ class sysIntroduction:
                 if self.onPlaybill:
                     self.onPlaybill(self.playstatus) #播放
                 self.highlightitemtalk(row)
-                
-            self.playstatus=4
-
-            if self.onPlaybill:
-                self.onPlaybill(self.playstatus) #停止
         except sqlite3.Error as error:
             logger.error(error)
+        finally:
+            self.setplaystatusChange(4)#停止
 
     def talkfeature_byid(self, featureid,itemsleep=None,itemdesc=None):
         """
@@ -468,6 +453,7 @@ class sysIntroduction:
         """
         try:
             self.is_stop=False
+            self.setplaystatusChange(1)
             # 查询记录
             cursor = self.conn.execute(
                 "SELECT NAME, ORDERNO,  DESC, SLEEP FROM FEATURES ORDER BY ORDERNO")
@@ -478,6 +464,8 @@ class sysIntroduction:
                 self.featureitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
+        finally:
+            self.setplaystatusChange(4)
 
     def loadpageindex(self)-> dict:
         """
@@ -532,7 +520,12 @@ class sysIntroduction:
 
     def stop(self):
          self.is_stop=True
-         self.playstatus=4
+         self.setplaystatusChange(4)
+
+    def setplaystatusChange(self, playstatus):
+        self.playstatus=playstatus
+        if self.onPlaybill:
+            self.onPlaybill(self.playstatus)
 
 if __name__ == '__main__':
     from config import load_config
