@@ -2,6 +2,7 @@
 import json
 import os
 import json
+import threading
 import websocket
 from common.log import logger
 
@@ -21,6 +22,16 @@ class pagecontrol(object):
     
     def sendPageCtl(self, intent, eventid):
         """
+        创建websocket链接，并发送消息,创建线程，主要考虑不想等待
+        
+        :param intent 意图 OPEN_PAGE,OPEN_SYSTEM,OPEN_HIGHLIGHT,CLOSE_PAGE,CLOSE_SYSTEM,CLOSE_HIGHTLIGHT
+        :param pageindex 事件编号,如：1，2，3..... 具体看配置
+
+        """
+        threading.Thread(target=lambda: self.sendMessage(intent, eventid)).start()
+
+    def sendMessage(self, intent, eventid):
+        """
         创建websocket链接，并发送消息
         
         :param intent 意图 OPEN_PAGE,OPEN_SYSTEM,OPEN_HIGHLIGHT,CLOSE_PAGE,CLOSE_SYSTEM,CLOSE_HIGHTLIGHT
@@ -38,7 +49,7 @@ class pagecontrol(object):
             logger.info(msg)
             ws.send(msg)
         except Exception as e:
-            logger.warning(e)
+            logger.error(e)
 
     def loadconfig(self, configfile) -> dict:  # 读取配置参数文件
         """

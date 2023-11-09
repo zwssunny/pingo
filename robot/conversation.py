@@ -64,7 +64,7 @@ class Conversation(object):
             self.tts=oldtts
 
     def billtalk(self, billID=None):
-        self.introduction.billtalk(billID, self.onPlaybill)
+        self.introduction.billtalk(billID)
         
     def getHistory(self):
         return self.history
@@ -193,6 +193,7 @@ class Conversation(object):
             self.onStream = onStream
 
         if onPlaybill:
+            self.introduction.onPlaybill=onPlaybill
             self.onPlaybill=onPlaybill
 
         if query.strip() == "":

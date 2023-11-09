@@ -133,10 +133,10 @@ class ChatWebSocketHandler(WebSocketHandler, BaseHandler):
         }
         self.write_message(json.dumps(response))
 
-    def send_playstate(self, playstate, msg=""):
+    def send_playstate(self, playstatus, msg=""):
         response = {
             "action": "playoperate",
-            "playstate": playstate,
+            "playstatus": playstatus,
             "text": msg,
         }
         self.write_message(json.dumps(response))
@@ -163,10 +163,10 @@ class ChatHandler(BaseHandler):
         for client in ChatWebSocketHandler.clients:
             client.send_response(data, uuid, "")
 
-    def onPlaybill(self, playstate):
+    def onPlaybill(self, playstatus, msg):
         # 通过 ChatWebSocketHandler 发送给前端
         for client in ChatWebSocketHandler.clients:
-            client.send_playstate(playstate)
+            client.send_playstate(playstatus, msg)
 
     def post(self):
         global conversation
@@ -187,7 +187,8 @@ class ChatHandler(BaseHandler):
                                              ),
                                              onStream=lambda data, resp_uuid: self.onStream(
                                                  data, resp_uuid),
-                                            onPlaybill=lambda playstate: self.onPlaybill(playstate)
+                                             onPlaybill=lambda playstatus, msg: self.onPlaybill(
+                                                 playstatus, msg)
                                          ))
                     t.start()
 
@@ -211,7 +212,8 @@ class ChatHandler(BaseHandler):
                                              msg, audio, plugin),
                                          onStream=lambda data, resp_uuid: self.onStream(
                                              data, resp_uuid),
-                                         onPlaybill=lambda playstate: self.onPlaybill(playstate)
+                                         onPlaybill=lambda playstatus, msg: self.onPlaybill(
+                                             playstatus, msg)
 
                                      ))
                 t.start()
@@ -278,7 +280,7 @@ class OperateHandler(BaseHandler):
                 self.finish()
                 # 考虑线程执行，否则会等很久
                 t = threading.Thread(target=lambda: conversation.billtalk(
-                    billID=Billid ))
+                    billID=Billid))
                 t.start()
             elif type in ["pause", "2"]:
                 res = {"code": 0, "message": "pause ok"}
@@ -296,8 +298,9 @@ class OperateHandler(BaseHandler):
                 self.finish()
                 threading.Thread(
                     target=lambda: conversation.interrupt()).start()
-            elif type in ["playstatus","5"]:
-                res = {"code": 0, "message": "get playstatus ok", "playstatus": conversation.introduction.playstatus,"curbillid": conversation.introduction.curBillId}
+            elif type in ["playstatus", "5"]:
+                res = {"code": 0, "message": "get playstatus ok", "playstatus": conversation.introduction.playstatus,
+                       "curbillid": conversation.introduction.curBillId}
                 self.write(json.dumps(res))
                 self.finish()
             else:
@@ -419,79 +422,86 @@ class BillpageHandler(BaseHandler):
                 bills.append(billjson)
             conn.close()
             self.render("bill.html", bills=bills)
+
+
 class BillsHandler(BaseHandler):
     def get(self):
         if not self.isValidated():
             self.redirect("/login")
         else:
-            billid=self.get_argument("billid",default=None)
+            billid = self.get_argument("billid", default=None)
             bills = []
             conn = sqlite3.connect(sysdb, check_same_thread=False)
             if billid is None:
-                cursor = conn.execute("SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL")
+                cursor = conn.execute(
+                    "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL")
             else:
-                cursor = conn.execute("SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL WHERE ID= ?",(billid,))
+                cursor = conn.execute(
+                    "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL WHERE ID= ?", (billid,))
             billscursor = cursor.fetchall()
             for bill in billscursor:
                 billjson = {"ID": bill[0],
-                            "NAME": bill[1], "ISDEFAULT": bill[2], "VOICE": bill[3], "DATETIME": bill[4],"DESC": bill[5] }
+                            "NAME": bill[1], "ISDEFAULT": bill[2], "VOICE": bill[3], "DATETIME": bill[4], "DESC": bill[5]}
                 bills.append(billjson)
             conn.close()
             self.write(json.dumps(bills))
         self.finish()
-    #更新演讲方案
+    # 更新演讲方案
+
     def post(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id=self.get_argument("id")
-            name=self.get_argument("name")
-            isdefault=self.get_argument("isdefault")
-            voice=self.get_argument("voice")
-            datetime=self.get_argument("datetime")
-            desc=unquote(self.get_argument("desc"))
+            id = self.get_argument("id")
+            name = self.get_argument("name")
+            isdefault = self.get_argument("isdefault")
+            voice = self.get_argument("voice")
+            datetime = self.get_argument("datetime")
+            desc = unquote(self.get_argument("desc"))
             conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor=conn.cursor()
-            #默认只能有一条记录
-            if int(isdefault)==1:
-                sql="UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? " 
-                cursor.execute(sql,(id,))
-            sql="UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
-            cursor.execute(sql,(name,voice,isdefault,datetime,desc,id,))
+            cursor = conn.cursor()
+            # 默认只能有一条记录
+            if int(isdefault) == 1:
+                sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
+                cursor.execute(sql, (id,))
+            sql = "UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
+            cursor.execute(sql, (name, voice, isdefault, datetime, desc, id,))
             conn.commit()
             conn.close()
-            #logger.log(desc)
+            # logger.log(desc)
             res = {"code": 0, "message": "更新演讲方案"}
             self.write(json.dumps(res))
         self.finish()
-    #克隆演讲方案
+    # 克隆演讲方案
+
     def put(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id=self.get_argument("id")
+            id = self.get_argument("id")
             conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor=conn.cursor()
-            sql="INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? " 
-            cursor.execute(sql,(id,))
-            sql="SELECT LAST_INSERT_ROWID()"
+            cursor = conn.cursor()
+            sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? "
+            cursor.execute(sql, (id,))
+            sql = "SELECT LAST_INSERT_ROWID()"
             cursor.execute(sql)
-            newbillcursor=cursor.fetchone()
+            newbillcursor = cursor.fetchone()
             if newbillcursor:
-                newbillid=newbillcursor[0]
-                if int(newbillid)>0:
-                    sql="INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
-                    cursor.execute(sql,(newbillid,id,))
+                newbillid = newbillcursor[0]
+                if int(newbillid) > 0:
+                    sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
+                    cursor.execute(sql, (newbillid, id,))
                     conn.commit()
             else:
-                conn.rollback()    
+                conn.rollback()
             conn.close()
 
-            res = {"code": 0, "newbillid": newbillid,"message": "克隆演讲方案"}
+            res = {"code": 0, "newbillid": newbillid, "message": "克隆演讲方案"}
             self.write(json.dumps(res))
         self.finish()
+
 
 class BillItemsHandler(BaseHandler):
     def get(self):
@@ -500,71 +510,76 @@ class BillItemsHandler(BaseHandler):
             self.write(json.dumps(res))
         else:
             billID = self.get_argument("billid")
-            itemID =self.get_argument("itemid",default=None)
+            itemID = self.get_argument("itemid", default=None)
             billItems = []
             if billID and itemID:
                 conn = sqlite3.connect(sysdb, check_same_thread=False)
                 cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                    " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                    " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO",(billID,itemID,))
+                                      " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                      " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO", (billID, itemID,))
                 Itemcursor = cursor.fetchone()
                 if Itemcursor:
                     itemjson = {"ID": Itemcursor[0], "BILLID": Itemcursor[1], "TYPENAME": Itemcursor[2], "TYPEID": Itemcursor[3],
-                                "ORDERNO": Itemcursor[4],"ENABLE": Itemcursor[5],"DESC": Itemcursor[6],"NAME": Itemcursor[8],"SLEEP": Itemcursor[7]}
+                                "ORDERNO": Itemcursor[4], "ENABLE": Itemcursor[5], "DESC": Itemcursor[6], "NAME": Itemcursor[8], "SLEEP": Itemcursor[7]}
                     billItems.append(itemjson)
                 conn.close()
             else:
                 conn = sqlite3.connect(sysdb, check_same_thread=False)
                 cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                    " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                    " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO",(billID,))
+                                      " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                      " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO", (billID,))
                 billItemscursor = cursor.fetchall()
                 for item in billItemscursor:
                     itemjson = {"ID": item[0], "BILLID": item[1], "TYPENAME": item[2], "TYPEID": item[3],
-                                "ORDERNO": item[4],"ENABLE": item[5],"DESC": item[6],"NAME": item[8],"SLEEP": item[7]}
+                                "ORDERNO": item[4], "ENABLE": item[5], "DESC": item[6], "NAME": item[8], "SLEEP": item[7]}
                     billItems.append(itemjson)
                 conn.close()
 
             self.write(json.dumps(billItems))
         self.finish()
-    #更新节点
+    # 更新节点
+
     def post(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id=self.get_argument("id")
-            orderno=self.get_argument("orderno")
-            sleep=self.get_argument("sleep")
-            desc=unquote(self.get_argument("desc"))
+            id = self.get_argument("id")
+            orderno = self.get_argument("orderno")
+            sleep = self.get_argument("sleep")
+            desc = unquote(self.get_argument("desc"))
             conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor=conn.cursor()
-            sql="UPDATE BILLITEM SET ORDERNO=?, SLEEP=?,DESC=? WHERE ID=? "
-            cursor.execute(sql,(orderno,sleep,desc,id,))
+            cursor = conn.cursor()
+            sql = "UPDATE BILLITEM SET ORDERNO=?, SLEEP=?,DESC=? WHERE ID=? "
+            cursor.execute(sql, (orderno, sleep, desc, id,))
             conn.commit()
-            #logger.log(desc)
+            # logger.log(desc)
             res = {"code": 0, "message": "更新节点"}
             self.write(json.dumps(res))
         self.finish()
-    #新增节点
+    # 新增节点
+
     def put(self):
         # pass
         self.finish()
-    #删除节点
+    # 删除节点
+
     def delete(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id=self.get_argument("id")
+            id = self.get_argument("id")
             conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor=conn.cursor()
-            cursor.execute("DELETE FROM BILLITEM WHERE ID=? ",(id,))
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM BILLITEM WHERE ID=? ", (id,))
             conn.commit()
-            #logger.log(desc)
+            # logger.log(desc)
             res = {"code": 0, "message": "删除节点"}
             self.write(json.dumps(res))
         self.finish()
+
+
 class VoiceHandler(BaseHandler):
     def post(self):
         global conversation
@@ -572,33 +587,35 @@ class VoiceHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            voice=self.get_argument("voice",default=None)
+            voice = self.get_argument("voice", default=None)
             if voice:
-                conversation.testvoice(voice=voice,text="您好，您听到的是方案设定声音")
+                conversation.testvoice(voice=voice, text="您好，您听到的是方案设定声音")
             else:
                 conversation.testvoice(text="您好，您听到的是系统默认声音")
             res = {"code": 0, "message": "删除节点"}
             self.write(json.dumps(res))
         self.finish()
 
+
 class SwitchEnableStatusHandler(BaseHandler):
-        #更新节点
+    # 更新节点
     def post(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id=self.get_argument("id")
-            enable=self.get_argument("enable")
+            id = self.get_argument("id")
+            enable = self.get_argument("enable")
             conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor=conn.cursor()
-            sql="UPDATE BILLITEM SET ENABLE=? WHERE ID=? "
-            cursor.execute(sql,(enable,id,))
+            cursor = conn.cursor()
+            sql = "UPDATE BILLITEM SET ENABLE=? WHERE ID=? "
+            cursor.execute(sql, (enable, id,))
             conn.commit()
-            #logger.log(desc)
+            # logger.log(desc)
             res = {"code": 0, "message": "更新节点"}
             self.write(json.dumps(res))
         self.finish()
+
 
 settings = {
     "cookie_secret": serverconf["cookie_secret"],
@@ -627,7 +644,7 @@ application = tornado.web.Application(
         (r"/billpage", BillpageHandler),
         (r"/billitems", BillItemsHandler),
         (r"/switchenable", SwitchEnableStatusHandler),
-         (r"/voice", VoiceHandler),
+        (r"/voice", VoiceHandler),
         (
             r"/photo/(.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF))",
             tornado.web.StaticFileHandler,
@@ -636,7 +653,7 @@ application = tornado.web.Application(
         (
             r"/audio/(.+\.(?:mp3|wav|pcm))",
             tornado.web.StaticFileHandler,
-            {"path": os.path.join(utils.CACH_PATH,utils.VOICENAME)},
+            {"path": os.path.join(utils.CACH_PATH, utils.VOICENAME)},
         ),
         (r"/static/(.*)", tornado.web.StaticFileHandler,
          {"path": "server/static"}),
@@ -653,14 +670,16 @@ def start_server(con, pg):
     if serverconf["enable"]:
         port = serverconf["port"]
         try:
-        
-            # 启用 SSL/TLS
-            ssl_path_crt = os.path.join(utils.APP_PATH, 'pem','pingo.crt')
-            ssl_path_key = os.path.join(utils.APP_PATH, 'pem','pingo.key')
-            ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
-            ssl_ctx.load_cert_chain(certfile=ssl_path_crt, keyfile=ssl_path_key)
 
-            webApp =tornado.httpserver.HTTPServer(application, ssl_options=ssl_ctx)
+            # 启用 SSL/TLS
+            ssl_path_crt = os.path.join(utils.APP_PATH, 'pem', 'pingo.crt')
+            ssl_path_key = os.path.join(utils.APP_PATH, 'pem', 'pingo.key')
+            ssl_ctx = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+            ssl_ctx.load_cert_chain(
+                certfile=ssl_path_crt, keyfile=ssl_path_key)
+
+            webApp = tornado.httpserver.HTTPServer(
+                application, ssl_options=ssl_ctx)
             webApp.listen(int(port))
             tornado.ioloop.IOLoop.current().start()
         except Exception as e:

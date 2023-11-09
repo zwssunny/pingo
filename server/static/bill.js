@@ -58,15 +58,15 @@ socket.onmessage = function (e) {
     var data = JSON.parse(e.data);
     if (data.action === "playoperate") {
         // console.log("收到新消息: ", data);
-        buttonstate(data.playstate)
+        buttonstate(data.playstatus)
     }
 };
 //保存编辑窗体的原始值
 var jsonTextInit='';
 var selectItemID=0 ;
-function buttonstate( playstate){
+function buttonstate( playstatus){
   //1-播放，2-暂停，0,4-已停止或者没有播放
-  if (playstate==1)
+  if (playstatus==1)
   {
     $('button#UNPAUSE').disable();
     $('button#showstopModal').enable();
@@ -78,7 +78,7 @@ function buttonstate( playstate){
     $('button#btBillCopy').disable();
     
   }
-  else if(playstate==2){
+  else if(playstatus==2){
     $('button#UNPAUSE').enable();
     $('button#showstopModal').enable();
     $('button#PLAY').disable();
@@ -257,9 +257,7 @@ function EditViewById(id){
         });
     };
 //刷新演讲方案列表
-function refreshBillsList() {
-    //保存选中
-    selected_value=getBillId()
+function refreshBillsList(selectedvalue) {
     //暂时关闭事件触发
     $('#bills-select').attr("disabled", true)
     $('#bills-select').empty();
@@ -272,7 +270,7 @@ function refreshBillsList() {
             if (data_json.length>0)
             {
                 data_json.forEach(element => {
-                    if (element.ISDEFAULT==1)
+                    if (element.ID==selectedvalue)
                         $('#bills-select').append('<option selected="selected" value ='+element.ID+' >'+element.NAME+'</option>')
                     else
                         $('#bills-select').append('<option value ='+element.ID+' >'+element.NAME+'</option>')      
@@ -427,7 +425,7 @@ $(function() {
                $("#editBillModal").modal('hide');
                return;
             }
-            var billdata={'validate': getCookie('validation'),"id": getBillId(),"name": $("#billname").val(),
+            var billdata={'validate': getCookie('validation'),"id": selected_value,"name": $("#billname").val(),
                     "isdefault": $("#billisdefault").val(),"voice": $("#billvoice").val(), 
                      "datetime": $("#billdatetime").val(), "desc": encodeURIComponent($("#billdesc").val())}
             $.ajax({
@@ -448,7 +446,7 @@ $(function() {
                 }
             });
             //刷新记录
-            refreshBillsList();
+            refreshBillsList(selected_value);
             if (selected_value)
                 $('#bills-select').val(selected_value)
 
@@ -466,6 +464,10 @@ $(function() {
                 msg='克隆演讲方案';
                 if (data.code == 0) {
                     selected_value=data.newbillid;
+                    //刷新记录
+                    refreshBillsList(selected_value);
+                    if (selected_value)
+                        $('#bills-select').val(selected_value)
                     toastr.success(msg+'成功');
                 } else {
                     toastr.error(data.message, msg+'失败');
@@ -475,11 +477,7 @@ $(function() {
                 toastr.error('服务器异常', '克隆失败');
             }
         });
-        //刷新记录
-        refreshBillsList();
-        if (selected_value)
-            $('#bills-select').val(selected_value)
-        $("#cloneModal").modal('hide');
+       $("#cloneModal").modal('hide');
     });
     //删除节点记录
     $('button#DELETE').on('click', function(e) {
