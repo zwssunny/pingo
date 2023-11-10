@@ -29,7 +29,10 @@ function getbillplaystatus() {
             if (data.code == 0) {
                 buttonstate(data.playstatus)
                 if (data.curbillid)
+                {
                     $('#bills-select').val(data.curbillid)
+                    $('#billItemsTable').bootstrapTable('refresh');
+                }
                 toastr.success(msg+'成功');
             } else {
                 toastr.error(data.message, msg+'失败');

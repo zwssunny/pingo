@@ -502,6 +502,40 @@ class BillsHandler(BaseHandler):
             self.write(json.dumps(res))
         self.finish()
 
+    #新建演讲方案
+    def patch(self):
+        if not self.validate(self.get_argument("validate", default=None)):
+            res = {"code": 1, "message": "illegal visit"}
+            self.write(json.dumps(res))
+        else:
+            try:
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) VALUSE('新建演讲方案','',datetime(CURRENT_TIMESTAMP,'localtime'),0,'请输入开场白')"
+                cursor.execute(sql)
+                sql = "SELECT LAST_INSERT_ROWID()"
+                cursor.execute(sql)
+                newbillcursor = cursor.fetchone()
+                if newbillcursor:
+                    newbillid = newbillcursor[0]
+                    if int(newbillid) > 0:
+                        sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'MENUITEM',ID,ORDERNO,ENABLE,SLEEP,DESC from MENUITEM"
+                        cursor.execute(sql, (newbillid, ))
+                        sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'OTHERSYSTEM',ID,ORDERNO,ENABLE,SLEEP,DESC from OTHERSYSTEM"
+                        cursor.execute(sql, (newbillid, ))   
+                        sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'FEATURES',ID,ORDERNO,ENABLE,SLEEP,DESC from FEATURES"
+                        cursor.execute(sql, (newbillid, ))  
+                        conn.commit()
+                else:
+                    conn.rollback()
+            except sqlite3.Error as error:
+                logger.error(error)
+            finally: 
+                conn.close()
+                
+            res = {"code": 0, "newbillid": newbillid, "message": "新建演讲方案"}
+            self.write(json.dumps(res))
+        self.finish()
 
 class BillItemsHandler(BaseHandler):
     def get(self):

@@ -33,7 +33,7 @@ class Pingo(object):
             )
         )
         self.conversation = Conversation() 
-        self.conversation.say("您好,我的名字叫Bingo,很高兴见到您！说话之前记得叫我 ‘Hey Bingo!'") 
+        self.conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey Pingo!'") 
     
     def sigterm_handler_wrap(self, _signo):
         old_handler = signal.getsignal(_signo)
