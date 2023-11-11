@@ -168,7 +168,7 @@ class Conversation(object):
                 f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
                 for voice in audios
             ]
-            logger.info(f"onSay: {msg}, {cached_audios}")
+            logger.debug(f"onSay: {msg}, {cached_audios}")
             self.onSay(msg, cached_audios, plugin=plugin)
             # self.onSay = None
 

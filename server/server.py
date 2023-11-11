@@ -145,7 +145,7 @@ class ChatWebSocketHandler(WebSocketHandler, BaseHandler):
 
 class ChatHandler(BaseHandler):
     def onResp(self, msg, audio, plugin):
-        logger.info(f"response msg: {msg}")
+        # logger.info(f"response msg: {msg}")
         res = {
             "code": 0,
             "message": "ok",
@@ -195,20 +195,11 @@ class ChatHandler(BaseHandler):
 
             elif self.get_argument("type") == "voice":
                 voice_data = self.get_argument("voice")
-                # tmpfile = utils.write_temp_file(
-                #     base64.b64decode(voice_data), ".wav")
-                tmpfile = TmpDir().path() + "speech-" + str(int(time.time())) + ".wav"
-                with open(tmpfile, "wb") as f:
-                    f.write(base64.b64decode(voice_data))
-                fname, suffix = os.path.splitext(tmpfile)
-                nfile = fname + "-16k" + suffix
+                tmpfile = utils.write_temp_file(
+                    base64.b64decode(voice_data), ".wav")
                 # downsampling
-                sound =AudioSegment.from_wav(tmpfile)
-                sound=sound.set_frame_rate(16000)
-                sound=sound.set_channels(1)
-                sound=sound.set_sample_width(2)
-                sound=sound.export(nfile,format="wav")
-                utils.check_and_delete(tmpfile)
+                nfile=utils.sounddownsampling(tmpfile)
+                # utils.check_and_delete(tmpfile)
                 t = threading.Thread(target=lambda:
                                      conversation.doConverse(
                                          nfile,
