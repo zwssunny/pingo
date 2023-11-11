@@ -14,6 +14,7 @@ import tornado.ioloop
 import tornado.options
 import tornado.httpserver
 
+from pydub import AudioSegment
 from tornado.websocket import WebSocketHandler
 from urllib.parse import unquote
 from common.tmp_dir import TmpDir
@@ -199,15 +200,18 @@ class ChatHandler(BaseHandler):
                 tmpfile = TmpDir().path() + "speech-" + str(int(time.time())) + ".wav"
                 with open(tmpfile, "wb") as f:
                     f.write(base64.b64decode(voice_data))
-                # fname, suffix = os.path.splitext(tmpfile)
-                # nfile = fname + "-16k" + suffix
+                fname, suffix = os.path.splitext(tmpfile)
+                nfile = fname + "-16k" + suffix
                 # downsampling
-                # soxCall = "sox " + tmpfile + " " + nfile + " rate 16k"
-                # subprocess.call([soxCall], shell=True, close_fds=True)
-                # utils.check_and_delete(tmpfile)
+                sound =AudioSegment.from_wav(tmpfile)
+                sound=sound.set_frame_rate(16000)
+                sound=sound.set_channels(1)
+                sound=sound.set_sample_width(2)
+                sound=sound.export(nfile,format="wav")
+                utils.check_and_delete(tmpfile)
                 t = threading.Thread(target=lambda:
                                      conversation.doConverse(
-                                         tmpfile,
+                                         nfile,
                                          onSay=lambda msg, audio, plugin: self.onResp(
                                              msg, audio, plugin),
                                          onStream=lambda data, resp_uuid: self.onStream(
@@ -366,7 +370,7 @@ class APIHandler(BaseHandler):
             content = ""
             # 直接读本地文档
             # r = requests.get("/api.md")
-            filepath = os.path.join(utils.APP_PATH, "server/templates/api.md")
+            filepath = os.path.join(utils.TEMPLATE_PATH, "api.md")
             rtext = read_file(filepath)
             content = markdown.markdown(
                 rtext,

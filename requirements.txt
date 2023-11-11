@@ -21,3 +21,4 @@ websocket-client==1.2.3
 # Django==4.2.6
 tornado==6.3.2
 nest_asyncio==1.5.8
+pydub>=0.25.1 # need ffmpeg
