@@ -57,6 +57,8 @@ class sysIntroduction:
                     self.conversation.tts = self.conversation.newvoice(voice)
                 # 说说开场白
                 self.conversation.say(billdesc)
+                if self.is_stop: #监测停止标志
+                    return
                 # 开始演示所有节目
                 self.talkAllBillItem(self.curBillId)
             else:
@@ -80,8 +82,6 @@ class sysIntroduction:
                 "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
             itemcursor = cursor.fetchall()
             for row in itemcursor:
-                if self.is_stop:
-                    break
                 typename = row[0]
                 typeid = row[1]
                 # 演讲前等待时间
@@ -96,6 +96,8 @@ class sysIntroduction:
                     self.talkothersystem_byid(typeid, itemsleep, itemdesc)
                 elif typename == 'HIGHLIGHT':
                     self.talkhighlight_byid(typeid, itemsleep, itemdesc)
+                if self.is_stop:
+                    break
             # 结束循环
         except sqlite3.Error as error:
             logger.error(error)
@@ -113,6 +115,8 @@ class sysIntroduction:
                 self.setplaystatusChange(1, "系统介绍")  # 播放
                 prjdesc = prjcursor[2]
                 self.conversation.say(prjdesc)
+                if self.is_stop: #监测停止标志
+                    return
                 self.talkallmenu()
             else:
                 self.conversation.say("找不到该系统")
@@ -132,9 +136,9 @@ class sysIntroduction:
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM MENUITEM ORDER BY ORDERNO")
             menucursor = cursor.fetchall()
             for row in menucursor:
+                self.menuitemtalk(row)
                 if self.is_stop:
                     break
-                self.menuitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
         finally:
@@ -295,9 +299,9 @@ class sysIntroduction:
                 "SELECT NAME, ORDERNO, OPENEVENT, DESC, CLOSEEVENT,SLEEP FROM OTHERSYSTEM ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
+                self.othersystemitemtalk(row)
                 if self.is_stop:
                     break
-                self.othersystemitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
         finally:
@@ -387,9 +391,9 @@ class sysIntroduction:
                 "SELECT	H.NAME,	H.ORDERNO, OPENEVENT, DESC, CLOSEEVENT, M.SLEEP FROM HIGHLIGHT H LEFT JOIN MENUITEM M ON H.MENUITEMID = M.ID ORDER BY H.ORDERNO")
             highlightcursors = cursor.fetchall()
             for row in highlightcursors:
+                self.highlightitemtalk(row)
                 if self.is_stop:
                     break
-                self.highlightitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
         finally:
@@ -465,9 +469,9 @@ class sysIntroduction:
                 "SELECT NAME, ORDERNO,  DESC, SLEEP FROM FEATURES ORDER BY ORDERNO")
             itemcursors = cursor.fetchall()
             for row in itemcursors:
+                self.featureitemtalk(row)
                 if self.is_stop:
                     break
-                self.featureitemtalk(row)
         except sqlite3.Error as error:
             logger.error(error)
         finally:
@@ -542,12 +546,12 @@ if __name__ == '__main__':
     sysIntro = sysIntroduction(conversation=conversation)
     # sysIntro.talkhighlight_byname("地铁运营监测")
     # sysIntro.talkhighlight_byid(1)
-    # sysIntro.billtalk()  # 剧本
-    sysIntro.talkAllBillItem(1)
-    # sysIntro.talkallhighlight()
-    # sysIntro.talkallfeature()
-    # sysIntro.talkallothersystem()
+    # sysIntro.billtalk()  # 默认演讲方案
+    sysIntro.talkAllBillItem(1) #编号为1的演讲方案
+    # sysIntro.talkallhighlight() #所有亮点场景
+    # sysIntro.talkallfeature() #所有平台特点
+    # sysIntro.talkallothersystem() #所有第三方系统
     # sysIntro.talkallmenu() #所有大屏页面
-    # sysIntro.talkmenuitem_byname("地铁")
+    # sysIntro.talkmenuitem_byname("地铁") 
     # sysIntro.talkothersystem_byname("智慧交通")
     # sysIntro.talkhighlight_byname("非现场执法")

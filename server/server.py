@@ -412,15 +412,19 @@ class BillpageHandler(BaseHandler):
         if not self.isValidated():
             self.redirect("/login")
         else:
-            bills = []
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.execute("SELECT ID, NAME,ISDEFAULT FROM BILL")
-            billscursor = cursor.fetchall()
-            for bill in billscursor:
-                billjson = {"ID": bill[0],
-                            "NAME": bill[1], "ISDEFAULT": bill[2]}
-                bills.append(billjson)
-            conn.close()
+            try:
+                bills = []
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.execute("SELECT ID, NAME,ISDEFAULT FROM BILL")
+                billscursor = cursor.fetchall()
+                for bill in billscursor:
+                    billjson = {"ID": bill[0],
+                                "NAME": bill[1], "ISDEFAULT": bill[2]}
+                    bills.append(billjson)
+            except Exception as error:
+                logger.error(error)
+            finally: 
+                conn and conn.close()
             self.render("bill.html", bills=bills)
 
 
@@ -429,22 +433,26 @@ class BillsHandler(BaseHandler):
         if not self.isValidated():
             self.redirect("/login")
         else:
-            billid = self.get_argument("billid", default=None)
-            bills = []
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            if billid is None:
-                cursor = conn.execute(
-                    "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL")
-            else:
-                cursor = conn.execute(
-                    "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL WHERE ID= ?", (billid,))
-            billscursor = cursor.fetchall()
-            for bill in billscursor:
-                billjson = {"ID": bill[0],
-                            "NAME": bill[1], "ISDEFAULT": bill[2], "VOICE": bill[3], "DATETIME": bill[4], "DESC": bill[5]}
-                bills.append(billjson)
-            conn.close()
-            self.write(json.dumps(bills))
+            try:
+                billid = self.get_argument("billid", default=None)
+                bills = []
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                if billid is None:
+                    cursor = conn.execute(
+                        "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL")
+                else:
+                    cursor = conn.execute(
+                        "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL WHERE ID= ?", (billid,))
+                billscursor = cursor.fetchall()
+                for bill in billscursor:
+                    billjson = {"ID": bill[0],
+                                "NAME": bill[1], "ISDEFAULT": bill[2], "VOICE": bill[3], "DATETIME": bill[4], "DESC": bill[5]}
+                    bills.append(billjson)
+                self.write(json.dumps(bills))
+            except Exception as error:
+                logger.error(error)
+            finally: 
+                conn and conn.close()
         self.finish()
     # 更新演讲方案
 
@@ -453,24 +461,30 @@ class BillsHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id = self.get_argument("id")
-            name = self.get_argument("name")
-            isdefault = self.get_argument("isdefault")
-            voice = self.get_argument("voice")
-            datetime = self.get_argument("datetime")
-            desc = unquote(self.get_argument("desc"))
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.cursor()
-            # 默认只能有一条记录
-            if int(isdefault) == 1:
-                sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
-                cursor.execute(sql, (id,))
-            sql = "UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
-            cursor.execute(sql, (name, voice, isdefault, datetime, desc, id,))
-            conn.commit()
-            conn.close()
-            # logger.log(desc)
-            res = {"code": 0, "message": "更新演讲方案"}
+            try:
+                id = self.get_argument("id")
+                name = self.get_argument("name")
+                isdefault = self.get_argument("isdefault")
+                voice = self.get_argument("voice")
+                datetime = self.get_argument("datetime")
+                desc = unquote(self.get_argument("desc"))
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                # 默认只能有一条记录
+                if int(isdefault) == 1:
+                    sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
+                    cursor.execute(sql, (id,))
+                sql = "UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
+                cursor.execute(sql, (name, voice, isdefault, datetime, desc, id,))
+                conn.commit()
+                res = {"code": 0, "message": "更新演讲方案"}
+            except Exception as error:
+                logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1, "message": "更新演讲方案出错"}
+            finally: 
+                conn and conn.close()
+
             self.write(json.dumps(res))
         self.finish()
     # 克隆演讲方案
@@ -480,25 +494,32 @@ class BillsHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id = self.get_argument("id")
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.cursor()
-            sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? "
-            cursor.execute(sql, (id,))
-            sql = "SELECT LAST_INSERT_ROWID()"
-            cursor.execute(sql)
-            newbillcursor = cursor.fetchone()
-            if newbillcursor:
-                newbillid = newbillcursor[0]
-                if int(newbillid) > 0:
-                    sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
-                    cursor.execute(sql, (newbillid, id,))
-                    conn.commit()
-            else:
-                conn.rollback()
-            conn.close()
+            try:
+                id = self.get_argument("id")
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? "
+                cursor.execute(sql, (id,))
+                sql = "SELECT LAST_INSERT_ROWID()"
+                cursor.execute(sql)
+                newbillcursor = cursor.fetchone()
+                if newbillcursor:
+                    newbillid = newbillcursor[0]
+                    if int(newbillid) > 0:
+                        sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
+                        cursor.execute(sql, (newbillid, id,))
+                        conn.commit()
+                        res = {"code": 0, "newbillid": newbillid, "message": "克隆演讲方案"}
+                else:
+                    conn.rollback()
+                    res = {"code": 1,  "message": "创建新演讲方案出错"}
+            except Exception as error:
+                logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1,  "message": "创建新演讲方案出错"}
+            finally: 
+                conn and conn.close()
 
-            res = {"code": 0, "newbillid": newbillid, "message": "克隆演讲方案"}
             self.write(json.dumps(res))
         self.finish()
 
@@ -526,14 +547,19 @@ class BillsHandler(BaseHandler):
                         sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'FEATURES',ID,ORDERNO,ENABLE,SLEEP,DESC from FEATURES"
                         cursor.execute(sql, (newbillid, ))  
                         conn.commit()
+                        res = {"code": 0, "newbillid": newbillid, "message": "新建演讲方案"}
+                    else:
+                        res = {"code": 1,  "message": "新建演讲方案出错"}   
                 else:
                     conn.rollback()
-            except sqlite3.Error as error:
+                    res = {"code": 1,  "message": "找不到原演讲方案"}
+            except Exception as error:
                 logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1,  "message": "新建演讲方案出错"}
             finally: 
-                conn.close()
-                
-            res = {"code": 0, "newbillid": newbillid, "message": "新建演讲方案"}
+                conn and conn.close()
+
             self.write(json.dumps(res))
         self.finish()
 
@@ -543,31 +569,33 @@ class BillItemsHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            billID = self.get_argument("billid")
-            itemID = self.get_argument("itemid", default=None)
-            billItems = []
-            if billID and itemID:
+            try:
+                billID = self.get_argument("billid")
+                itemID = self.get_argument("itemid", default=None)
+                billItems = []
                 conn = sqlite3.connect(sysdb, check_same_thread=False)
-                cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                      " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                      " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO", (billID, itemID,))
-                Itemcursor = cursor.fetchone()
-                if Itemcursor:
-                    itemjson = {"ID": Itemcursor[0], "BILLID": Itemcursor[1], "TYPENAME": Itemcursor[2], "TYPEID": Itemcursor[3],
-                                "ORDERNO": Itemcursor[4], "ENABLE": Itemcursor[5], "DESC": Itemcursor[6], "NAME": Itemcursor[8], "SLEEP": Itemcursor[7]}
-                    billItems.append(itemjson)
-                conn.close()
-            else:
-                conn = sqlite3.connect(sysdb, check_same_thread=False)
-                cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                      " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                      " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO", (billID,))
-                billItemscursor = cursor.fetchall()
-                for item in billItemscursor:
-                    itemjson = {"ID": item[0], "BILLID": item[1], "TYPENAME": item[2], "TYPEID": item[3],
-                                "ORDERNO": item[4], "ENABLE": item[5], "DESC": item[6], "NAME": item[8], "SLEEP": item[7]}
-                    billItems.append(itemjson)
-                conn.close()
+                if billID and itemID:
+                    cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
+                                        " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                        " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO", (billID, itemID,))
+                    Itemcursor = cursor.fetchone()
+                    if Itemcursor:
+                        itemjson = {"ID": Itemcursor[0], "BILLID": Itemcursor[1], "TYPENAME": Itemcursor[2], "TYPEID": Itemcursor[3],
+                                    "ORDERNO": Itemcursor[4], "ENABLE": Itemcursor[5], "DESC": Itemcursor[6], "NAME": Itemcursor[8], "SLEEP": Itemcursor[7]}
+                        billItems.append(itemjson)
+                else:
+                    cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
+                                        " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                        " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO", (billID,))
+                    billItemscursor = cursor.fetchall()
+                    for item in billItemscursor:
+                        itemjson = {"ID": item[0], "BILLID": item[1], "TYPENAME": item[2], "TYPEID": item[3],
+                                    "ORDERNO": item[4], "ENABLE": item[5], "DESC": item[6], "NAME": item[8], "SLEEP": item[7]}
+                        billItems.append(itemjson)
+            except Exception as error:
+                logger.error(error)
+            finally: 
+                conn and conn.close()
 
             self.write(json.dumps(billItems))
         self.finish()
@@ -578,18 +606,25 @@ class BillItemsHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id = self.get_argument("id")
-            orderno = self.get_argument("orderno")
-            sleep = self.get_argument("sleep")
-            desc = unquote(self.get_argument("desc"))
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.cursor()
-            sql = "UPDATE BILLITEM SET ORDERNO=?, SLEEP=?,DESC=? WHERE ID=? "
-            cursor.execute(sql, (orderno, sleep, desc, id,))
-            conn.commit()
-            # logger.log(desc)
-            res = {"code": 0, "message": "更新节点"}
-            self.write(json.dumps(res))
+            try:
+                id = self.get_argument("id")
+                orderno = self.get_argument("orderno")
+                sleep = self.get_argument("sleep")
+                desc = unquote(self.get_argument("desc"))
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                sql = "UPDATE BILLITEM SET ORDERNO=?, SLEEP=?,DESC=? WHERE ID=? "
+                cursor.execute(sql, (orderno, sleep, desc, id,))
+                conn.commit()
+                res = {"code": 0, "message": "更新节点"}
+            except Exception as error:
+                logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1, "message": "更新节点错误"}
+            finally: 
+                conn and conn.close()  
+
+            self.write(json.dumps(res))  
         self.finish()
     # 新增节点
 
@@ -603,13 +638,21 @@ class BillItemsHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id = self.get_argument("id")
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM BILLITEM WHERE ID=? ", (id,))
-            conn.commit()
-            # logger.log(desc)
-            res = {"code": 0, "message": "删除节点"}
+            try:
+                id = self.get_argument("id")
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                cursor.execute("DELETE FROM BILLITEM WHERE ID=? ", (id,))
+                conn.commit()
+                # logger.log(desc)
+                res = {"code": 0, "message": "删除节点"}
+            except Exception as error:
+                logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1, "message": "删除节点出错"}
+            finally: 
+                conn and conn.close()   
+
             self.write(json.dumps(res))
         self.finish()
 
@@ -626,7 +669,7 @@ class VoiceHandler(BaseHandler):
                 conversation.testvoice(voice=voice, text="您好，您听到的是方案设定声音")
             else:
                 conversation.testvoice(text="您好，您听到的是系统默认声音")
-            res = {"code": 0, "message": "删除节点"}
+            res = {"code": 0, "message": "音调测试"}
             self.write(json.dumps(res))
         self.finish()
 
@@ -638,15 +681,22 @@ class SwitchEnableStatusHandler(BaseHandler):
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))
         else:
-            id = self.get_argument("id")
-            enable = self.get_argument("enable")
-            conn = sqlite3.connect(sysdb, check_same_thread=False)
-            cursor = conn.cursor()
-            sql = "UPDATE BILLITEM SET ENABLE=? WHERE ID=? "
-            cursor.execute(sql, (enable, id,))
-            conn.commit()
-            # logger.log(desc)
-            res = {"code": 0, "message": "更新节点"}
+            try:
+                id = self.get_argument("id")
+                enable = self.get_argument("enable")
+                conn = sqlite3.connect(sysdb, check_same_thread=False)
+                cursor = conn.cursor()
+                sql = "UPDATE BILLITEM SET ENABLE=? WHERE ID=? "
+                cursor.execute(sql, (enable, id,))
+                conn.commit()
+                res = {"code": 0, "message": "更新节点"}
+            except Exception as error:
+                logger.error(error)
+                conn and conn.rollback()
+                res = {"code": 1, "message": "更新节点出错"}
+            finally:
+                conn and conn.close()
+
             self.write(json.dumps(res))
         self.finish()
 

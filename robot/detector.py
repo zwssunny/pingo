@@ -1,5 +1,5 @@
 import time
-from config import conf, load_config
+from config import conf
 from common.log import logger
 from pingo import Pingo
 
@@ -16,13 +16,13 @@ def initDetector(pingo: Pingo):
 
     import pvporcupine
     from pvrecorder import PvRecorder
-    access_key=conf().get("picovoice_api_key")
+    access_key = conf().get("picovoice_api_key")
     keyword_paths = conf().get("keyword_path")
 
     porcupine = pvporcupine.create(
         access_key=access_key,
         keyword_paths=[keyword_paths],
-        sensitivities=[conf().get("sensitivity",0.5)]
+        sensitivities=[conf().get("sensitivity", 0.5)]
     )
 
     recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
@@ -34,7 +34,7 @@ def initDetector(pingo: Pingo):
 
             result = porcupine.process(pcm)
             if result >= 0:
-                kw = keyword_paths[result] 
+                kw = keyword_paths[result]
                 logger.info(
                     "[porcupine] Keyword {} Detected at time {}".format(
                         kw,
@@ -46,7 +46,7 @@ def initDetector(pingo: Pingo):
                 recorder.stop()
                 logger.info("进入主动聆听...")
                 pingo.conversation.interrupt()
-                pingo.conversation.say("我在，请讲！",append_history=False)
+                pingo.conversation.say("我在，请讲！", append_history=False)
                 num = 3  # 最多循环确认4次
                 pingo.conversation.begin()
                 while not pingo.conversation.conversation_is_complete() and num > 0:
