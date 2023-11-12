@@ -59,6 +59,7 @@
     	<button type="button" class="btn btn-danger mb-2" data-toggle="modal" title='停止演示内容，不可恢复' data-target="#stopModal" id="showstopModal"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
       <button type="button" class="btn btn-info mb-2" id="btBillEdit" title='编辑当前方案，如声调，开场白'><i class="fas fa-edit"></i> 修改</button>&nbsp;
       <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#cloneModal" id="btBillCopy" title='克隆当前演讲方案为新方案'><i class="fas fa-copy"></i> 克隆</button>&nbsp;
+      <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#newBillModal" id="btNewBill" title='从系统模板新增方案'><i class="fas fa-plus"></i> 新增</button>&nbsp;
       </form>
     <!-- </center> -->
   </div><!-- <div class="bill-form"> -->
@@ -207,7 +208,26 @@
     </div>
   </div>
 </div>
-
+<!-- 新增演讲方案 -->
+<div class="modal fade" id="newBillModal" tabindex="-1" role="dialog" aria-labelledby="newBillModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newBillModalLabel">你确定吗？</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        确定要从系统模板中新增演讲方案吗？
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="NEWBILL" data-dismiss="modal">新增</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- 停止演讲 -->
 <div class="modal fade" id="stopModal" tabindex="-1" role="dialog" aria-labelledby="stopModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">

@@ -535,7 +535,7 @@ class BillsHandler(BaseHandler):
             try:
                 conn = sqlite3.connect(sysdb, check_same_thread=False)
                 cursor = conn.cursor()
-                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) VALUSE('新建演讲方案','',datetime(CURRENT_TIMESTAMP,'localtime'),0,'请输入开场白')"
+                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) VALUES('新建演讲方案','',datetime(CURRENT_TIMESTAMP,'localtime'),0,'请输入开场白')"
                 cursor.execute(sql)
                 sql = "SELECT LAST_INSERT_ROWID()"
                 cursor.execute(sql)
@@ -553,6 +553,7 @@ class BillsHandler(BaseHandler):
                         res = {"code": 0, "newbillid": newbillid,
                                "message": "新建演讲方案"}
                     else:
+                        conn.rollback()
                         res = {"code": 1,  "message": "新建演讲方案出错"}
                 else:
                     conn.rollback()

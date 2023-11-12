@@ -501,6 +501,33 @@ $(function () {
         });
         $("#cloneModal").modal('hide');
     });
+    //新增演讲方案
+    $('button#NEWBILL').on('click', function (e) {
+        var billdata = { 'validate': getCookie('validation') }
+        $.ajax({
+            url: '/bills',
+            type: "PATCH",
+            data: billdata,
+            success: function (res) {
+                var data = JSON.parse(res);
+                msg = '新增演讲方案';
+                if (data.code == 0) {
+                    selected_value = data.newbillid;
+                    //刷新记录
+                    refreshBillsList(selected_value);
+                    if (selected_value)
+                        $('#bills-select').val(selected_value)
+                    toastr.success(msg + '成功');
+                } else {
+                    toastr.error(data.message, msg + '失败');
+                }
+            },
+            error: function () {
+                toastr.error('服务器异常', '接口调用失败');
+            }
+        });
+        $("#newBillModal").modal('hide');
+    });
     //删除节点记录
     $('button#DELETE').on('click', function (e) {
         var itemsdata = { 'validate': getCookie('validation'), "id": selectItemID }
