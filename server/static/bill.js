@@ -165,10 +165,10 @@ function actionFormatter(value, row, index) {
     }
     result += "<a href='javascript:;' class='btn btn-primary mb-2' style='margin:5px' onclick=\"EditViewById(" + id + ")\" title='编辑演讲内容'>";
     result += "<span class='fas fa-edit'></span>编辑</a>";
-    if (row["TYPENAME"] == "FEATURES") {
-        result += "<a href='javascript:;' class='btn btn-danger mb-2' style='margin:5px' onclick=\"DeleteById(" + id + ")\" title='删除后不能恢复'>";
-        result += "<span class='fas fa-trash'></span>删除</a>";
-    }
+    // if (row["TYPENAME"] == "FEATURES") {
+    //     result += "<a href='javascript:;' class='btn btn-danger mb-2' style='margin:5px' onclick=\"DeleteById(" + id + ")\" title='删除后不能恢复'>";
+    //     result += "<span class='fas fa-trash'></span>删除</a>";
+    // }
     result += "<a href='javascript:;' class='btn btn-success mb-2' style='margin:5px' onclick=\"PlayById(" + id + ")\" title='播放该节点演讲内容'>";
     result += "<span class='fas fa-edit'></span>播放</a>";
     return result;
