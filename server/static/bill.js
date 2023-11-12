@@ -1,8 +1,8 @@
-function talkbill(operate,billid,msg) {
+function talkbill(operate,billid,billitemid,msg) {
     $.ajax({
         url: '/operate',
         type: "POST",
-        data: {"type": operate, "billid": billid, 'validate': getCookie('validation')},
+        data: {"type": operate, "billid": billid, "billitemid": billitemid, 'validate': getCookie('validation')},
         success: function(res) {
             var data = JSON.parse(res);
             if (!msg) msg='';
@@ -31,7 +31,10 @@ function getbillplaystatus() {
                 if (data.curbillid)
                 {
                     $('#bills-select').val(data.curbillid)
-                    $('#billItemsTable').bootstrapTable('refresh');
+                }
+                if(data.curbillitemid)
+                {
+                    $('#billItemsTable').bootstrapTable('checkBy',{field: 'ID', values:[data.curbillitemid]});
                 }
                 toastr.success(msg+'成功');
             } else {
@@ -60,7 +63,15 @@ socket.onclose = function (e) {
 socket.onmessage = function (e) {
     var data = JSON.parse(e.data);
     if (data.action === "playoperate") {
-        // console.log("收到新消息: ", data);
+        console.log("收到新消息: ", data);
+        if(data.billid)
+        {
+            $('#bills-select').val(data.billid)
+        }
+        if(data.billitemid)
+        {
+            $('#billItemsTable').bootstrapTable('checkBy',{field: 'ID', values:[data.billitemid]});
+        }
         buttonstate(data.playstatus)
     }
 };
@@ -127,20 +138,21 @@ function getBillId()
 };
     //定义列定义
     columns=[
-        { field: 'ENABLE', title: '状态', sortable: true
+        {radio: true},
+        { field: 'ENABLE', title: '状态', sortable: true,  width:'50', align: 'center'
         ,formatter: function(val,row,index){
             if(val==1)
                 return"启用";
             else
                 return "禁用";
         }}, 
-        { field: 'ORDERNO', title: '演示顺序', sortable: true },
-        { field: 'TYPENAME', title: '节点分类', sortable: true },
-        { field: 'TYPEID', title: '节点ID', visible: false },
-        { field: 'NAME',title: '名称', sortable: true },
-        { field: 'SLEEP',title: '等待时间(秒)', sortable: true },
+        { field: 'ORDERNO', title: '演示顺序', sortable: true, width:'50', align: 'center' },
+        { field: 'TYPENAME', title: '节点分类', sortable: true,  width:'50', align: 'center' },
+        { field: 'TYPEID', title: '节点ID', visible: false, switchable: false },
+        { field: 'NAME',title: '名称', sortable: true,  width:'250', align: 'left' },
+        { field: 'SLEEP',title: '等待时间(秒)', sortable: true, width:'50', align: 'center' },
         { field: 'DESC', title: '演讲词', visible: false  }, 
-        { field: 'ID',title: '操作', align: 'center', valign: 'middle', formatter: actionFormatter }  
+        { field: 'ID',title: '操作',  width:'350',align: 'center', valign: 'middle', formatter: actionFormatter }  
     ];
  //操作栏的格式化
  function actionFormatter(value, row, index) {
@@ -160,6 +172,8 @@ function getBillId()
         result += "<a href='javascript:;' class='btn btn-danger mb-2' style='margin:5px' onclick=\"DeleteById("+id+")\" title='删除后不能恢复'>";
         result += "<span class='fas fa-trash'></span>删除</a>";
     }
+    result += "<a href='javascript:;' class='btn btn-success mb-2' style='margin:5px' onclick=\"PlayById("+id+")\" title='播放该节点演讲内容'>";
+    result += "<span class='fas fa-edit'></span>播放</a>";
     return result;
 }
 //
@@ -188,6 +202,12 @@ function SwitchEnableStatus(id,enablestatus,msg){
     });
     //刷新记录
     $('#billItemsTable').bootstrapTable('refresh');
+}
+//演示节点
+function PlayById(id){
+    selectItemID=id;
+    selected_value=getBillId();
+    talkbill(1,selected_value,selectItemID,'播放')  
 }
 //删除节点
 function DeleteById(id){
@@ -239,10 +259,12 @@ function EditViewById(id){
             resizable: true,
             pagination: true,
             sidePagination: 'client',
+            clickToSelect:true,
+            maintainSelected :true,
             striped: true,                      //是否显示行间隔色
             sortable: true,                     //是否启用排序
             sortOrder: 'asc',                   //排序方式
-            clickToSelect: true,                //是否启用点击选中行
+            singleSelect: true,             //单选
             pageNumber: 1,
             pageSize: 10,
             pageList: [10,20,30],
@@ -297,23 +319,23 @@ $(function() {
     
     $('button#STOP').on('click', function(e) {
         selected_value=getBillId();
-        talkbill(4,selected_value,'停止');
+        talkbill(4,selected_value,0,'停止');
         buttonstate(4);
         $("#stopModal").modal('hide');
     });
     $('button#PLAY').on('click', function(e) {
         selected_value=getBillId();
-        talkbill(1,selected_value,'播放');
+        talkbill(1,selected_value,0,'播放');
         buttonstate(1);
     });
     $('button#PAUSE').on('click', function(e) {
         selected_value=getBillId();
-        talkbill(2,selected_value,'暂停');
+        talkbill(2,selected_value,0,'暂停');
         buttonstate(2);
     });
     $('button#UNPAUSE').on('click', function(e) {
         selected_value=getBillId();
-        talkbill(3,selected_value,'继续');
+        talkbill(3,selected_value,0,'继续');
         buttonstate(1);
     });
 
@@ -363,6 +385,9 @@ $(function() {
                 msg='更新节点';
                 if (data.code == 0) {
                     toastr.success(msg+'成功');
+                    //更新记录
+                    $('#billItemsTable').bootstrapTable('updateByUniqueId',{id: selectItemID, row:{"ORDERNO": $("#itemorderno").val(), 
+                    "SLEEP": $("#itemsleep").val(),"DESC": $("#itemdesc").val(),}});
                 } else {
                     toastr.error(data.message, msg+'失败');
                 }
@@ -372,7 +397,7 @@ $(function() {
             }
         });
         //刷新记录
-        $('#billItemsTable').bootstrapTable('refresh');
+        // $('#billItemsTable').bootstrapTable('refresh');
         $("#editModal").modal('hide');
     });
     //编辑方案

@@ -134,10 +134,12 @@ class ChatWebSocketHandler(WebSocketHandler, BaseHandler):
         }
         self.write_message(json.dumps(response))
 
-    def send_playstate(self, playstatus, msg=""):
+    def send_playstate(self, playstatus, billid=None, billitemid=None, msg=''):
         response = {
             "action": "playoperate",
             "playstatus": playstatus,
+            "billid": billid,
+            "billitemid": billitemid,
             "text": msg,
         }
         self.write_message(json.dumps(response))
@@ -164,11 +166,6 @@ class ChatHandler(BaseHandler):
         for client in ChatWebSocketHandler.clients:
             client.send_response(data, uuid, "")
 
-    def onPlaybill(self, playstatus, msg):
-        # 通过 ChatWebSocketHandler 发送给前端
-        for client in ChatWebSocketHandler.clients:
-            client.send_playstate(playstatus, msg)
-
     def post(self):
         global conversation
         if self.validate(self.get_argument("validate", default=None)):
@@ -187,9 +184,8 @@ class ChatHandler(BaseHandler):
                                                  msg, audio, plugin
                                              ),
                                              onStream=lambda data, resp_uuid: self.onStream(
-                                                 data, resp_uuid),
-                                             onPlaybill=lambda playstatus, msg: self.onPlaybill(
-                                                 playstatus, msg)
+                                                 data, resp_uuid)
+
                                          ))
                     t.start()
 
@@ -198,7 +194,7 @@ class ChatHandler(BaseHandler):
                 tmpfile = utils.write_temp_file(
                     base64.b64decode(voice_data), ".wav")
                 # downsampling
-                nfile=utils.sounddownsampling(tmpfile)
+                nfile = utils.sounddownsampling(tmpfile)
                 # utils.check_and_delete(tmpfile)
                 t = threading.Thread(target=lambda:
                                      conversation.doConverse(
@@ -206,9 +202,7 @@ class ChatHandler(BaseHandler):
                                          onSay=lambda msg, audio, plugin: self.onResp(
                                              msg, audio, plugin),
                                          onStream=lambda data, resp_uuid: self.onStream(
-                                             data, resp_uuid),
-                                         onPlaybill=lambda playstatus, msg: self.onPlaybill(
-                                             playstatus, msg)
+                                             data, resp_uuid)
 
                                      ))
                 t.start()
@@ -258,6 +252,11 @@ class LogPageHandler(BaseHandler):
 
 
 class OperateHandler(BaseHandler):
+    def onPlaybill(self, playstatus, billid, billitemid, msg):
+        # 通过 ChatWebSocketHandler 发送给前端
+        for client in ChatWebSocketHandler.clients:
+            client.send_playstate(playstatus, billid, billitemid, msg)
+
     def post(self):
         global conversation, pingo
         if self.validate(self.get_argument("validate", default=None)):
@@ -270,13 +269,20 @@ class OperateHandler(BaseHandler):
                 threading.Thread(target=lambda: pingo.restart()).start()
             elif type in ["play", "1"]:
                 Billid = self.get_argument("billid")
+                BillItemid = self.get_argument("billitemid", default=None)
                 res = {"code": 0, "message": "play ok"}
                 self.write(json.dumps(res))
                 self.finish()
                 # 考虑线程执行，否则会等很久
-                t = threading.Thread(target=lambda: conversation.billtalk(
-                    billID=Billid))
-                t.start()
+                if BillItemid and int(BillItemid) > 0:
+                    threading.Thread(target=lambda: conversation.talkbillitem_byid(
+                        billitemID=BillItemid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
+                            playstatus, billid, billitemid, msg))).start()
+                else:
+                    threading.Thread(target=lambda: conversation.billtalk(
+                        billID=Billid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
+                            playstatus, billid, billitemid, msg))).start()
+
             elif type in ["pause", "2"]:
                 res = {"code": 0, "message": "pause ok"}
                 self.write(json.dumps(res))
@@ -295,7 +301,7 @@ class OperateHandler(BaseHandler):
                     target=lambda: conversation.interrupt()).start()
             elif type in ["playstatus", "5"]:
                 res = {"code": 0, "message": "get playstatus ok", "playstatus": conversation.introduction.playstatus,
-                       "curbillid": conversation.introduction.curBillId}
+                       "curbillid": conversation.introduction.curBillId, "curbillitemid": conversation.introduction.curBillItemId}
                 self.write(json.dumps(res))
                 self.finish()
             else:
@@ -418,7 +424,7 @@ class BillpageHandler(BaseHandler):
                     bills.append(billjson)
             except Exception as error:
                 logger.error(error)
-            finally: 
+            finally:
                 conn and conn.close()
             self.render("bill.html", bills=bills)
 
@@ -446,7 +452,7 @@ class BillsHandler(BaseHandler):
                 self.write(json.dumps(bills))
             except Exception as error:
                 logger.error(error)
-            finally: 
+            finally:
                 conn and conn.close()
         self.finish()
     # 更新演讲方案
@@ -470,14 +476,15 @@ class BillsHandler(BaseHandler):
                     sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
                     cursor.execute(sql, (id,))
                 sql = "UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
-                cursor.execute(sql, (name, voice, isdefault, datetime, desc, id,))
+                cursor.execute(
+                    sql, (name, voice, isdefault, datetime, desc, id,))
                 conn.commit()
                 res = {"code": 0, "message": "更新演讲方案"}
             except Exception as error:
                 logger.error(error)
                 conn and conn.rollback()
                 res = {"code": 1, "message": "更新演讲方案出错"}
-            finally: 
+            finally:
                 conn and conn.close()
 
             self.write(json.dumps(res))
@@ -504,7 +511,8 @@ class BillsHandler(BaseHandler):
                         sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC from BILLITEM WHERE BILLID=? "
                         cursor.execute(sql, (newbillid, id,))
                         conn.commit()
-                        res = {"code": 0, "newbillid": newbillid, "message": "克隆演讲方案"}
+                        res = {"code": 0, "newbillid": newbillid,
+                               "message": "克隆演讲方案"}
                 else:
                     conn.rollback()
                     res = {"code": 1,  "message": "创建新演讲方案出错"}
@@ -512,13 +520,13 @@ class BillsHandler(BaseHandler):
                 logger.error(error)
                 conn and conn.rollback()
                 res = {"code": 1,  "message": "创建新演讲方案出错"}
-            finally: 
+            finally:
                 conn and conn.close()
 
             self.write(json.dumps(res))
         self.finish()
 
-    #新建演讲方案
+    # 新建演讲方案
     def patch(self):
         if not self.validate(self.get_argument("validate", default=None)):
             res = {"code": 1, "message": "illegal visit"}
@@ -538,13 +546,14 @@ class BillsHandler(BaseHandler):
                         sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'MENUITEM',ID,ORDERNO,ENABLE,SLEEP,DESC from MENUITEM"
                         cursor.execute(sql, (newbillid, ))
                         sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'OTHERSYSTEM',ID,ORDERNO,ENABLE,SLEEP,DESC from OTHERSYSTEM"
-                        cursor.execute(sql, (newbillid, ))   
+                        cursor.execute(sql, (newbillid, ))
                         sql = "INSERT INTO BILLITEM(BILLID,TYPENAME,TYPEID,ORDERNO,ENABLE,SLEEP,DESC) SELECT ?,'FEATURES',ID,ORDERNO,ENABLE,SLEEP,DESC from FEATURES"
-                        cursor.execute(sql, (newbillid, ))  
+                        cursor.execute(sql, (newbillid, ))
                         conn.commit()
-                        res = {"code": 0, "newbillid": newbillid, "message": "新建演讲方案"}
+                        res = {"code": 0, "newbillid": newbillid,
+                               "message": "新建演讲方案"}
                     else:
-                        res = {"code": 1,  "message": "新建演讲方案出错"}   
+                        res = {"code": 1,  "message": "新建演讲方案出错"}
                 else:
                     conn.rollback()
                     res = {"code": 1,  "message": "找不到原演讲方案"}
@@ -552,11 +561,12 @@ class BillsHandler(BaseHandler):
                 logger.error(error)
                 conn and conn.rollback()
                 res = {"code": 1,  "message": "新建演讲方案出错"}
-            finally: 
+            finally:
                 conn and conn.close()
 
             self.write(json.dumps(res))
         self.finish()
+
 
 class BillItemsHandler(BaseHandler):
     def get(self):
@@ -571,8 +581,8 @@ class BillItemsHandler(BaseHandler):
                 conn = sqlite3.connect(sysdb, check_same_thread=False)
                 if billID and itemID:
                     cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                        " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                        " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO", (billID, itemID,))
+                                          " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                          " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? AND ID= ? ORDER BY ORDERNO", (billID, itemID,))
                     Itemcursor = cursor.fetchone()
                     if Itemcursor:
                         itemjson = {"ID": Itemcursor[0], "BILLID": Itemcursor[1], "TYPENAME": Itemcursor[2], "TYPEID": Itemcursor[3],
@@ -580,8 +590,8 @@ class BillItemsHandler(BaseHandler):
                         billItems.append(itemjson)
                 else:
                     cursor = conn.execute("SELECT *, (CASE WHEN TYPENAME=='MENUITEM' THEN (SELECT NAME FROM MENUITEM WHERE ID=TYPEID)"
-                                        " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
-                                        " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO", (billID,))
+                                          " WHEN TYPENAME=='OTHERSYSTEM' THEN (SELECT NAME FROM OTHERSYSTEM WHERE ID=TYPEID)"
+                                          " ELSE (SELECT NAME FROM FEATURES WHERE ID=TYPEID) END ) AS NAME FROM BILLITEM WHERE BILLID= ? ORDER BY ORDERNO", (billID,))
                     billItemscursor = cursor.fetchall()
                     for item in billItemscursor:
                         itemjson = {"ID": item[0], "BILLID": item[1], "TYPENAME": item[2], "TYPEID": item[3],
@@ -589,7 +599,7 @@ class BillItemsHandler(BaseHandler):
                         billItems.append(itemjson)
             except Exception as error:
                 logger.error(error)
-            finally: 
+            finally:
                 conn and conn.close()
 
             self.write(json.dumps(billItems))
@@ -616,10 +626,10 @@ class BillItemsHandler(BaseHandler):
                 logger.error(error)
                 conn and conn.rollback()
                 res = {"code": 1, "message": "更新节点错误"}
-            finally: 
-                conn and conn.close()  
+            finally:
+                conn and conn.close()
 
-            self.write(json.dumps(res))  
+            self.write(json.dumps(res))
         self.finish()
     # 新增节点
 
@@ -645,8 +655,8 @@ class BillItemsHandler(BaseHandler):
                 logger.error(error)
                 conn and conn.rollback()
                 res = {"code": 1, "message": "删除节点出错"}
-            finally: 
-                conn and conn.close()   
+            finally:
+                conn and conn.close()
 
             self.write(json.dumps(res))
         self.finish()

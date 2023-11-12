@@ -63,9 +63,16 @@ class Conversation(object):
         finally:
             self.tts=oldtts
 
-    def billtalk(self, billID=None):
-        self.introduction.billtalk(billID)
-        
+    def billtalk(self, billID=None, onPlaybill=None):
+        if onPlaybill:
+            self.onPlaybill=onPlaybill
+        self.introduction.billtalk(billID, self.onPlaybill)
+
+    def talkbillitem_byid(self, billitemID, onPlaybill=None):
+        if onPlaybill:
+            self.onPlaybill=onPlaybill
+        self.introduction.tallbllitem_byid(billitemID,self.onPlaybill)
+
     def getHistory(self):
         return self.history
     
@@ -150,14 +157,14 @@ class Conversation(object):
             self.say("没听清呢")
             self.hasPardon = False
 
-    def doConverse(self, fp, callback=None, onSay=None, onStream=None, onPlaybill=None):
+    def doConverse(self, fp, callback=None, onSay=None, onStream=None):
         self.interrupt()
         try:
             query = self.asr.transcribe(fp)
         except Exception as e:
             logger.critical(f"ASR识别失败：{e}", stack_info=True)
         try:
-            self.doResponse(query, callback, onSay, onStream, onPlaybill)
+            self.doResponse(query, callback, onSay, onStream)
         except Exception as e:
             logger.critical(f"回复失败：{e}", stack_info=True)
 
@@ -176,7 +183,7 @@ class Conversation(object):
         args = conf().get("unit")
         return self.nlu.parse(query, **args)
     
-    def doResponse(self, query, UUID="",onSay=None, onStream=None,onPlaybill=None):
+    def doResponse(self, query, UUID="",onSay=None, onStream=None):
         """
         响应指令
 
@@ -192,9 +199,6 @@ class Conversation(object):
         if onStream:
             self.onStream = onStream
 
-        if onPlaybill:
-            self.introduction.onPlaybill=onPlaybill
-            self.onPlaybill=onPlaybill
 
         if query.strip() == "":
             self.pardon()

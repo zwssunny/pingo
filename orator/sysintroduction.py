@@ -25,9 +25,10 @@ class sysIntroduction:
         self.ctlandtalk = ctlandtalk  # 是否控制页面跳转
         self.onPlaybill = None
         self.curBillId = None
+        self.curBillItemId = None
         self.playstatus = 0
 
-    def billtalk(self, billID=None):
+    def billtalk(self, billID=None, onPlaybill=None):
         """ 演示剧本
             如果传入的方案为空，默认播放系统默认方案
         Args:
@@ -38,8 +39,9 @@ class sysIntroduction:
             # 保存原来的tts
             oldtts = self.conversation.tts
             self.is_stop = False
+            if onPlaybill:
+                self.onPlaybill=onPlaybill
 
-            self.setplaystatusChange(1, "演示方案")
             # 查询系统介绍内容
             if billID:
                 cursor = self.conn.execute(
@@ -51,6 +53,8 @@ class sysIntroduction:
             if billcursor:
                 billdesc = billcursor[3]
                 self.curBillId = billcursor[0]
+                billname=billcursor[1]
+                self.setplaystatusChange(1, billname)
 
                 voice = billcursor[2]
                 if voice:
@@ -79,28 +83,50 @@ class sysIntroduction:
         try:
             # 查询菜单记录
             cursor = self.conn.execute(
-                "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
+                "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID FROM BILLITEM WHERE ENABLE=1 AND BILLID= ? ORDER BY ORDERNO", (billID,))
             itemcursor = cursor.fetchall()
             for row in itemcursor:
-                typename = row[0]
-                typeid = row[1]
-                # 演讲前等待时间
-                itemsleep = int(row[3])
-                itemdesc = row[4]
-
-                if typename == 'MENUITEM':
-                    self.talkmenuitem_byid(typeid, itemsleep, itemdesc)
-                elif typename == 'FEATURES':
-                    self.talkfeature_byid(typeid, itemsleep, itemdesc)
-                elif typename == 'OTHERSYSTEM':
-                    self.talkothersystem_byid(typeid, itemsleep, itemdesc)
-                elif typename == 'HIGHLIGHT':
-                    self.talkhighlight_byid(typeid, itemsleep, itemdesc)
+                self.tallbillitem(row)
                 if self.is_stop:
                     break
             # 结束循环
         except sqlite3.Error as error:
             logger.error(error)
+
+    def tallbillitem(self,billitem):
+        """讲解某个节点
+
+        Args:
+            billitem (billitem): 演讲节点信息
+        """        
+        typename = billitem[0]
+        typeid = billitem[1]
+        # 演讲前等待时间
+        itemsleep = int(billitem[3])
+        itemdesc = billitem[4]
+        self.curBillItemId=billitem[5]
+
+        if typename == 'MENUITEM':
+            self.talkmenuitem_byid(typeid, itemsleep, itemdesc)
+        elif typename == 'FEATURES':
+            self.talkfeature_byid(typeid, itemsleep, itemdesc)
+        elif typename == 'OTHERSYSTEM':
+            self.talkothersystem_byid(typeid, itemsleep, itemdesc)
+        elif typename == 'HIGHLIGHT':
+            self.talkhighlight_byid(typeid, itemsleep, itemdesc)
+
+
+    def tallbllitem_byid(self,bllitemid, onPlaybill=None):
+        if onPlaybill:
+            self.onPlaybill=onPlaybill
+        # 查询菜单记录
+        cursor = self.conn.execute(
+            "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
+        itemcursor = cursor.fetchone()
+        if itemcursor:
+            self.tallbillitem(itemcursor) 
+            self.setplaystatusChange(4, "节点讲解")  # 停止
+          
 
     def systalk(self):
         """
@@ -535,7 +561,7 @@ class sysIntroduction:
     def setplaystatusChange(self, playstatus, msg=''):
         self.playstatus = playstatus
         if self.onPlaybill:
-            self.onPlaybill(self.playstatus, msg)
+            self.onPlaybill(self.playstatus, self.curBillId, self.curBillItemId, msg)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,9 @@
 <link rel="stylesheet" href="{{static_url('starter-template.css')}}" crossorigin="anonymous">
 
 <nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
-  <a class="navbar-brand" href="/">Bingo-robot</a>
+  <a class="navbar-brand" href="/">
+    <img src="./static/favicon.png" width="32" height="32" alt="">
+    Bingo-robot</a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
     <span class="navbar-toggler-icon"></span>
   </button>
@@ -51,12 +53,12 @@
         </select>
       </div>
  	    &nbsp;
-    	<button type="button" class="btn btn-success mb-2" id="PLAY"><i class="fas fa-play"></i> 播放</button>&nbsp;
-    	<button type="button" class="btn btn-warning mb-2" id="PAUSE"><i class="fas fa-pause"></i> 暂停</button>&nbsp;
+    	<button type="button" class="btn btn-success mb-2" id="PLAY" title='演讲整个方案'><i class="fas fa-play"></i> 播放</button>&nbsp;
+    	<button type="button" class="btn btn-warning mb-2" id="PAUSE" title='暂停当前播放节点，可恢复'><i class="fas fa-pause"></i> 暂停</button>&nbsp;
     	<button type="button" class="btn btn-info mb-2" id="UNPAUSE"><i class="fas fa-forward"></i> 继续</button>&nbsp;
-    	<button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#stopModal" id="showstopModal"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
-      <button type="button" class="btn btn-info mb-2" id="btBillEdit"><i class="fas fa-edit"></i> 修改</button>&nbsp;
-      <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#cloneModal" id="btBillCopy"><i class="fas fa-copy"></i> 克隆</button>&nbsp;
+    	<button type="button" class="btn btn-danger mb-2" data-toggle="modal" title='停止演示内容，不可恢复' data-target="#stopModal" id="showstopModal"><i class="fas fa-stop"></i> 停止</button>&nbsp;&nbsp;
+      <button type="button" class="btn btn-info mb-2" id="btBillEdit" title='编辑当前方案，如声调，开场白'><i class="fas fa-edit"></i> 修改</button>&nbsp;
+      <button type="button" class="btn btn-info mb-2" data-toggle="modal" data-target="#cloneModal" id="btBillCopy" title='克隆当前演讲方案为新方案'><i class="fas fa-copy"></i> 克隆</button>&nbsp;
       </form>
     <!-- </center> -->
   </div><!-- <div class="bill-form"> -->
