@@ -35,7 +35,7 @@
         "till": 9      # 结束时间，如果比 since 小表示第二天
     }
 }
-#声音选项
+#声音选项，如果要每个演讲方案要个性化声调，tts建议用EgdeTTS
 """
 Name: zh-CN-XiaoxiaoNeural
 Gender: Female

@@ -19,12 +19,12 @@ class Conversation(object):
         # 历史会话消息
         self.history = History.History()
         self.isConversationcomplete =False
-        self.isRecording = False
         self.hasPardon = False
         self.onSay = None
         self.onStream = None
         self.onPlaybill = None
         self.recognizer = sr.Recognizer()
+        self.voices={}
 
     def reInit(self):
         """重新初始化"""
@@ -49,7 +49,11 @@ class Conversation(object):
             self.player.quit()
 
     def newvoice(self,voice):
-        return TTS.EdgeTTS(voice)
+        if voice is None:
+            return self.tts
+        if voice not in self.voices:
+            self.voices[voice]= TTS.EdgeTTS(voice)
+        return self.voices[voice]
     
     def testvoice(self,text,voice=None):
         try:

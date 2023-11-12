@@ -67,7 +67,7 @@ class sysIntroduction:
                 self.talkAllBillItem(self.curBillId)
             else:
                 self.conversation.say("找不到演讲方案")
-        except sqlite3.Error as error:
+        except Exception as error:
             logger.error(error)
         finally:
             # 恢复原来声音
@@ -121,12 +121,27 @@ class sysIntroduction:
             self.onPlaybill=onPlaybill
         # 查询菜单记录
         cursor = self.conn.execute(
-            "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
+            "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID, BILLID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
         itemcursor = cursor.fetchone()
         if itemcursor:
-            self.tallbillitem(itemcursor) 
-            self.setplaystatusChange(4, "节点讲解")  # 停止
-          
+            #创建声音
+            try:
+                # 保存原来的tts
+                oldtts = self.conversation.tts
+                billID=itemcursor[6]
+                bcursor = self.conn.execute(
+                    "SELECT ID, NAME,VOICE FROM BILL WHERE ID= ?", (billID,))
+                billcursor=bcursor.fetchone()
+                if billcursor:
+                    voice=billcursor[2]
+                    if voice:
+                        self.conversation.tts = self.conversation.newvoice(voice)   
+                         
+                self.tallbillitem(itemcursor) 
+                self.setplaystatusChange(4, "节点讲解")  # 停止
+            finally:
+                # 恢复原来声音
+                self.conversation.tts = oldtts
 
     def systalk(self):
         """
