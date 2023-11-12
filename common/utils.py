@@ -20,6 +20,26 @@ TMP_PATH = os.path.join(APP_PATH, "tmp")
 TEMPLATE_PATH = os.path.join(APP_PATH, "server", "templates")
 DATA_PATH = os.path.join(APP_PATH, "static")
 
+#勿扰模式：True
+not_bother = False
+
+def is_proper_time():
+    """是否合适时间"""
+    global not_bother
+    if not_bother == True:
+        return False
+    bother_profile = conf().get("notbother")
+    if not bother_profile["enable"]:
+        return True
+    if "since" not in bother_profile or "till" not in bother_profile:
+        return True
+    since = bother_profile["since"]
+    till = bother_profile["till"]
+    current = time.localtime(time.time()).tm_hour
+    if till > since:
+        return current not in range(since, till)
+    else:
+        return not (current in range(since, 25) or current in range(-1, till))
 
 def getCache(msg, voicename=None):
     """获取缓存的语音"""

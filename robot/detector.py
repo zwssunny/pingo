@@ -1,6 +1,7 @@
 import time
 from config import conf
 from common.log import logger
+from common import utils
 from pingo import Pingo
 
 detector = None
@@ -43,6 +44,9 @@ def initDetector(pingo: Pingo):
                         ),
                     )
                 )
+                if not utils.is_proper_time():
+                    logger.warning("勿扰模式开启中")
+                    continue
                 recorder.stop()
                 logger.info("进入主动聆听...")
                 pingo.conversation.interrupt()

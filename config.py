@@ -7,7 +7,7 @@ import pickle
 
 from common.log import logger
 
-has_init=False
+has_init = False
 # 将所有可用的配置项写在字典里, 请使用小写字母
 # 此处的配置值无实际意义，程序不会读取此处的配置，仅用于提示格式，请将配置加入到config.json中
 available_setting = {
@@ -22,13 +22,13 @@ available_setting = {
     "azure_region": "japaneast",  # 你的azure region
     "debug": True,
     "appdata_dir": "",
-    "canpause": True, #是否可以暂停
-    "ctlandtalk": True, #是否控制页面并解说内容
+    "canpause": True,  # 是否可以暂停
+    "ctlandtalk": True,  # 是否控制页面并解说内容
     "server": {
         "enable": True,
         "host": "0.0.0.0",  # ip 地址
         "port": 5001,  # 端口号
-        "username": "pingo", # 用户名
+        "username": "pingo",  # 用户名
         # cookie 的 secret ，用于对 cookie 的内容进行加密及防止篡改
         # 建议使用 os.urandom(24) 生成一串随机字符串
         # 强烈建议修改!!!
@@ -41,31 +41,31 @@ available_setting = {
     "asr_engine": "baidu-asr",
     # baidu 语音api配置， 使用百度语音识别和语音合成时需要
     "baidu_yuyin": {
-        "appid": "", #你的百度APP_ID
-        "api_key": "", # 你的百度API_KEY
-        "secret_key": "", # 你的百度SECRET_KEY
+        "appid": "",  # 你的百度APP_ID
+        "api_key": "",  # 你的百度API_KEY
+        "secret_key": "",  # 你的百度SECRET_KEY
         "dev_pid": 1536,
         "per": 1,
-        "lan": "zh" 
+        "lan": "zh"
     },
     "xunfei_yuyin": {
-        "appid": "", # 你的讯飞APP_ID
-        "api_key": "", # 你的讯飞API_KEY
-        "api_secret": "", # 你的讯飞SECRET_KEY
-        "voice": "xiaoyan" #音调
+        "appid": "",  # 你的讯飞APP_ID
+        "api_key": "",  # 你的讯飞API_KEY
+        "api_secret": "",  # 你的讯飞SECRET_KEY
+        "voice": "xiaoyan"  # 音调
     },
     "tts_engine": "edge-tts",
     "edge-tts": {
         "voice": "zh-CN-XiaoxiaoNeural"
     },
     "nlu_engine": "unit",
-    #百度Unit机器人
+    # 百度Unit机器人
     "unit": {
-        "service_id": "", #"机器人ID"
+        "service_id": "",  # "机器人ID"
         "api_key": "",
         "secret_key": ""
     },
-        "pageintent": [
+    "pageintent": [
         "OPEN_PAGE",
         "CLOSE_PAGE"
     ],
@@ -77,6 +77,11 @@ available_setting = {
         "OPEN_HIGHLIGHT",
         "CLOSE_HIGHLIGHT"
     ],
+    "notbother": { #免打扰模式
+        "enable": False,  # true: 开启; false: 关闭
+        "since": 23,    # 开始时间
+        "till": 9      # 结束时间，如果比 since 小表示第二天
+    },
 }
 
 
@@ -108,6 +113,7 @@ class Config(dict):
         except Exception as e:
             raise e
     # Make sure to return a dictionary to ensure atomic
+
     def get_user_data(self, user) -> dict:
         if self.user_datas.get(user) is None:
             self.user_datas[user] = {}
@@ -136,27 +142,30 @@ class Config(dict):
         config_path = "./config.json"
         config_str = read_file(config_path)
         return config_str
-    
-    def dump(self,configStr):
+
+    def dump(self, configStr):
         config_path = "./config.json"
         with open(config_path, mode="w", encoding="utf-8") as f:
             f.write(configStr)
 
+
 config = Config()
+
 
 def reload_config():
     """重新加载参数
-    """    
+    """
     global has_init
-    has_init=False
+    has_init = False
     load_config()
+
 
 def load_config():
     global config
     global has_init
-    if  has_init:
+    if has_init:
         return
-    
+
     config_path = "./config.json"
     if not os.path.exists(config_path):
         logger.info("配置文件不存在，将使用config-template.json模板")
@@ -191,7 +200,7 @@ def load_config():
 
     # logger.info("[INIT] load config: {}".format(config))
 
-    has_init=True
+    has_init = True
     config.load_user_datas()
 
 

@@ -1,5 +1,4 @@
 from abc import ABCMeta, abstractmethod
-from common import utils
 from common.log import logger
 from robot.sdk import baiduUnit
 

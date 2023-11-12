@@ -28,6 +28,11 @@
         # 初始密码为 pingo@2023
         # 强烈建议修改!!!
         "validate": "2499d2e04e0f949927690d6375ce1a67"
+    },
+    "notbother": {
+        "enable": false # true: 开启; false: 关闭
+        "since": 23    # 开始时间
+        "till": 9      # 结束时间，如果比 since 小表示第二天
     }
 }
 #声音选项
