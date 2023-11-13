@@ -782,7 +782,6 @@ def run(conversation, pingo, debug=False):
 
 
 def stop():
-    global webApp
     if webApp:
         webApp.stop()
         tornado.ioloop.IOLoop.current().close()

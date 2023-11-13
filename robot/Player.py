@@ -18,6 +18,8 @@ class Player:
         self.music.play()
         while True:
             event = pygame.event.wait()
+            if event.type == pygame.QUIT:
+                break
             if event.type == self.MUSIC_END:
                 break
             pygame.time.Clock().tick(10)
