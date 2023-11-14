@@ -3,7 +3,7 @@ from aip import AipSpeech
 from abc import ABCMeta, abstractmethod
 from common import utils
 from common.log import logger
-from config import conf, load_config
+from config import conf
 from robot.sdk import XunfeiSpeech
 
 from common import utils
