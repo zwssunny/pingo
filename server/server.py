@@ -40,7 +40,7 @@ settings = {
     "login_url": "/login",
     "debug": False,
 }
-
+#新增的接口在这里注册
 application = tornado.web.Application(
     [
         (r"/", MainHandler),
