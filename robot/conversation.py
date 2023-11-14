@@ -223,11 +223,11 @@ class Conversation(object):
                     # 查找页面
                     pagename = slots[0]['normalized_word']
                     if intent in self.pageintent:
-                        self.introduction.talkmenuitem_byname(pagename)
+                        threading.Thread(target=lambda:self.introduction.talkmenuitem_byname(pagename)).start()
                     elif intent in self.systemintent:
-                        self.introduction.talkothersystem_byname(pagename)
+                        threading.Thread(target=lambda:self.introduction.talkothersystem_byname(pagename)).start()
                     elif intent in self.highlightintent:
-                        self.introduction.talkhighlight_byname(pagename)
+                        threading.Thread(target=lambda:self.introduction.talkhighlight_byname(pagename)).start()
                 elif "ORATOR" in intent:  # 演示整个系统
                     threading.Thread(target=lambda: self.billtalk()).start()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答

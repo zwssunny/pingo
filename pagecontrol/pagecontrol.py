@@ -43,11 +43,13 @@ class pagecontrol(object):
             uri = self.websocketurl+self.screenid
             ws = websocket.WebSocket()
             ws.connect(uri, timeout=6, close_timeout=6)
-            # 发送控制消息
-            sendmsg = {"intent": intent, "pageIndex": eventid}
-            msg = json.dumps(sendmsg)
-            logger.info(msg)
-            ws.send(msg)
+            if ws.connected:
+                # 发送控制消息
+                sendmsg = {"intent": intent, "pageIndex": eventid}
+                msg = json.dumps(sendmsg)
+                logger.info(msg)
+                ws.send(msg)
+                ws.close()
         except Exception as e:
             logger.error(e)
 
