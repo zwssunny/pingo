@@ -170,7 +170,7 @@ function actionFormatter(value, row, index) {
     //     result += "<span class='fas fa-trash'></span>删除</a>";
     // }
     result += "<a href='javascript:;' class='btn btn-success mb-2' style='margin:5px' onclick=\"PlayById(" + id + ")\" title='播放该节点演讲内容'>";
-    result += "<span class='fas fa-edit'></span>播放</a>";
+    result += "<span class='fas fa-play'></span>播放</a>";
     return result;
 }
 //
