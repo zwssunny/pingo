@@ -28,6 +28,9 @@ $ curl localhost:5001/history?validate=2499d2e04e0f949927690d6375ce1a67
 | ---   | ------- | ----- |
 | validate | 是 | 参见 [鉴权](#_1) |
 | type  | 是 |  管理类型类型。详见 [管理类型取值](#管理类型取值) |
+| billid  | 是 | 如果type=1,必须传递演讲方案ID，如果没有指定特定billitemid,则播放该方案下所有节目 |
+| billitemid  | 否|  演讲节点ID，如果billitemid>0 将忽略billid值 |
+
 
 ### 管理类型取值
 
@@ -38,7 +41,7 @@ $ curl localhost:5001/history?validate=2499d2e04e0f949927690d6375ce1a67
 | 2    | 暂停播放 |
 | 3    | 继续播放 |
 | 4    | 停止播放 |
-| 5    | 播放状态 |
+| 5    | 获取播放状态 |
 
 - 示例：
 
@@ -192,11 +195,11 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 | message | 结果说明 |
 
 
-## 剧本
+## 演讲
 
-### 获取剧本列表
+### 获取演讲方案列表
 
-用于获取系统已存在的剧本 。
+用于获取系统已存在的演讲方案 。
 
 - url：/bills
 - method: GET
@@ -205,7 +208,7 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 | 参数名 |  是否必须 | 说明  |
 | ---   | ------- | ----- |
 | validate | 是 | 参见 [鉴权](#_1) |
-| billid | 否 | 如果提供特定的剧本ID，则返回当前剧本记录，否则返回所有剧本列 |
+| billid | 否 | 如果提供特定的方案ID，则返回当前剧本记录，否则返回所有方案列表 |
 
 - 返回：
 
@@ -218,7 +221,7 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 
 ### 获取节目列表
 
-用于获取系统已存在的剧本 。
+用于获取系统已存在的演讲节目 。
 
 - url：/billitems
 - method: GET
@@ -227,8 +230,8 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 | 参数名 |  是否必须 | 说明  |
 | ---   | ------- | ----- |
 | validate | 是 | 参见 [鉴权](#_1) |
-| billid | 是 | 提供特定的剧本ID |
-| itemid | 否 | 如果提供特定的节点ID，则返回该条记录，否则返回该剧本ID下所有节点|
+| billid | 是 | 提供特定的演讲方案ID |
+| itemid | 否 | 如果提供特定的节点ID，则返回该条记录，否则返回该方案billid下所有节点|
 
 - 返回：
 
@@ -241,7 +244,7 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 
 ### 更新节点
 
-用于获取系统已存在的剧本 。
+用于更新系统已存在的节目 。
 
 - url：/billitems
 - method: POST
@@ -252,8 +255,8 @@ $ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=serv
 | validate | 是 | 参见 [鉴权](#_1) |
 | id | 是 | 提供特定的节点ID |
 | orderno | 是 | 演示顺序号|
-| sleep | 是 | 等待时间，秒|
-| desc | 是 | 演示词|
+| sleep | 是 | 演讲前等待时间，秒|
+| desc | 是 | 演讲词|
 
 - 返回：
 
