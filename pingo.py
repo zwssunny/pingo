@@ -11,6 +11,7 @@ from robot import detector
 from config import conf, load_config
 from robot.conversation import Conversation
 from server import server
+from gvar import GVar
 
 class Pingo(object):
     def __init__(self):
@@ -21,15 +22,15 @@ class Pingo(object):
         self.detector = None
         self._interrupted = False
         self._debug =conf().get("debug")
-        serverhost=conf().get("server",{"host": "0.0.0.0","port": "5001"})
+        # GVar.serverconf=conf().get("server",{"host": "0.0.0.0","port": "5001"})
         print(
             """
             后台管理端：https://{}:{}
             如需退出，可以按 Ctrl+C 组合键
 
 """.format(
-                serverhost["host"],
-                serverhost["port"],
+                GVar.serverconf["host"],
+                GVar.serverconf["port"],
             )
         )
         self.conversation = Conversation() 
@@ -60,8 +61,11 @@ class Pingo(object):
             self.sigterm_handler_wrap(signal.SIGINT)
             # kill signal
             self.sigterm_handler_wrap(signal.SIGTERM)
+            #初始化全局变量
+            GVar.pingo=self
+            GVar.conversation=self.conversation
             # 后台管理端
-            server.run(self.conversation, self, debug=self._debug)
+            server.run(debug=self._debug)
             # 初始化离线唤醒
             detector.initDetector(self)
         except Exception as e:

@@ -5,9 +5,10 @@ import sqlite3
 import sys
 import os
 import time
+from gvar import GVar
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-sysdb = "./db/pingo.db"
+# sysdb = "./db/pingo.db"
 
 
 class sysIntroduction:
@@ -18,7 +19,7 @@ class sysIntroduction:
             conversation (Conversation): 会话对象
             ctlandtalk (bool, optional): 是否控制页面. Defaults to False.
         """
-        self.conn = sqlite3.connect(sysdb, check_same_thread=False)
+        self.conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
         self.conversation = conversation
         self.pagecontrol = pagecontrol()
         self.is_stop = False
