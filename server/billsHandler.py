@@ -47,7 +47,7 @@ class BillsHandler(BaseHandler):
                 desc = unquote(self.get_argument("desc"))
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
                 cursor = conn.cursor()
-                # 默认只能有一条记录
+                # 系统只能有一条记录是默认方案
                 if int(isdefault) == 1:
                     sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
                     cursor.execute(sql, (id,))
