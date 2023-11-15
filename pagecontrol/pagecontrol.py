@@ -42,7 +42,7 @@ class pagecontrol(object):
             # 创建websocket链接
             uri = self.websocketurl+self.screenid
             ws = websocket.WebSocket()
-            ws.connect(uri, timeout=6, close_timeout=6)
+            ws.connect(uri) #, timeout=6, close_timeout=6
             if ws.connected:
                 # 发送控制消息
                 sendmsg = {"intent": intent, "pageIndex": eventid}
