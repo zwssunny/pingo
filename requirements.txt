@@ -21,3 +21,5 @@ websocket-client==1.2.3
 tornado==6.3.2
 nest_asyncio==1.5.8
 pydub>=0.25.1 # need ffmpeg
+fire>=0.5.0
+markdown==3.5.1
