@@ -46,7 +46,7 @@ $ curl localhost:5001/history?validate=2499d2e04e0f949927690d6375ce1a67
 - 示例：
 
 ``` sh
-$ curl -X POST localhost:5001/operate -d "type=restart&validate=f4bde2a342c7c75aa276f78b26cfbd8a"
+$ curl -X POST localhost:5001/operate -d "type=restart&validate=2499d2e04e0f949927690d6375ce1a67"
 ```
 
 - 返回：
@@ -72,7 +72,7 @@ $ curl -X POST localhost:5001/operate -d "type=restart&validate=f4bde2a342c7c75a
 - 示例：
 
 ``` sh
-$ curl localhost:5001/log?validate=f4bde2a342c7c75aa276f78b26cfbd8a&lines=10
+$ curl localhost:5001/log?validate=2499d2e04e0f949927690d6375ce1a67&lines=10
 ```
 
 - 返回：
@@ -105,7 +105,7 @@ $ curl localhost:5001/log?validate=f4bde2a342c7c75aa276f78b26cfbd8a&lines=10
 - 示例：
 
 ``` sh
-$ curl -X POST localhost:5001/chat -d "type=text&query=%E7%8E%B0%E5%9C%A8%E5%87%A0%E7%82%B9&validate=f4bde2a342c7c75aa276f78b26cfbd8a&uuid=chated17be5d-0240-c9ba-2b2e-7eb98588cf34"
+$ curl -X POST localhost:5001/chat -d "type=text&query=%E7%8E%B0%E5%9C%A8%E5%87%A0%E7%82%B9&validate=2499d2e04e0f949927690d6375ce1a67&uuid=chated17be5d-0240-c9ba-2b2e-7eb98588cf34"
 ```
 
 - 返回：
@@ -130,7 +130,7 @@ $ curl -X POST localhost:5001/chat -d "type=text&query=%E7%8E%B0%E5%9C%A8%E5%87%
 - 示例：
 
 ``` sh
-$ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
+$ curl localhost:5001/history?validate=2499d2e04e0f949927690d6375ce1a67
 ```
 
 - 返回：
@@ -159,7 +159,7 @@ $ curl localhost:5001/history?validate=f4bde2a342c7c75aa276f78b26cfbd8a
 - 示例：
 
 ``` sh
-$ curl localhost:5001/config?validate=f4bde2a342c7c75aa276f78b26cfbd8a\&key=server
+$ curl localhost:5001/config?validate=2499d2e04e0f949927690d6375ce1a67\&key=server
 ```
 
 - 返回：
