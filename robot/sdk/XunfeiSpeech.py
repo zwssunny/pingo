@@ -105,7 +105,7 @@ class TTS_Ws_Param(object):
         date = format_date_time(mktime(now.timetuple()))
 
         # 拼接字符串
-        signature_origin = "host: " + "ws-api.xfyun.cn" + "\n"
+        signature_origin = "host: " + "tts-api.xfyun.cn" + "\n"
         signature_origin += "date: " + date + "\n"
         signature_origin += "GET " + "/v2/tts " + "HTTP/1.1"
         # 进行hmac-sha256进行加密
@@ -124,7 +124,7 @@ class TTS_Ws_Param(object):
             encoding="utf-8"
         )
         # 将请求的鉴权参数组合为字典
-        v = {"authorization": authorization, "date": date, "host": "ws-api.xfyun.cn"}
+        v = {"authorization": authorization, "date": date, "host": "tts-api.xfyun.cn"}
         # 拼接鉴权参数，生成url
         url = url + "?" + urlencode(v)
         # print("date: ",date)
@@ -263,15 +263,15 @@ def tts_on_close(ws, _foo, _bar):
     logger.debug("### closed ###")
     pcmdata = None
     try:
-        with open(gTTSPath, "rb") as pcmfile:
-            pcmdata = pcmfile.read()
-        tmpfile = ""
-        with tempfile.NamedTemporaryFile() as f:
-            tmpfile = f.name
-        with wave.open(tmpfile, "wb") as wavfile:
-            wavfile.setparams((1, 2, 16000, 0, "NONE", "NONE"))
-            wavfile.writeframes(pcmdata)
-        gTTSResult = tmpfile
+        # with open(gTTSPath, "rb") as pcmfile:
+        #     pcmdata = pcmfile.read()
+        # tmpfile = ""
+        # with tempfile.NamedTemporaryFile() as f:
+        #     tmpfile = f.name
+        # with wave.open(tmpfile, "wb") as wavfile:
+        #     wavfile.setparams((1, 2, 16000, 0, "NONE", "NONE"))
+        #     wavfile.writeframes(pcmdata)
+        gTTSResult = gTTSPath
     except Exception as e:
         logger.error(f"XunfeiSpeech error: {e}", stack_info=True)
 
@@ -314,14 +314,14 @@ def transcribe(fpath, appid, api_key, api_secret):
     return gResult
 
 
-def synthesize(msg, appid, api_key, api_secret, filename, voice_name="xiaoyan"):
+def synthesize(msg, appid, api_key, api_secret, voice_name="xiaoyan"):
     """
     科大讯飞TTS
     """
     global ttsWsParam, gTTSPath, gTTSResult
-    # with tempfile.NamedTemporaryFile() as f:
-    #     gTTSPath = f.name
-    gTTSPath=filename
+    with tempfile.NamedTemporaryFile() as f:
+        gTTSPath = f.name
+    # gTTSPath=filename
 
     ttsWsParam = TTS_Ws_Param(
         APPID=appid,
