@@ -1,16 +1,41 @@
-import pygame 
+from contextlib import contextmanager
+from ctypes import CFUNCTYPE, c_char_p, c_int, cdll
+import pygame
+
+
+def py_error_handler(filename, line, function, err, fmt):
+    pass
+
+
+ERROR_HANDLER_FUNC = CFUNCTYPE(
+    None, c_char_p, c_int, c_char_p, c_int, c_char_p)
+
+c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
+
+
+@contextmanager
+def no_alsa_error():
+    try:
+        asound = cdll.LoadLibrary("libasound.so")
+        asound.snd_lib_error_set_handler(c_error_handler)
+        yield
+        asound.snd_lib_error_set_handler(None)
+    except:
+        yield
+        pass
+
 
 class Player:
-    def __init__(self) :
+    def __init__(self):
         pygame.init()
         pygame.mixer.init()
         self.is_pause = False
         self.MUSIC_END = pygame.USEREVENT+1
         pygame.mixer.music.set_endevent(self.MUSIC_END)
-        self.music=pygame.mixer.music
-    
-    def play_audio(self,audio_file_path):
-        if self.music.get_busy():  #如果在播放状态，则停止它
+        self.music = pygame.mixer.music
+
+    def play_audio(self, audio_file_path):
+        if self.music.get_busy():  # 如果在播放状态，则停止它
             self.music.stop()
 
         self.is_pause = False
@@ -24,8 +49,8 @@ class Player:
                 break
             pygame.time.Clock().tick(10)
 
-    def play_audio_control(self,audio_file_path):
-        if self.music.get_busy():  #如果在播放状态，则停止它
+    def play_audio_control(self, audio_file_path):
+        if self.music.get_busy():  # 如果在播放状态，则停止它
             self.music.stop()
 
         self.is_pause = False
@@ -51,23 +76,23 @@ class Player:
             pygame.time.Clock().tick(10)
         pygame.display.quit()
 
-    def pause(self):   
-        if self.is_pause==False:
+    def pause(self):
+        if self.is_pause == False:
             self.music.pause()
-            self.is_pause=True
+            self.is_pause = True
 
     def unpause(self):
-        if self.is_pause==True:
+        if self.is_pause == True:
             self.music.unpause()
-            self.is_pause=False
+            self.is_pause = False
 
     def stop(self):
-        self.is_pause=False
-        self.music.stop() 
+        self.is_pause = False
+        self.music.stop()
 
     def is_playing(self):
         return self.music.get_busy()
-    
+
     def quit(self):
         pygame.mixer.quit()
         pygame.quit()

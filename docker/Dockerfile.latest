@@ -1,0 +1,51 @@
+# 使用官方 Python 3.8 基础镜像
+FROM python:3.10-slim
+
+LABEL maintainer="foo@bar.com"
+ARG TZ='Asia/Shanghai'
+
+RUN echo /etc/apt/sources.list
+
+ENV BUILD_PREFIX=/app
+
+# 复制文件
+ADD common/  ${BUILD_PREFIX}/common/
+ADD db/  ${BUILD_PREFIX}/db/
+ADD docker/  ${BUILD_PREFIX}/docker/
+ADD orator/  ${BUILD_PREFIX}/orator/
+ADD pagecontrol/  ${BUILD_PREFIX}/pagecontrol/
+ADD pem/  ${BUILD_PREFIX}/pem/
+ADD robot/  ${BUILD_PREFIX}/robot/
+ADD server/  ${BUILD_PREFIX}/server/
+ADD static/  ${BUILD_PREFIX}/static/
+ADD . ${BUILD_PREFIX}
+
+# 设置工作目录
+WORKDIR ${BUILD_PREFIX}
+
+#安装依赖库
+RUN apt-get update \
+    &&apt-get install -y --no-install-recommends bash git ffmpeg espeak libavcodec-extra 
+
+# 克隆项目仓库
+# RUN git clone https://github.com/zwssunny/pingo.git .
+
+RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip \
+    && pip install --no-cache -r requirements.txt 
+
+
+# 暴露端口
+EXPOSE 5001
+
+ADD docker/entrypoint.sh /entrypoint.sh
+
+RUN chmod +x /entrypoint.sh \
+    && mkdir -p /home/noroot \
+    && groupadd -r noroot \
+    && useradd -r -g noroot -s /bin/bash -d /home/noroot noroot \
+    && chown -R noroot:noroot /home/noroot ${BUILD_PREFIX} /usr/local/lib
+
+USER noroot
+
+# 设置 ENTRYPOINT
+ENTRYPOINT ["/entrypoint.sh"]

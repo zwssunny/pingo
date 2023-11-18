@@ -1,0 +1,15 @@
+version: "3"
+  
+services:
+  pingo:
+    container_name: pingo
+    image: zhanws/pingo:latest
+    security_opt:
+      - seccomp:unconfined
+    restart: always
+    # volumes:
+    #   - ./config.json:/app/config.json
+    #   - ./pagecontrol/config.json:/app/pagecontrol/config.json
+    ports:
+      - 5001:5001
+
