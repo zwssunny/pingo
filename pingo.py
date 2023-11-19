@@ -9,7 +9,6 @@ from common import utils
 from common.log import logger
 from robot import detector
 from config import conf, load_config
-from robot.conversation import Conversation
 from server import server
 from gvar import GVar
 
@@ -33,8 +32,6 @@ class Pingo(object):
                 GVar.serverconf["port"],
             )
         )
-        self.conversation = Conversation() 
-        self.conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey Pingo!'") 
     
     def sigterm_handler_wrap(self, _signo):
         old_handler = signal.getsignal(_signo)
@@ -63,11 +60,10 @@ class Pingo(object):
             self.sigterm_handler_wrap(signal.SIGTERM)
             #初始化全局变量
             GVar.pingo=self
-            GVar.conversation=self.conversation
             # 后台管理端
             server.run(debug=self._debug)
             # 初始化离线唤醒
-            detector.initDetector(self)
+            detector.initDetector()
         except Exception as e:
             logger.error("Pingo startup failed!")
             logger.exception(e)

@@ -2,18 +2,18 @@ import time
 from config import conf
 from common.log import logger
 from common import utils
-from pingo import Pingo
+from robot.conversation import Conversation
+from gvar import GVar
 
-detector = None
 recorder = None
 porcupine = None
+conversation = None
 
-
-def initDetector(pingo: Pingo):
+def initDetector():
     """
     初始化离线唤醒热词监听器，支持 snowboy 和 porcupine 两大引擎
     """
-    global porcupine, recorder, detector
+    global porcupine, recorder, conversation
 
     import pvporcupine
     from pvrecorder import PvRecorder
@@ -25,6 +25,9 @@ def initDetector(pingo: Pingo):
         keyword_paths=[keyword_paths],
         sensitivities=[conf().get("sensitivity", 0.5)]
     )
+    conversation = Conversation() 
+    GVar.conversation=conversation
+    conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey Pingo!'") 
 
     recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
     recorder.start()
@@ -49,16 +52,16 @@ def initDetector(pingo: Pingo):
                     continue
                 recorder.stop()
                 logger.info("进入主动聆听...")
-                pingo.conversation.interrupt()
-                pingo.conversation.say("我在，请讲！", append_history=False)
+                conversation.interrupt()
+                conversation.say("我在，请讲！", append_history=False)
                 num = 3  # 最多循环确认4次
-                pingo.conversation.begin()
-                while not pingo.conversation.conversation_is_complete() and num > 0:
+                conversation.begin()
+                while not conversation.conversation_is_complete() and num > 0:
                     num = num - 1
-                    query = pingo.conversation.activeListen()
-                    pingo.conversation.doResponse(query)
+                    query = conversation.activeListen()
+                    conversation.doResponse(query)
 
-                pingo.conversation.end()
+                conversation.end()
                 recorder.start()
     except pvporcupine.PorcupineActivationError as e:
         logger.error("[Porcupine] AccessKey activation error", stack_info=True)
@@ -88,4 +91,4 @@ def initDetector(pingo: Pingo):
     finally:
         porcupine and porcupine.delete()
         recorder and recorder.delete()
-        pingo and pingo.conversation and pingo.conversation.quit()
+        conversation and conversation.quit()

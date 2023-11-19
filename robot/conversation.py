@@ -228,7 +228,7 @@ class Conversation(object):
                         threading.Thread(target=lambda:self.introduction.talkothersystem_byname(pagename)).start()
                     elif intent in self.highlightintent:
                         threading.Thread(target=lambda:self.introduction.talkhighlight_byname(pagename)).start()
-                elif "ORATOR" in intent:  # 演示整个系统
+                elif "ORATOR" in intent:  # 演示系统默认方案
                     threading.Thread(target=lambda: self.billtalk()).start()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
