@@ -49,6 +49,16 @@ class Conversation(object):
             self.player.quit()
 
     def newvoice(self,voice):
+        """创建新声音，这是为应对演讲方案中个性化服务，
+            系统的声音请在config.json系统参数中设置
+            如果声音列表中已存在该声音列表，直接返回该语音合成引擎
+
+        Args:
+            voice (str): 声音名称,请参考EdgeTTS依赖库自带的声音列表，如果为None则返回系统设置的语音合成引擎
+
+        Returns:
+            tts: 语音合成引擎实例
+        """        
         if voice is None:
             return self.tts
         if voice not in self.voices:
@@ -68,11 +78,23 @@ class Conversation(object):
             self.tts=oldtts
 
     def billtalk(self, billID=None, onPlaybill=None):
+        """演讲传入的方案ID
+
+        Args:
+            billID (int, optional): 演讲方案ID.如果没有传入指定ID，则播放系统默认方案.
+            onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
+        """        
         if onPlaybill:
             self.onPlaybill=onPlaybill
         self.introduction.billtalk(billID, self.onPlaybill)
 
     def talkbillitem_byid(self, billitemID, onPlaybill=None):
+        """演讲指定节点
+
+        Args:
+            billitemID (int): 节点ID
+            onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
+        """        
         if onPlaybill:
             self.onPlaybill=onPlaybill
         self.introduction.tallbllitem_byid(billitemID,self.onPlaybill)

@@ -118,6 +118,12 @@ class sysIntroduction:
 
 
     def tallbllitem_byid(self,bllitemid, onPlaybill=None):
+        """演讲指定节点
+
+        Args:
+            billitemID (int): 节点ID
+            onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
+        """  
         if onPlaybill:
             self.onPlaybill=onPlaybill
         # 查询菜单记录
