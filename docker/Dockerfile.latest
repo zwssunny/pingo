@@ -26,8 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
     git \
     ffmpeg \
-    espeak \
-    libavcodec-extra\
     libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 \
     && rm -rf /var/lib/apt/lists/*
 
