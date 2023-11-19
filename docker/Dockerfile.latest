@@ -28,12 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     espeak \
     libavcodec-extra\
-    libfreetype6-dev \
-    libportmidi-dev \
-    libsdl2-dev \
-    libsdl2-image-dev \
-    libsdl2-mixer-dev \
-    libsdl2-ttf-dev \
+    libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
