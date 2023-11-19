@@ -7,8 +7,12 @@ services:
     security_opt:
       - seccomp:unconfined
     restart: always
-    # volumes:
-    #   - ./config.json:/app/config.json
+    devices:
+      - /dev/snd
+    environment:
+      - DISPLAY=unix$DISPLAY
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
     #   - ./pagecontrol/config.json:/app/pagecontrol/config.json
     ports:
       - 5001:5001

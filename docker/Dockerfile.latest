@@ -1,10 +1,8 @@
-# 使用官方 Python 3.8 基础镜像
+# 使用官方 Python 3.10 基础镜像
 FROM python:3.10-slim
 
 LABEL maintainer="foo@bar.com"
 ARG TZ='Asia/Shanghai'
-
-RUN echo /etc/apt/sources.list
 
 ENV BUILD_PREFIX=/app
 
@@ -21,9 +19,10 @@ ADD static/  ${BUILD_PREFIX}/static/
 ADD . ${BUILD_PREFIX}
 
 
-#安装依赖库
+#安装依赖库，容器好像解决不了声音播放问题
 RUN apt-get update && apt-get install -y --no-install-recommends \
     bash \
+    gcc \
     git \
     ffmpeg \
     libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 \
