@@ -20,12 +20,24 @@ ADD server/  ${BUILD_PREFIX}/server/
 ADD static/  ${BUILD_PREFIX}/static/
 ADD . ${BUILD_PREFIX}
 
-# 设置工作目录
-WORKDIR ${BUILD_PREFIX}
 
 #安装依赖库
-RUN apt-get update \
-    &&apt-get install -y --no-install-recommends bash git ffmpeg espeak libavcodec-extra 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    git \
+    ffmpeg \
+    espeak \
+    libavcodec-extra\
+    libfreetype6-dev \
+    libportmidi-dev \
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \
+    libsdl2-ttf-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# 设置工作目录
+WORKDIR ${BUILD_PREFIX}
 
 # 克隆项目仓库
 # RUN git clone https://github.com/zwssunny/pingo.git .
@@ -39,13 +51,7 @@ EXPOSE 5001
 
 ADD docker/entrypoint.sh /entrypoint.sh
 
-RUN chmod +x /entrypoint.sh \
-    && mkdir -p /home/noroot \
-    && groupadd -r noroot \
-    && useradd -r -g noroot -s /bin/bash -d /home/noroot noroot \
-    && chown -R noroot:noroot /home/noroot ${BUILD_PREFIX} /usr/local/lib
-
-USER noroot
+RUN chmod +x /entrypoint.sh 
 
 # 设置 ENTRYPOINT
 ENTRYPOINT ["/entrypoint.sh"]
