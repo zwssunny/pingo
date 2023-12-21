@@ -17,25 +17,26 @@ class OperateHandler(BaseHandler):
             if type in ["restart", "0"]:
                 res = {"code": 0, "message": "ok"}
                 self.write(json.dumps(res))
-                self.finish()
                 time.sleep(3)
                 threading.Thread(target=lambda: GVar.pingo.restart()).start()
+                self.finish()
             elif type in ["play", "1"]:
                 Billid = self.get_argument("billid")
                 BillItemid = self.get_argument("billitemid", default=None)
                 res = {"code": 0, "message": "play ok"}
                 self.write(json.dumps(res))
-                self.finish()
                 # 考虑线程执行，否则会等很久
                 if BillItemid and int(BillItemid) > 0:
-                    threading.Thread(target=lambda: GVar.conversation.talkbillitem_byid(
+                    currThread=threading.Thread(target=lambda: GVar.conversation.talkbillitem_byid(
                         billitemID=BillItemid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
-                            playstatus, billid, billitemid, msg))).start()
+                            playstatus, billid, billitemid, msg)))
+                    currThread.start()
                 else:
-                    threading.Thread(target=lambda: GVar.conversation.billtalk(
+                    currThread=threading.Thread(target=lambda: GVar.conversation.billtalk(
                         billID=Billid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
-                            playstatus, billid, billitemid, msg))).start()
-
+                            playstatus, billid, billitemid, msg)))
+                    currThread.start()
+                self.finish()
             elif type in ["pause", "2"]:
                 res = {"code": 0, "message": "pause ok"}
                 self.write(json.dumps(res))
@@ -44,14 +45,14 @@ class OperateHandler(BaseHandler):
             elif type in ["unpause", "3"]:
                 res = {"code": 0, "message": "unpause ok"}
                 self.write(json.dumps(res))
-                self.finish()
                 threading.Thread(target=lambda: GVar.conversation.unpause()).start()
+                self.finish()
             elif type in ["stop", "4"]:
                 res = {"code": 0, "message": "stop ok"}
                 self.write(json.dumps(res))
-                self.finish()
                 threading.Thread(
                     target=lambda: GVar.conversation.interrupt()).start()
+                self.finish()
             elif type in ["playstatus", "5"]:
                 res = {"code": 0, "message": "get playstatus ok", "playstatus": GVar.conversation.introduction.playstatus,
                        "curbillid": GVar.conversation.introduction.curBillId, "curbillitemid": GVar.conversation.introduction.curBillItemId}
