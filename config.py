@@ -22,7 +22,6 @@ available_setting = {
     "debug": True,
     "appdata_dir": "",
     "canpause": True,  # 是否可以暂停
-    "ctlandtalk": True,  # 是否控制页面并解说内容
     "server": {
         "enable": True,
         "host": "0.0.0.0",  # ip 地址
@@ -81,6 +80,11 @@ available_setting = {
         "since": 23,    # 开始时间
         "till": 9      # 结束时间，如果比 since 小表示第二天
     },
+    "pagecontrol": { #大屏控制
+        "enable": False,
+        "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", # websocket服务地址
+        "screenid": "dbe5b0425026446fb52437e8e58ed73f" #大屏ID
+      },
 }
 
 

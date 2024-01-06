@@ -34,13 +34,12 @@ class Conversation(object):
             self.pageintent = conf().get("pageintent")
             self.systemintent = conf().get("systemintent")
             self.highlightintent = conf().get("highlightintent")
-            self.ctlandtalk = conf().get("ctlandtalk")
 
             self.asr = ASR.get_engine_by_slug(conf().get("asr_engine", "baidu-asr"))
             self.tts = TTS.get_engine_by_slug(conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
             self.player = Player.Player()
-            self.introduction = sysIntroduction(conversation=self, ctlandtalk=self.ctlandtalk)
+            self.introduction = sysIntroduction(conversation=self)
         except Exception as e:
             logger.critical(f"对话初始化失败：{e}", stack_info=True)
     

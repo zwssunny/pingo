@@ -1,5 +1,5 @@
 {
-    "debug":  false, # 你的openai key
+    "debug":  false, # 是否调式模式
     "picovoice_api_key": "",# 你的picovoice key
     "keyword_path": "",# 你的唤醒词检测离线文件地址
     "model_path": "",  # 中文模型地址
@@ -13,7 +13,6 @@
     "xunfei_api_key": "", # 你的讯飞API_KEY
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
     "canpause": true, # 是否可以暂停
-    "ctlandtalk": true, # 是否控制页面并解说内容
     "voice_name": "zh-CN-XiaoxiaoNeural", #声调 
     "server": {
         "enable": true,
@@ -29,11 +28,16 @@
         # 强烈建议修改!!!
         "validate": "2499d2e04e0f949927690d6375ce1a67"
     },
-    "notbother": {
+    "notbother": { #免干扰设置
         "enable": false # true: 开启; false: 关闭
         "since": 23    # 开始时间
         "till": 9      # 结束时间，如果比 since 小表示第二天
-    }
+    },
+    "pagecontrol": { #大屏控制
+        "enable": false,
+        "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", # websocket服务地址
+        "screenid": "dbe5b0425026446fb52437e8e58ed73f" #大屏ID
+      }
 }
 #声音选项，如果要每个演讲方案要个性化声调，tts建议用EgdeTTS
 """

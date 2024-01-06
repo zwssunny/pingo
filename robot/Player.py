@@ -35,8 +35,7 @@ class Player:
         self.music = pygame.mixer.music
 
     def play_audio(self, audio_file_path):
-        if self.music.get_busy():  # 如果在播放状态，则停止它
-            self.music.stop()
+        self.stop() #先停止前一个播放
 
         self.is_pause = False
         self.music.load(audio_file_path)
@@ -50,8 +49,7 @@ class Player:
             pygame.time.Clock().tick(10)
 
     def play_audio_control(self, audio_file_path):
-        if self.music.get_busy():  # 如果在播放状态，则停止它
-            self.music.stop()
+        self.stop() #先停止前一个播放
 
         self.is_pause = False
         self.music.load(audio_file_path)

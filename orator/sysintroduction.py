@@ -12,18 +12,16 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 
 class sysIntroduction:
-    def __init__(self, conversation,  ctlandtalk: bool = False):
+    def __init__(self, conversation):
         """演讲功能
 
         Args:
             conversation (Conversation): 会话对象
-            ctlandtalk (bool, optional): 是否控制页面. Defaults to False.
         """
         self.conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
         self.conversation = conversation
         self.pagecontrol = pagecontrol()
         self.is_stop = False
-        self.ctlandtalk = ctlandtalk  # 是否控制页面跳转
         self.onPlaybill = None
         self.curBillId = None
         self.curBillItemId = None
@@ -221,9 +219,8 @@ class sysIntroduction:
         """
         if menuitem:
             # 发送页面切换指令
-            if self.ctlandtalk:
-                eventid = menuitem[2]
-                self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
+            eventid = menuitem[2]
+            self.pagecontrol.sendPageCtl("OPEN_PAGE", eventid)
 
             if itemsleep is None:
                 sleeptimes = int(menuitem[5])
@@ -289,9 +286,8 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            if self.ctlandtalk:
-                eventid = itemcursor[2]
-                self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
+            eventid = itemcursor[2]
+            self.pagecontrol.sendPageCtl("OPEN_SYSTEM", eventid)
 
             if itemsleep is None:
                 sleeptimes = int(itemcursor[5])
@@ -311,9 +307,8 @@ class sysIntroduction:
             self.conversation.say(itemname)
             self.conversation.say(oitemdesc)
             # 发送页面关闭指令
-            if self.ctlandtalk:
-                eventid = itemcursor[4]
-                self.pagecontrol.sendPageCtl("CLOSE_SYSTEM", eventid)
+            eventid = itemcursor[4]
+            self.pagecontrol.sendPageCtl("CLOSE_SYSTEM", eventid)
 
     def talkothersystem_byname(self, othersystemname):
         """
@@ -380,9 +375,8 @@ class sysIntroduction:
         """
         if itemcursor:
             # 发送页面切换指令
-            if self.ctlandtalk:
-                eventid = itemcursor[2]
-                self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
+            eventid = itemcursor[2]
+            self.pagecontrol.sendPageCtl("OPEN_HIGHLIGHT", eventid)
 
             if itemsleep is None:
                 sleeptimes = int(itemcursor[5])
@@ -403,7 +397,6 @@ class sysIntroduction:
             self.conversation.say(itemname)
             self.conversation.say(hitemdesc)
             # 发送页面关闭指令
-            # if self.ctlandtalk:
             # eventid = itemcursor[4]
             # self.pagecontrol.sendPageCtl("CLOSE_HIGHLIGHT", eventid)
 
