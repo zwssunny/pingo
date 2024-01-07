@@ -1,6 +1,14 @@
+# -*- coding: utf-8 -*-
+import subprocess
+import os
+import signal
+
+from pydub import AudioSegment
+from pydub import playback
 from contextlib import contextmanager
 from ctypes import CFUNCTYPE, c_char_p, c_int, cdll
 import pygame
+from common.log import logger
 
 
 def py_error_handler(filename, line, function, err, fmt):
@@ -24,9 +32,103 @@ def no_alsa_error():
         yield
         pass
 
+def play(fname):
+    player = getPlayerByFileName(fname)
+    player.play(fname)
 
-class Player:
-    def __init__(self):
+
+def getPlayerByFileName(fname):
+    foo, ext = os.path.splitext(fname)
+    if ext in [".mp3", ".wav"]:
+        return SoxPlayer()
+    
+class AbstractPlayer(object):
+    def __init__(self, **kwargs):
+        super(AbstractPlayer, self).__init__()
+
+    def play(self):
+        pass
+
+    def stop(self):
+        pass
+
+    def resume(self):
+        pass
+
+    def pause(self):
+        pass
+
+    def is_playing(self):
+        return False
+    
+    def is_pausing(self):
+        return False
+    
+    def join(self):
+        pass
+
+    def quit(self):
+        pass
+class SoxPlayer(AbstractPlayer):
+    SLUG = "SoxPlayer"
+
+    def __init__(self, **kwargs):
+        super(SoxPlayer, self).__init__(**kwargs)
+        self.playing = False
+        self.pausing = False
+        self.proc = None
+
+    def doPlay(self, src):
+        # song=AudioSegment.from_file(src)
+        # playback.play(song)
+        PLAYER=playback.get_player_name()
+        cmd=[PLAYER, "-nodisp", "-autoexit", "-hide_banner", src]
+        self.proc = subprocess.Popen(
+            cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+        )
+        self.playing = True
+        self.proc.wait()
+        self.playing = False
+        logger.info(f"播放完成：{src}")
+        return self.proc and self.proc.returncode
+
+    def play(self, src):
+        if src and (os.path.exists(src) or src.startswith("http")):
+            self.doPlay(src)
+        else:
+            logger.critical(f"path not exists: {src}", stack_info=True)
+
+    def stop(self):
+        if self.proc:
+            self.proc.terminate()
+            self.proc.kill()
+            self.proc = None
+            self.playing = False
+
+    def pause(self):
+        logger.debug("SoxPlayer pause")
+        self.pausing = True
+        if self.proc:
+            os.kill(self.proc.pid, signal.SIGSTOP) #(POSIX)
+
+    def resume(self):
+        logger.debug("SoxPlayer resume")
+        self.pausing = False
+        if self.proc:
+            os.kill(self.proc.pid, signal.SIGCONT) #(POSIX)
+
+    def is_playing(self):
+        return self.playing 
+    
+    def is_pausing(self):
+        return self.pausing
+    
+
+class PGamePlayer(AbstractPlayer):
+    SLUG = "PGamePlayer"
+
+    def __init__(self,**kwargs):
+        super(PGamePlayer, self).__init__(**kwargs)
         pygame.init()
         pygame.mixer.init()
         self.is_pause = False
@@ -34,7 +136,7 @@ class Player:
         pygame.mixer.music.set_endevent(self.MUSIC_END)
         self.music = pygame.mixer.music
 
-    def play_audio(self, audio_file_path):
+    def play(self, audio_file_path):
         self.stop() #先停止前一个播放
 
         self.is_pause = False
@@ -47,39 +149,13 @@ class Player:
             if event.type == self.MUSIC_END:
                 break
             pygame.time.Clock().tick(10)
-
-    def play_audio_control(self, audio_file_path):
-        self.stop() #先停止前一个播放
-
-        self.is_pause = False
-        self.music.load(audio_file_path)
-        self.music.play()
-        # 设置主屏窗口
-        pygame.display.set_mode((200, 200))
-        # 设置窗口的标题，即游戏名称
-        pygame.display.set_caption('播放声音')
-        while True:
-            event = pygame.event.wait()
-            if event.type == pygame.QUIT:
-                break
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    self.is_pause = not self.is_pause
-                    if self.is_pause:
-                        self.music.pause()
-                    else:
-                        self.music.unpause()
-            if event.type == self.MUSIC_END:
-                break
-            pygame.time.Clock().tick(10)
-        pygame.display.quit()
 
     def pause(self):
         if self.is_pause == False:
             self.music.pause()
             self.is_pause = True
 
-    def unpause(self):
+    def resume(self):
         if self.is_pause == True:
             self.music.unpause()
             self.is_pause = False
@@ -90,7 +166,10 @@ class Player:
 
     def is_playing(self):
         return self.music.get_busy()
-
+    
+    def is_pausing(self):
+        return self.pausing
+    
     def quit(self):
         pygame.mixer.quit()
         pygame.quit()

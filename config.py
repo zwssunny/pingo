@@ -21,7 +21,6 @@ available_setting = {
     "azure_region": "japaneast",  # 你的azure region
     "debug": True,
     "appdata_dir": "",
-    "canpause": True,  # 是否可以暂停
     "server": {
         "enable": True,
         "host": "0.0.0.0",  # ip 地址

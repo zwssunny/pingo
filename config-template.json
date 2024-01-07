@@ -12,7 +12,6 @@
     "xunfei_app_id": "", # 你的讯飞APP_ID
     "xunfei_api_key": "", # 你的讯飞API_KEY
     "xunfei_secret_key": "", # 你的讯飞SECRET_KEY
-    "canpause": true, # 是否可以暂停
     "voice_name": "zh-CN-XiaoxiaoNeural", #声调 
     "server": {
         "enable": true,

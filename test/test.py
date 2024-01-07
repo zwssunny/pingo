@@ -2,7 +2,7 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from robot.TTS import XunfeiTTS
-from robot.Player import Player
+from robot import Player
 from config import conf, load_config
 
 
@@ -18,6 +18,6 @@ if __name__ == '__main__':
     xfVoice = XunfeiTTS(Xunfei_APP_ID, Xunfei_API_KEY, Xunfei_SECRET_KEY)
     voice=xfVoice.get_speech("产品介绍")
     print(voice)
-    player=Player()
-    player.play_audio(voice)
+    player=Player.PGamePlayer()
+    player.play(voice)
     

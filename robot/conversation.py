@@ -4,6 +4,7 @@ import re
 import time
 import uuid
 import threading
+import platform
 import speech_recognition as sr
 from common.tmp_dir import TmpDir
 from config import conf, load_config
@@ -18,13 +19,13 @@ class Conversation(object):
         self.reInit()
         # 历史会话消息
         self.history = History.History()
-        self.isConversationcomplete =False
+        self.isConversationcomplete = False
         self.hasPardon = False
         self.onSay = None
         self.onStream = None
         self.onPlaybill = None
         self.recognizer = sr.Recognizer()
-        self.voices={}
+        self.voices = {}
 
     def reInit(self):
         """重新初始化"""
@@ -35,19 +36,25 @@ class Conversation(object):
             self.systemintent = conf().get("systemintent")
             self.highlightintent = conf().get("highlightintent")
 
-            self.asr = ASR.get_engine_by_slug(conf().get("asr_engine", "baidu-asr"))
-            self.tts = TTS.get_engine_by_slug(conf().get("tts_engine", "edge-tts"))
+            self.asr = ASR.get_engine_by_slug(
+                conf().get("asr_engine", "baidu-asr"))
+            self.tts = TTS.get_engine_by_slug(
+                conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
-            self.player = Player.Player()
+            system = platform.system()
+            if system == "Windows":
+                self.player = Player.PGamePlayer()
+            else:
+                self.player = Player.SoxPlayer()
             self.introduction = sysIntroduction(conversation=self)
         except Exception as e:
             logger.critical(f"对话初始化失败：{e}", stack_info=True)
-    
+
     def quit(self):
         if self.player:
             self.player.quit()
 
-    def newvoice(self,voice):
+    def newvoice(self, voice):
         """创建新声音，这是为应对演讲方案中个性化服务，
             系统的声音请在config.json系统参数中设置
             如果声音列表中已存在该声音列表，直接返回该语音合成引擎
@@ -57,24 +64,24 @@ class Conversation(object):
 
         Returns:
             tts: 语音合成引擎实例
-        """        
+        """
         if voice is None:
             return self.tts
         if voice not in self.voices:
-            self.voices[voice]= TTS.EdgeTTS(voice)
+            self.voices[voice] = TTS.EdgeTTS(voice)
         return self.voices[voice]
-    
-    def testvoice(self,text,voice=None):
+
+    def testvoice(self, text, voice=None):
         try:
-            ##保存原来的tts
-            oldtts=self.tts
+            # 保存原来的tts
+            oldtts = self.tts
             if voice:
-                self.tts=self.newvoice(voice)
+                self.tts = self.newvoice(voice)
             self.say(text)
         except Exception as e:
-            logger.error("测试语音出错{e}",e)
+            logger.error("测试语音出错{e}", e)
         finally:
-            self.tts=oldtts
+            self.tts = oldtts
 
     def billtalk(self, billID=None, onPlaybill=None):
         """演讲传入的方案ID
@@ -82,9 +89,9 @@ class Conversation(object):
         Args:
             billID (int, optional): 演讲方案ID.如果没有传入指定ID，则播放系统默认方案.
             onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
-        """        
+        """
         if onPlaybill:
-            self.onPlaybill=onPlaybill
+            self.onPlaybill = onPlaybill
         self.introduction.billtalk(billID, self.onPlaybill)
 
     def talkbillitem_byid(self, billitemID, onPlaybill=None):
@@ -93,17 +100,17 @@ class Conversation(object):
         Args:
             billitemID (int): 节点ID
             onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
-        """        
+        """
         if onPlaybill:
-            self.onPlaybill=onPlaybill
-        self.introduction.tallbllitem_byid(billitemID,self.onPlaybill)
+            self.onPlaybill = onPlaybill
+        self.introduction.tallbllitem_byid(billitemID, self.onPlaybill)
 
     def getHistory(self):
         return self.history
-    
+
     def interrupt(self):
         """打断会话过程，不会恢复
-        """        
+        """
         if self.introduction:
             self.introduction.stop()
         if self.player and self.player.is_playing():
@@ -111,19 +118,19 @@ class Conversation(object):
 
     def pause(self):
         """暂停会话，可以通过unpause()恢复
-        """      
-       
+        """
+
         if self.player and self.player.is_playing():
             self.player.pause()
-            
-        self.introduction.setplaystatusChange(2) 
+
+        self.introduction.setplaystatusChange(2)
 
     def unpause(self):
         """继续播放声音
-        """        
+        """
 
         if self.player:
-           self.player.unpause()
+            self.player.resume()
 
         self.introduction.setplaystatusChange(1)
 
@@ -145,7 +152,8 @@ class Conversation(object):
                 )
             urls = re.findall(url_pattern, text)
             for url in urls:
-                text = text.replace(url, f'<a href={url} target="_blank">{url}</a>')
+                text = text.replace(
+                    url, f'<a href={url} target="_blank">{url}</a>')
             self.history.add_message(
                 {
                     "type": t,
@@ -161,18 +169,15 @@ class Conversation(object):
     def say(self, msg,  plugin="", append_history=True):
         if not msg:
             return
-             
+
         if append_history:
             self.appendHistory(1, msg, plugin=plugin)
         # msg = utils.stripPunctuation(msg).strip()
-     
 
         voice = self.tts.get_speech(msg)
         # logger.info(f"TTS合成成功。msg: {msg}")
         self._befor_play(msg, [voice], plugin)
-        self.player.play_audio(voice)
-
-       
+        self.player.play(voice)
 
     def pardon(self):
         if not self.hasPardon:
@@ -195,7 +200,7 @@ class Conversation(object):
 
     def _befor_play(self, msg, audios, plugin=""):
         if self.onSay:
-            serverhost=conf().get("server")
+            serverhost = conf().get("server")
             cached_audios = [
                 f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
                 for voice in audios
@@ -207,8 +212,8 @@ class Conversation(object):
     def doParse(self, query):
         args = conf().get("unit")
         return self.nlu.parse(query, **args)
-    
-    def doResponse(self, query, UUID="",onSay=None, onStream=None):
+
+    def doResponse(self, query, UUID="", onSay=None, onStream=None):
         """
         响应指令
 
@@ -223,7 +228,6 @@ class Conversation(object):
 
         if onStream:
             self.onStream = onStream
-
 
         if query.strip() == "":
             self.pardon()
@@ -244,20 +248,24 @@ class Conversation(object):
                     # 查找页面
                     pagename = slots[0]['normalized_word']
                     if intent in self.pageintent:
-                        threading.Thread(target=lambda:self.introduction.talkmenuitem_byname(pagename)).start()
+                        threading.Thread(
+                            target=lambda: self.introduction.talkmenuitem_byname(pagename)).start()
                     elif intent in self.systemintent:
-                        threading.Thread(target=lambda:self.introduction.talkothersystem_byname(pagename)).start()
+                        threading.Thread(
+                            target=lambda: self.introduction.talkothersystem_byname(pagename)).start()
                     elif intent in self.highlightintent:
-                        threading.Thread(target=lambda:self.introduction.talkhighlight_byname(pagename)).start()
+                        threading.Thread(
+                            target=lambda: self.introduction.talkhighlight_byname(pagename)).start()
                 elif "ORATOR" in intent:  # 演示系统默认方案
                     threading.Thread(target=lambda: self.billtalk()).start()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:
                 self.isConversationcomplete = False  # 词槽不明确
-        else: #后续可以交给chatgpt
+        else:  # 后续可以交给chatgpt
             self.pardon()
     # 从麦克风收集音频并写入文件
+
     def _record(self, rate=16000):
         with sr.Microphone(sample_rate=rate) as source:
             # 校准环境噪声水平的energy threshold
@@ -276,7 +284,6 @@ class Conversation(object):
 
         return file_name
 
-    
     def begin(self):
         self.isConversationcomplete = False
 
@@ -284,16 +291,16 @@ class Conversation(object):
         self.isConversationcomplete = True
 
     def conversation_is_complete(self) -> bool:
-        return self.isConversationcomplete   
-    
+        return self.isConversationcomplete
+
     def activeListen(self):
         """
         主动问一个问题(适用于多轮对话)
         """
-        voice=self._record()
+        voice = self._record()
         if voice:
             logger.info("调用ARS引擎")
             query = self.asr.transcribe(voice)
             return query
-        
+
         return ""
