@@ -1,12 +1,12 @@
 # encoding:utf-8
-from common.log import logger
-from pagecontrol.pagecontrol import pagecontrol
 import sqlite3
 import sys
 import os
 import time
 from gvar import GVar
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from common.log import logger
+from pagecontrol.pagecontrol import pagecontrol
 
 # sysdb = "./db/pingo.db"
 
@@ -39,7 +39,7 @@ class sysIntroduction:
             oldtts = self.conversation.tts
             self.is_stop = False
             if onPlaybill:
-                self.onPlaybill=onPlaybill
+                self.onPlaybill = onPlaybill
 
             # 查询系统介绍内容
             if billID:
@@ -52,7 +52,7 @@ class sysIntroduction:
             if billcursor:
                 billdesc = billcursor[3]
                 self.curBillId = billcursor[0]
-                billname=billcursor[1]
+                billname = billcursor[1]
                 self.setplaystatusChange(1, billname)
 
                 voice = billcursor[2]
@@ -60,7 +60,7 @@ class sysIntroduction:
                     self.conversation.tts = self.conversation.newvoice(voice)
                 # 说说开场白
                 self.conversation.say(billdesc)
-                if self.is_stop: #监测停止标志
+                if self.is_stop:  # 监测停止标志
                     return
                 # 开始演示所有节目
                 self.talkAllBillItem(self.curBillId)
@@ -92,18 +92,18 @@ class sysIntroduction:
         except sqlite3.Error as error:
             logger.error(error)
 
-    def tallbillitem(self,billitem):
+    def tallbillitem(self, billitem):
         """讲解某个节点
 
         Args:
             billitem (billitem): 演讲节点信息
-        """        
+        """
         typename = billitem[0]
         typeid = billitem[1]
         # 演讲前等待时间
         itemsleep = int(billitem[3])
         itemdesc = billitem[4]
-        self.curBillItemId=billitem[5]
+        self.curBillItemId = billitem[5]
 
         if typename == 'MENUITEM':
             self.talkmenuitem_byid(typeid, itemsleep, itemdesc)
@@ -114,35 +114,35 @@ class sysIntroduction:
         elif typename == 'HIGHLIGHT':
             self.talkhighlight_byid(typeid, itemsleep, itemdesc)
 
-
-    def tallbllitem_byid(self,bllitemid, onPlaybill=None):
+    def tallbllitem_byid(self, bllitemid, onPlaybill=None):
         """演讲指定节点
 
         Args:
             billitemID (int): 节点ID
             onPlaybill (function, optional): 播放事件回调函数. Defaults to None.
-        """  
+        """
         if onPlaybill:
-            self.onPlaybill=onPlaybill
+            self.onPlaybill = onPlaybill
         # 查询菜单记录
         cursor = self.conn.execute(
             "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID, BILLID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
         itemcursor = cursor.fetchone()
         if itemcursor:
-            #创建声音
+            # 创建声音
             try:
                 # 保存原来的tts
                 oldtts = self.conversation.tts
-                billID=itemcursor[6]
+                billID = itemcursor[6]
                 bcursor = self.conn.execute(
                     "SELECT ID, NAME,VOICE FROM BILL WHERE ID= ?", (billID,))
-                billcursor=bcursor.fetchone()
+                billcursor = bcursor.fetchone()
                 if billcursor:
-                    voice=billcursor[2]
+                    voice = billcursor[2]
                     if voice:
-                        self.conversation.tts = self.conversation.newvoice(voice)   
-                         
-                self.tallbillitem(itemcursor) 
+                        self.conversation.tts = self.conversation.newvoice(
+                            voice)
+
+                self.tallbillitem(itemcursor)
                 self.setplaystatusChange(4, "节点讲解")  # 停止
             finally:
                 # 恢复原来声音
@@ -161,7 +161,7 @@ class sysIntroduction:
                 self.setplaystatusChange(1, "系统介绍")  # 播放
                 prjdesc = prjcursor[2]
                 self.conversation.say(prjdesc)
-                if self.is_stop: #监测停止标志
+                if self.is_stop:  # 监测停止标志
                     return
                 self.talkallmenu()
             else:
@@ -576,7 +576,8 @@ class sysIntroduction:
     def setplaystatusChange(self, playstatus, msg=''):
         self.playstatus = playstatus
         if self.onPlaybill:
-            self.onPlaybill(self.playstatus, self.curBillId, self.curBillItemId, msg)
+            self.onPlaybill(self.playstatus, self.curBillId,
+                            self.curBillItemId, msg)
 
 
 if __name__ == '__main__':
@@ -588,11 +589,11 @@ if __name__ == '__main__':
     # sysIntro.talkhighlight_byname("地铁运营监测")
     # sysIntro.talkhighlight_byid(1)
     # sysIntro.billtalk()  # 默认演讲方案
-    sysIntro.talkAllBillItem(1) #编号为1的演讲方案
+    sysIntro.talkAllBillItem(1)  # 编号为1的演讲方案
     # sysIntro.talkallhighlight() #所有亮点场景
     # sysIntro.talkallfeature() #所有平台特点
     # sysIntro.talkallothersystem() #所有第三方系统
     # sysIntro.talkallmenu() #所有大屏页面
-    # sysIntro.talkmenuitem_byname("地铁") 
+    # sysIntro.talkmenuitem_byname("地铁")
     # sysIntro.talkothersystem_byname("智慧交通")
     # sysIntro.talkhighlight_byname("非现场执法")

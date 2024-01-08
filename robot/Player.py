@@ -32,6 +32,7 @@ def no_alsa_error():
         yield
         pass
 
+
 def play(fname):
     player = getPlayerByFileName(fname)
     player.play(fname)
@@ -41,7 +42,8 @@ def getPlayerByFileName(fname):
     foo, ext = os.path.splitext(fname)
     if ext in [".mp3", ".wav"]:
         return SoxPlayer()
-    
+
+
 class AbstractPlayer(object):
     def __init__(self, **kwargs):
         super(AbstractPlayer, self).__init__()
@@ -60,15 +62,17 @@ class AbstractPlayer(object):
 
     def is_playing(self):
         return False
-    
+
     def is_pausing(self):
         return False
-    
+
     def join(self):
         pass
 
     def quit(self):
         pass
+
+
 class SoxPlayer(AbstractPlayer):
     SLUG = "SoxPlayer"
 
@@ -81,8 +85,8 @@ class SoxPlayer(AbstractPlayer):
     def doPlay(self, src):
         # song=AudioSegment.from_file(src)
         # playback.play(song)
-        PLAYER=playback.get_player_name()
-        cmd=[PLAYER, "-nodisp", "-autoexit", "-hide_banner", src]
+        PLAYER = playback.get_player_name()
+        cmd = [PLAYER, "-nodisp", "-autoexit", "-hide_banner", src]
         self.proc = subprocess.Popen(
             cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
         )
@@ -109,25 +113,25 @@ class SoxPlayer(AbstractPlayer):
         logger.debug("SoxPlayer pause")
         self.pausing = True
         if self.proc:
-            os.kill(self.proc.pid, signal.SIGSTOP) #(POSIX)
+            os.kill(self.proc.pid, signal.SIGSTOP)  # (POSIX)
 
     def resume(self):
         logger.debug("SoxPlayer resume")
         self.pausing = False
         if self.proc:
-            os.kill(self.proc.pid, signal.SIGCONT) #(POSIX)
+            os.kill(self.proc.pid, signal.SIGCONT)  # (POSIX)
 
     def is_playing(self):
-        return self.playing 
-    
+        return self.playing
+
     def is_pausing(self):
         return self.pausing
-    
+
 
 class PGamePlayer(AbstractPlayer):
     SLUG = "PGamePlayer"
 
-    def __init__(self,**kwargs):
+    def __init__(self, **kwargs):
         super(PGamePlayer, self).__init__(**kwargs)
         pygame.init()
         pygame.mixer.init()
@@ -137,7 +141,8 @@ class PGamePlayer(AbstractPlayer):
         self.music = pygame.mixer.music
 
     def play(self, audio_file_path):
-        self.stop() #先停止前一个播放
+        # 先停止前一个播放
+        self.stop()
 
         self.is_pause = False
         self.music.load(audio_file_path)
@@ -151,14 +156,14 @@ class PGamePlayer(AbstractPlayer):
             pygame.time.Clock().tick(10)
 
     def pause(self):
-        if self.is_pause == False:
-            self.music.pause()
-            self.is_pause = True
+        self.is_pause = True
+        self.music.pause()
+           
 
     def resume(self):
-        if self.is_pause == True:
-            self.music.unpause()
-            self.is_pause = False
+        self.is_pause = False
+        self.music.unpause()
+            
 
     def stop(self):
         self.is_pause = False
@@ -166,10 +171,10 @@ class PGamePlayer(AbstractPlayer):
 
     def is_playing(self):
         return self.music.get_busy()
-    
+
     def is_pausing(self):
-        return self.pausing
-    
+        return self.is_pause
+
     def quit(self):
         pygame.mixer.quit()
         pygame.quit()
