@@ -4,8 +4,6 @@ services:
   pingo:
     container_name: pingo
     image: zhanws/pingo:latest
-    security_opt:
-      - seccomp:unconfined
     restart: always
     privileged: true
     devices:
@@ -14,6 +12,7 @@ services:
       - DISPLAY=unix$DISPLAY
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
+      - /dev/snd:/dev/snd
     ports:
       - 5001:5001
 
