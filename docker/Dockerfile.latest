@@ -21,15 +21,13 @@ ADD . ${BUILD_PREFIX}
 
 #安装依赖库，容器好像解决不了声音播放问题
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    bash \
-    gcc \
-    git \
-    ffmpeg \
+    bash gcc git \
+    vim alsa-utils \
     libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 \
+    ffmpeg \
+    sox libsox-fmt-all \
     && rm -rf /var/lib/apt/lists/*
 
-# RUN apt-get install -y libsdl1.2-dev libsdl-image1.2-dev libsdl-mixer1.2-dev libsdl-ttf2.0-dev
-# RUN apt-get install libgl1-mesa-glx
 RUN apt-get update
 RUN apt-get install -qqy x11-apps
 
