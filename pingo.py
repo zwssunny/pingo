@@ -21,7 +21,7 @@ class Pingo(object):
         self.detector = None
         self._interrupted = False
         self._debug =conf().get("debug")
-        # GVar.serverconf=conf().get("server",{"host": "0.0.0.0","port": "5001"})
+        utils.make_tmp_path()
         print(
             """
             后台管理端：https://{}:{}

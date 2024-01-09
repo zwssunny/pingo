@@ -109,8 +109,7 @@ class SoxPlayer(AbstractPlayer):
         if src and (os.path.exists(src) or src.startswith("http")):
             #先停止原来的播放
             self.stop()
-            threading.Thread(
-                target=lambda: self.__doPlay(src)).start()
+            self.__doPlay(src)
         else:
             logger.critical(f"path not exists: {src}", stack_info=True)
 

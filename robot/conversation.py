@@ -41,11 +41,12 @@ class Conversation(object):
             self.tts = TTS.get_engine_by_slug(
                 conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
-            system = platform.system()
-            if system == "Windows":
-                self.player = Player.PGamePlayer()
-            else:
-                self.player = Player.SoxPlayer()
+            self.player = Player.PGamePlayer()
+            # system = platform.system()
+            # if system == "Windows":
+            #     self.player = Player.PGamePlayer()
+            # else:
+            #     self.player = Player.SoxPlayer()
             self.introduction = sysIntroduction(conversation=self)
         except Exception as e:
             logger.critical(f"对话初始化失败：{e}", stack_info=True)

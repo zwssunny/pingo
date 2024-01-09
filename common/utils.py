@@ -40,7 +40,13 @@ def is_proper_time():
         return current not in range(since, till)
     else:
         return not (current in range(since, 25) or current in range(-1, till))
-
+    
+def make_tmp_path():
+    if not os.path.exists(CACH_PATH):
+        os.makedirs(CACH_PATH)
+    if not os.path.exists(TMP_PATH):
+        os.makedirs(TMP_PATH)
+        
 def getCache(msg, voicename=None):
     """获取缓存的语音"""
     md5 = hashlib.md5(msg.encode("utf-8")).hexdigest()
