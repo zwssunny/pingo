@@ -2,6 +2,7 @@
 import subprocess
 import os
 import signal
+import threading
 
 from pydub import AudioSegment
 from pydub import playback
@@ -90,7 +91,7 @@ class SoxPlayer(AbstractPlayer):
         self.pausing = False
         self.proc = None
 
-    def doPlay(self, src):
+    def __doPlay(self, src):
         # song=AudioSegment.from_file(src)
         # playback.play(song)
         PLAYER = playback.get_player_name()
@@ -106,7 +107,10 @@ class SoxPlayer(AbstractPlayer):
 
     def play(self, src):
         if src and (os.path.exists(src) or src.startswith("http")):
-            self.doPlay(src)
+            #先停止原来的播放
+            self.stop()
+            threading.Thread(
+                target=lambda: self.__doPlay(src)).start()
         else:
             logger.critical(f"path not exists: {src}", stack_info=True)
 
