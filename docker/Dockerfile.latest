@@ -16,16 +16,28 @@ ADD pem/  ${BUILD_PREFIX}/pem/
 ADD robot/  ${BUILD_PREFIX}/robot/
 ADD server/  ${BUILD_PREFIX}/server/
 ADD static/  ${BUILD_PREFIX}/static/
-ADD . ${BUILD_PREFIX}
+ADD config.json ${BUILD_PREFIX}/
+ADD config.py ${BUILD_PREFIX}/
+ADD gvar.py ${BUILD_PREFIX}/
+ADD pingo.py ${BUILD_PREFIX}/
+ADD README.md ${BUILD_PREFIX}/
+ADD requirements.txt ${BUILD_PREFIX}/
 
 
-#安装依赖库，容器好像解决不了声音播放问题
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 安装依赖库
+RUN apt-get update && apt-get install -y \
     bash gcc git \
     vim alsa-utils \
-    libasound-dev portaudio19-dev libportaudio2 libportaudiocpp0 \
+    portaudio19-dev \
+    python3-pyaudio \
+    sox \
+    pulseaudio \
+    libsox-fmt-all \
     ffmpeg \
-    sox libsox-fmt-all \
+    libpcre3 \
+    libpcre3-dev \
+    libatlas-base-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update
@@ -37,8 +49,11 @@ WORKDIR ${BUILD_PREFIX}
 # 克隆项目仓库
 # RUN git clone https://github.com/zwssunny/pingo.git .
 
-RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip \
-    && pip install --no-cache -r requirements.txt 
+#升级pip
+RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip 
+
+# 安装 Python 依赖
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
 
 # 暴露端口

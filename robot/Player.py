@@ -74,6 +74,14 @@ class AbstractPlayer(object):
 
 
 class SoxPlayer(AbstractPlayer):
+    """声音播放,windows系统不支持
+
+    Args:
+        AbstractPlayer (_type_): 播放接口基类
+
+    Returns:
+        sox: 声音播放器
+    """    
     SLUG = "SoxPlayer"
 
     def __init__(self, **kwargs):
