@@ -27,7 +27,7 @@ ADD requirements.txt ${BUILD_PREFIX}/
 # 安装依赖库
 RUN apt-get update && apt-get install -y \
     bash gcc git \
-    vim alsa-utils \
+    alsa-base alsa-utils \
     portaudio19-dev \
     python3-pyaudio \
     sox \
@@ -40,8 +40,8 @@ RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update
-RUN apt-get install -qqy x11-apps
+# RUN apt-get update
+# RUN apt-get install -qqy x11-apps
 
 # 设置工作目录
 WORKDIR ${BUILD_PREFIX}
