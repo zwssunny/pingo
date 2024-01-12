@@ -1,10 +1,22 @@
 # 使用官方 Python 3.10 基础镜像
-FROM python:3.10-slim
+FROM python:3.10
 
 LABEL maintainer="zwssunny@qq.com"
 ARG TZ='Asia/Shanghai'
 
 ENV BUILD_PREFIX=/app
+
+# 安装依赖库
+RUN apt-get update && apt-get install -y \
+    bash gcc \
+    alsa-utils \
+    portaudio19-dev \
+    ffmpeg \
+    sox libsox-fmt-all \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get update
+RUN apt-get install -qqy x11-apps
 
 # 复制文件
 ADD common/  ${BUILD_PREFIX}/common/
@@ -24,30 +36,9 @@ ADD README.md ${BUILD_PREFIX}/
 ADD requirements.txt ${BUILD_PREFIX}/
 
 
-# 安装依赖库
-RUN apt-get update && apt-get install -y \
-    bash gcc git \
-    alsa-base alsa-utils \
-    portaudio19-dev \
-    python3-pyaudio \
-    sox \
-    pulseaudio \
-    libsox-fmt-all \
-    ffmpeg \
-    libpcre3 \
-    libpcre3-dev \
-    libatlas-base-dev \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
-# RUN apt-get update
-# RUN apt-get install -qqy x11-apps
-
 # 设置工作目录
 WORKDIR ${BUILD_PREFIX}
 
-# 克隆项目仓库
-# RUN git clone https://github.com/zwssunny/pingo.git .
 
 #升级pip
 RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip 
@@ -55,6 +46,7 @@ RUN /usr/local/bin/python -m pip install --no-cache --upgrade pip
 # 安装 Python 依赖
 RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
+# ENV DISPLAY=host.docker.internal:0.0
 
 # 暴露端口
 EXPOSE 5001

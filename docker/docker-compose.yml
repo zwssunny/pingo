@@ -6,12 +6,11 @@ services:
     image: zhanws/pingo:latest
     restart: always
     privileged: true
-    devices:
-      - /dev/snd
     environment:
       - DISPLAY=$DISPLAY
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      - /dev/snd:/dev/snd
     ports:
       - 5001:5001
 
