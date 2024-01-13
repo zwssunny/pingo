@@ -5,12 +5,16 @@ services:
     container_name: pingo
     image: zhanws/pingo:latest
     restart: always
-    privileged: true
+    group_add:
+      - 29
+    devices:
+      - /dev/snd:/dev/snd
     environment:
       - DISPLAY=$DISPLAY
+      - PULSE_SERVER=unix:${XDG_RUNTIME_DIR}/pulse/native
     volumes:
+      - ${XDG_RUNTIME_DIR}/pulse/native:${XDG_RUNTIME_DIR}/pulse/native
+      - ~/.config/pulse/cookie:/root/.config/pulse/cookie 
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /dev/snd:/dev/snd
     ports:
       - 5001:5001
-

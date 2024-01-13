@@ -1,5 +1,5 @@
 # 使用官方 Python 3.10 基础镜像
-FROM python:3.10
+FROM python:3.10-slim
 
 LABEL maintainer="zwssunny@qq.com"
 ARG TZ='Asia/Shanghai'
@@ -11,8 +11,11 @@ RUN apt-get update && apt-get install -y \
     bash gcc \
     alsa-utils \
     portaudio19-dev \
+    python3-pyaudio \
+    sox \
+    pulseaudio \
+    libsox-fmt-all \
     ffmpeg \
-    sox libsox-fmt-all \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update
