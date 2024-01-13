@@ -7,7 +7,7 @@ services:
     restart: always
     group_add:
     # $(getent group audio | cut -d: -f3)获取groupid
-      - 29
+      - audio
     devices:
       - /dev/snd:/dev/snd
     environment:
