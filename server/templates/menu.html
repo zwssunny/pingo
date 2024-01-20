@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+{% block body %}
+<link rel="stylesheet" href="{{static_url('starter-template.css')}}" crossorigin="anonymous">
+
+<nav class="navbar navbar-expand-md navbar-dark bg-dark fixed-top">
+  <a class="navbar-brand" href="/">
+    <img src="./static/favicon.png" width="32" height="32" alt="">
+    Bingo-robot</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/">会话</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/billpage">演讲</a>
+      </li>
+      <li class="nav-item "> 
+        <a class="nav-link" href="/configpage">配置</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/logpage">日志</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="/menupage">节目</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/api">API</a>
+      </li>
+    </ul>
+    <div class="form-inline my-2 my-lg-0">
+      <a class="btn btn-outline-success my-2 my-sm-0" href="https://baidu.com" target="_blank">文档</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container menu">
+  <div class="alert alert-info" role="alert">
+    <i class="fas fa-bell"></i> 平台页面菜单管理。
+  </div>
+    <div id="toolbar" class="btn-group">
+      <button id="btn_add" type="button" class="btn btn-info mb-2" onclick="AddMenu()">
+          <span class="fas fa-plus" aria-hidden="true"></span>新增节点
+      </button> &nbsp;&nbsp;
+      <button id="btn_stop" type="button" class="btn btn-danger mb-2" title='停止演示内容，不可恢复' onclick="StopPlay()">
+      <span class="fas fa-stop"></span> 停止播放</button>
+    </div>
+  <table id="menuItemsTable"  data-toolbar="#toolbar"></table>
+</div>
+<!--添加的编辑节点框-->
+<div class="modal fade" id="editModal" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-max" role="document">
+      <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editModalLabel">编辑节点</h4>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+              <form id="form_edit">
+                  <div class="form-group">
+                    <label class="control-label">页面名称：</label>
+                    <input type="text" class="form-control"  name="itemname" id="itemname" >
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label">演示顺序：</label>
+                    <input type="number" class="form-control"  name="itemorderno" id="itemorderno" >
+                  </div>
+                  <div class="form-group">
+                      <label class="control-label">等待时间(秒)：</label>
+                      <input type="number" class="form-control"  name="itemsleep" id="itemsleep" >
+                  </div>
+                   <div class="form-group">
+                      <label class="control-label">演讲词：</label>
+                      <textarea rows="20" class="form-control" name="itemdesc" id="itemdesc" placer='1' aria-label="With textarea"></textarea>
+                  </div>
+                  <div class="form-group">
+                    <label class="control-label">打开事件：</label>
+                    <input type="number" class="form-control"  name="itemopenevent" id="itemopenevent" >
+                  </div>  
+                  <div class="form-group">
+                    <label class="control-label">关闭事件：</label>
+                    <input type="number" class="form-control"  name="itemcloseevent" id="itemcloseevent" >
+                  </div>                                    
+              </form>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+              <button type="button" class="btn btn-primary"  id="but_submit_add">确认</button>
+          </div>
+      </div>
+  </div>
+</div>
+<!-- 删除节点 -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="deleteModalLabel">你确定吗？</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        确定要删除该节点吗？
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary" id="DELETE" data-dismiss="modal">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 录音 -->
+<ul id="recorder" class="mfb-component--br mfb-zoomin" data-mfb-toggle="hover">
+      <li class="mfb-component__wrap">
+        <a href="#" id="record" class="mfb-component__button--main">
+          <i class="mfb-component__main-icon--resting fa fa-microphone"></i>
+          <i class="mfb-component__main-icon--active fa fa-times"></i>
+        </a>
+        <ul class="mfb-component__list">
+          <li>
+            <a href="#" id="stop-record" data-mfb-label="停止录制语音指令" class="mfb-component__button--child">
+              <i class="mfb-component__child-icon fas fa-stop"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="start-record" data-mfb-label="开始录制语音指令" class="mfb-component__button--child ">
+              <i class="mfb-component__child-icon fas fa-circle"></i>
+            </a>
+          </li>
+        </ul>
+      </li>
+</ul>
+
+<script src="{{static_url('main.js')}}" crossorigin="anonymous"></script>
+<script src="{{static_url('menu.js')}}" crossorigin="anonymous"></script>
+<script src="{{static_url('bootbox.js')}}" crossorigin="anonymous"></script>
+<script src="./static/recorder.min.js"></script>
+<script src="./static/datetimeformate.js"></script>
+{% end %}

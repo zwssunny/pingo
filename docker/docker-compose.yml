@@ -4,7 +4,7 @@ services:
   pingo:
     container_name: pingo
     image: zhanws/pingo:latest
-    restart: always
+    # restart: always
     group_add:
     # $(getent group audio | cut -d: -f3)获取groupid
       - audio

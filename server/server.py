@@ -27,6 +27,9 @@ from .messageUpdatesHandler import MessageUpdatesHandler
 from .operateHandler import OperateHandler
 from .switchEnableStatusHandler import SwitchEnableStatusHandler
 from .voiceHandler import VoiceHandler
+from .menu import MenuHandler
+from .menuItemsHandler import MenuItemsHandler
+from .menupageHandler import MenupageHandler
 
 from gvar import GVar
 
@@ -61,6 +64,9 @@ application = tornado.web.Application(
         (r"/billitems", BillItemsHandler),
         (r"/switchenable", SwitchEnableStatusHandler),
         (r"/voice", VoiceHandler),
+        (r"/menu", MenuHandler),
+        (r"/menuitems", MenuItemsHandler),
+        (r"/menupage", MenupageHandler),
         (
             r"/photo/(.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF))",
             tornado.web.StaticFileHandler,

@@ -143,11 +143,11 @@ columns = [
                 return "禁用";
         }
     },
-    { field: 'ORDERNO', title: '演示顺序', sortable: true, width: '50', align: 'center' },
+    { field: 'ORDERNO', title: '顺序', sortable: true, width: '50', align: 'center' },
     { field: 'TYPENAME', title: '节点分类', sortable: true, width: '50', align: 'center' },
     { field: 'TYPEID', title: '节点ID', visible: false, switchable: false },
     { field: 'NAME', title: '名称', sortable: true, width: '250', align: 'left' },
-    { field: 'SLEEP', title: '等待时间(秒)', sortable: true, width: '50', align: 'center' },
+    { field: 'SLEEP', title: '等待(秒)', sortable: true, width: '50', align: 'center' },
     { field: 'DESC', title: '演讲词', visible: false },
     { field: 'ID', title: '操作', width: '350', align: 'center', valign: 'middle', formatter: actionFormatter }
 ];
@@ -188,6 +188,12 @@ function SwitchEnableStatus(id, enablestatus, msg) {
             var data = JSON.parse(res);
             if (!msg) msg = '';
             if (data.code == 0) {
+                //更新记录
+                $('#billItemsTable').bootstrapTable('updateByUniqueId', {
+                    id: id, row: {
+                        "ENABLE": enablestatus
+                    }
+                });
                 toastr.success(msg + '成功');
             } else {
                 toastr.error(data.message, msg + '失败');
@@ -198,7 +204,7 @@ function SwitchEnableStatus(id, enablestatus, msg) {
         }
     });
     //刷新记录
-    $('#billItemsTable').bootstrapTable('refresh');
+    // $('#billItemsTable').bootstrapTable('refresh');
 }
 //演示节点
 function PlayById(id) {
@@ -571,7 +577,7 @@ $(function () {
                 }
             },
             error: function () {
-                toastr.error('服务器异常', '克隆失败');
+                toastr.error('服务器异常', '测试失败');
             }
         });
     });
