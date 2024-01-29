@@ -10,8 +10,7 @@ from common.log import logger
 # 将所有可用的配置项写在字典里, 请使用小写字母
 # 此处的配置值无实际意义，程序不会读取此处的配置，仅用于提示格式，请将配置加入到config.json中
 available_setting = {
-    # openai api配置
-    "debug":  False,  # openai api key
+    "debug":  False,  # 是否调式模式
     "picovoice_api_key": "",  # 你的picovoice key
     "keyword_path": "",  # 你的唤醒词检测离线文件地址
     "model_path": "",   # 中文模型地址
@@ -19,7 +18,6 @@ available_setting = {
     # azure 语音api配置， 使用azure语音识别和语音合成时需要
     "azure_api_key": "",  # 你的azure key
     "azure_region": "japaneast",  # 你的azure region
-    "debug": True,
     "appdata_dir": "",
     "server": {
         "enable": True,
@@ -30,7 +28,7 @@ available_setting = {
         # 建议使用 os.urandom(24) 生成一串随机字符串
         # 强烈建议修改!!!
         "cookie_secret": "__GENERATE_YOUR_OWN_RANDOM_VALUE_HERE__",
-        # 密码的 md5，可以用 python3 main.py md5 "密码" 获得
+        # 密码的 md5，可以用 python3 pingo.py md5 "密码" 获得
         # 初始密码为 pingo@2023
         # 强烈建议修改!!!
         "validate": "2499d2e04e0f949927690d6375ce1a67"
