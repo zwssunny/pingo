@@ -11,7 +11,7 @@ conversation = None
 
 def initDetector():
     """
-    初始化离线唤醒热词监听器，支持 snowboy 和 porcupine 两大引擎
+    初始化离线唤醒热词监听器，支持 porcupine 引擎
     """
     global porcupine, recorder, conversation
 
