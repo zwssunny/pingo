@@ -16,7 +16,7 @@ class MenuItemsHandler(BaseHandler):
                 MenuID = self.get_argument("menuid", default=-1)
                 MenuItems = []
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
-                if MenuID and int(MenuID)>0:
+                if MenuID and int(MenuID) > 0:
                     cursor = conn.execute(
                         "SELECT ID,NAME,ORDERNO,OPENEVENT,CLOSEEVENT,ENABLE,SLEEP, DESC FROM MENUITEM WHERE ID= ? ORDER BY ORDERNO", (MenuID, ))
                     Itemcursor = cursor.fetchone()
@@ -119,10 +119,16 @@ class MenuItemsHandler(BaseHandler):
                 id = self.get_argument("id")
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
                 cursor = conn.cursor()
-                cursor.execute("DELETE FROM MENUITEM WHERE ID=? ", (id,))
-                conn.commit()
-                # logger.log(desc)
-                res = {"code": 0, "message": "删除节点"}
+                # 先判断是被引用，则不能删除
+                cursor = conn.execute(
+                    "SELECT ID FROM BILLITEM WHERE TYPENAME=='MENUITEM' AND TYPEID= ? ", (id, ))
+                Itemcursor = cursor.fetchone()
+                if Itemcursor:
+                    res = {"code": 1, "message": "该节点被演讲方案引用，不能删除！"}
+                else:
+                    cursor.execute("DELETE FROM MENUITEM WHERE ID=? ", (id,))
+                    conn.commit()
+                    res = {"code": 0, "message": "删除节点"}
             except Exception as error:
                 logger.error(error)
                 conn and conn.rollback()

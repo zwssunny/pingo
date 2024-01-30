@@ -22,6 +22,7 @@ RUN apt-get update
 RUN apt-get install -qqy x11-apps
 
 # 复制文件
+ADD cach/  ${BUILD_PREFIX}/cach/
 ADD common/  ${BUILD_PREFIX}/common/
 ADD db/  ${BUILD_PREFIX}/db/
 ADD docker/  ${BUILD_PREFIX}/docker/
