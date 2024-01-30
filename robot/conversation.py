@@ -114,14 +114,14 @@ class Conversation(object):
         """
         if self.introduction:
             self.introduction.stop()
-        if self.player and self.player.is_playing():
+        if self.player:
             self.player.stop()
 
     def pause(self):
         """暂停会话，可以通过unpause()恢复
         """
 
-        if self.player and self.player.is_playing():
+        if self.player:
             self.player.pause()
 
         self.introduction.setplaystatusChange(2)

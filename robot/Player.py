@@ -102,7 +102,7 @@ class SoxPlayer(AbstractPlayer):
         self.playing = True
         self.proc.wait()
         self.playing = False
-        logger.info(f"播放完成：{src}")
+        # logger.info(f"播放完成：{src}")
         return self.proc and self.proc.returncode
 
     def play(self, src):
