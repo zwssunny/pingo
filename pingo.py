@@ -70,7 +70,7 @@ class Pingo(object):
 
     def restart(self):
         """
-        重启 Bingo-robot
+        重启 Pingo-robot
         """
         logger.critical("程序重启...")
         python = sys.executable

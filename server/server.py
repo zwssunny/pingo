@@ -27,7 +27,7 @@ from .messageUpdatesHandler import MessageUpdatesHandler
 from .operateHandler import OperateHandler
 from .switchEnableStatusHandler import SwitchEnableStatusHandler
 from .voiceHandler import VoiceHandler
-from .menu import MenuHandler
+from .menuHandler import MenuHandler
 from .menuItemsHandler import MenuItemsHandler
 from .menupageHandler import MenupageHandler
 
