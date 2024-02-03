@@ -5,13 +5,16 @@ from .baseHandler import BaseHandler
 from .chatWebSocketHandler import ChatWebSocketHandler
 from gvar import GVar
 
+currThread=None
 class OperateHandler(BaseHandler):
+   
     def onPlaybill(self, playstatus, billid, billitemid, msg):
         # 通过 ChatWebSocketHandler 发送给前端
         for client in ChatWebSocketHandler.clients:
             client.send_playstate(playstatus, billid, billitemid, msg)
 
     def post(self):
+        global currThread
         if self.validate(self.get_argument("validate", default=None)):
             type = self.get_argument("type")
             if type in ["restart", "0"]:
@@ -26,6 +29,9 @@ class OperateHandler(BaseHandler):
                 res = {"code": 0, "message": "play ok"}
                 self.write(json.dumps(res))
                 # 考虑线程执行，否则会等很久
+                if currThread and currThread.is_alive():
+                    GVar.conversation.interrupt()
+
                 if BillItemid and int(BillItemid) > 0:
                     currThread=threading.Thread(target=lambda: GVar.conversation.talkbillitem_byid(
                         billitemID=BillItemid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(

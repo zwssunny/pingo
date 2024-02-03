@@ -26,6 +26,7 @@ class Conversation(object):
         self.onPlaybill = None
         self.recognizer = sr.Recognizer()
         self.voices = {}
+        self.activeThread=None
 
     def reInit(self):
         """重新初始化"""
@@ -245,20 +246,27 @@ class Conversation(object):
             slots = self.nlu.getSlots(parsed, intent)
             soltslen = len(slots)
             if soltslen > 0:
+                if self.activeThread and self.activeThread.is_alive():
+                    self.interrupt()
+
                 if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
                     # 查找页面
                     pagename = slots[0]['normalized_word']
                     if intent in self.pageintent:
-                        threading.Thread(
-                            target=lambda: self.introduction.talkmenuitem_byname(pagename)).start()
+                        self.activeThread=threading.Thread(
+                            target=lambda: self.introduction.talkmenuitem_byname(pagename))
+                        self.activeThread.start()
                     elif intent in self.systemintent:
-                        threading.Thread(
-                            target=lambda: self.introduction.talkothersystem_byname(pagename)).start()
+                        self.activeThread=threading.Thread(
+                            target=lambda: self.introduction.talkothersystem_byname(pagename))
+                        self.activeThread.start()
                     elif intent in self.highlightintent:
-                        threading.Thread(
-                            target=lambda: self.introduction.talkhighlight_byname(pagename)).start()
+                        self.activeThread=threading.Thread(
+                            target=lambda: self.introduction.talkhighlight_byname(pagename))
+                        self.activeThread.start()
                 elif "ORATOR" in intent:  # 演示系统默认方案
-                    threading.Thread(target=lambda: self.billtalk()).start()
+                    self.activeThread=threading.Thread(target=lambda: self.billtalk())
+                    self.activeThread.start()
                 elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
                     self.isConversationcomplete = False  # 问题不明确
             else:
