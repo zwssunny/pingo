@@ -5,9 +5,10 @@ from .baseHandler import BaseHandler
 from .chatWebSocketHandler import ChatWebSocketHandler
 from gvar import GVar
 
-currThread=None
+currThread = None
+
+
 class OperateHandler(BaseHandler):
-   
     def onPlaybill(self, playstatus, billid, billitemid, msg):
         # 通过 ChatWebSocketHandler 发送给前端
         for client in ChatWebSocketHandler.clients:
@@ -28,19 +29,28 @@ class OperateHandler(BaseHandler):
                 BillItemid = self.get_argument("billitemid", default=None)
                 res = {"code": 0, "message": "play ok"}
                 self.write(json.dumps(res))
+                #先打断前面播放事件
+                GVar.conversation.interrupt()
                 # 考虑线程执行，否则会等很久
-                if currThread and currThread.is_alive():
-                    GVar.conversation.interrupt()
-
                 if BillItemid and int(BillItemid) > 0:
-                    currThread=threading.Thread(target=lambda: GVar.conversation.talkbillitem_byid(
-                        billitemID=BillItemid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
-                            playstatus, billid, billitemid, msg)))
+                    currThread = threading.Thread(
+                        target=lambda: GVar.conversation.talkbillitem_byid(
+                            billitemID=BillItemid,
+                            onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
+                                playstatus, billid, billitemid, msg
+                            ),
+                        )
+                    )
                     currThread.start()
                 else:
-                    currThread=threading.Thread(target=lambda: GVar.conversation.billtalk(
-                        billID=Billid, onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
-                            playstatus, billid, billitemid, msg)))
+                    currThread = threading.Thread(
+                        target=lambda: GVar.conversation.billtalk(
+                            billID=Billid,
+                            onPlaybill=lambda playstatus, billid, billitemid, msg: self.onPlaybill(
+                                playstatus, billid, billitemid, msg
+                            ),
+                        )
+                    )
                     currThread.start()
                 self.finish()
             elif type in ["pause", "2"]:
@@ -56,12 +66,16 @@ class OperateHandler(BaseHandler):
             elif type in ["stop", "4"]:
                 res = {"code": 0, "message": "stop ok"}
                 self.write(json.dumps(res))
-                threading.Thread(
-                    target=lambda: GVar.conversation.interrupt()).start()
+                threading.Thread(target=lambda: GVar.conversation.interrupt()).start()
                 self.finish()
             elif type in ["playstatus", "5"]:
-                res = {"code": 0, "message": "get playstatus ok", "playstatus": GVar.conversation.introduction.playstatus,
-                       "curbillid": GVar.conversation.introduction.curBillId, "curbillitemid": GVar.conversation.introduction.curBillItemId}
+                res = {
+                    "code": 0,
+                    "message": "get playstatus ok",
+                    "playstatus": GVar.conversation.introduction.playstatus,
+                    "curbillid": GVar.conversation.introduction.curBillId,
+                    "curbillitemid": GVar.conversation.introduction.curBillItemId,
+                }
                 self.write(json.dumps(res))
                 self.finish()
             else:

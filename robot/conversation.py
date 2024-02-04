@@ -246,8 +246,9 @@ class Conversation(object):
             slots = self.nlu.getSlots(parsed, intent)
             soltslen = len(slots)
             if soltslen > 0:
-                if self.activeThread and self.activeThread.is_alive():
-                    self.interrupt()
+                # if self.activeThread and self.activeThread.is_alive():
+                #先打断前面播放事件
+                self.interrupt()
 
                 if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
                     # 查找页面
@@ -273,8 +274,8 @@ class Conversation(object):
                 self.isConversationcomplete = False  # 词槽不明确
         else:  # 后续可以交给chatgpt
             self.pardon()
+            
     # 从麦克风收集音频并写入文件
-
     def _record(self, rate=16000):
         with sr.Microphone(sample_rate=rate) as source:
             # 校准环境噪声水平的energy threshold
