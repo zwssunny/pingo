@@ -192,6 +192,11 @@ function InitmenuItemsTable() {
                 validate: getCookie('validation')
             };
             return param;
+        },
+        onPostBody: function (data) {
+            if (selectItemID > 0) {
+                $('#menuItemsTable').bootstrapTable('checkBy', { field: 'ID', values: [selectItemID] });
+            }
         }
     });
 };

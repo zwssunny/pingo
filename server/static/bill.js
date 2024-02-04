@@ -1,3 +1,7 @@
+//保存编辑窗体的原始值
+var jsonTextInit = '';
+var selectItemID = 0;
+
 function talkbill(operate, billid, billitemid, msg) {
     $.ajax({
         url: '/operate',
@@ -33,7 +37,8 @@ function getbillplaystatus() {
                     $('#billItemsTable').bootstrapTable('refresh');
                 }
                 if (data.curbillitemid) {
-                    $('#billItemsTable').bootstrapTable('checkBy', { field: 'ID', values: [data.curbillitemid] });
+                    selectItemID = data.curbillitemid
+                    // $('#billItemsTable').bootstrapTable('checkBy', { field: 'ID', values: [data.curbillitemid] });
                 }
                 buttonstate(data.playstatus)
                 toastr.success(msg + '成功');
@@ -73,9 +78,7 @@ socket.onmessage = function (e) {
         buttonstate(data.playstatus)
     }
 };
-//保存编辑窗体的原始值
-var jsonTextInit = '';
-var selectItemID = 0;
+
 function buttonstate(playstatus) {
     //1-播放，2-暂停，0,4-已停止或者没有播放
     if (playstatus == 1) {
@@ -278,6 +281,11 @@ function InitBillItemsTable() {
                 validate: getCookie('validation')
             };
             return param;
+        },
+        onPostBody: function (data) {
+            if (selectItemID > 0) {
+                $('#billItemsTable').bootstrapTable('checkBy', { field: 'ID', values: [selectItemID] });
+            }
         }
     });
 };
