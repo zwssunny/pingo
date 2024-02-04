@@ -10,11 +10,11 @@ Pingo被唤醒后，用户的语音指令先经过 ASR 引擎进行 ASR 识别�
 
 ## 语音识别
 
-BaiduASR,OpenaiASR,AzureASR,Xunfei,其它的可以加
+BaiduASR,OpenaiASR,AzureASR,XunfeiASR,其它的可以加
 
 ## 语音合成
 
-BaiduTTS,Pyttsx3TTS,AzureTTS,EdgeTTS,其它的可以加
+BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，其它的可以加
 
 ## 运行环境
 

@@ -1,6 +1,8 @@
 import json
 from aip import AipSpeech
 from abc import ABCMeta, abstractmethod
+
+import requests
 from common import utils
 from common.log import logger
 from config import conf
@@ -28,7 +30,52 @@ class AbstractASR(object):
     @abstractmethod
     def transcribe(self, fp):
         pass
+    
+class AzureASR(AbstractASR):
+    """
+    微软的语音识别API
+    """
 
+    SLUG = "azure-asr"
+
+    def __init__(self, secret_key, region, lang="zh-CN", **args):
+        super(self.__class__, self).__init__()
+        self.post_url = "https://<REGION_IDENTIFIER>.stt.speech.microsoft.com/speech/recognition/conversation/cognitiveservices/v1".replace(
+            "<REGION_IDENTIFIER>", region
+        )
+
+        self.post_header = {
+            "Ocp-Apim-Subscription-Key": secret_key,
+            "Content-Type": "audio/wav; codecs=audio/pcm; samplerate=16000",
+            "Accept": "application/json",
+        }
+
+        self.post_param = {"language": lang, "profanity": "raw"}
+        self.sess = requests.session()
+
+    @classmethod
+    def get_config(cls):
+        # Try to get azure_yuyin config from config
+        return conf().get("azure_yuyin", {})
+
+    def transcribe(self, fp):
+        # 识别本地文件
+        pcm = utils.get_pcm_from_wav(fp)
+        ret = self.sess.post(
+            url=self.post_url,
+            data=pcm,
+            headers=self.post_header,
+            params=self.post_param,
+        )
+
+        if ret.status_code == 200:
+            res = ret.json()
+            logger.info(f"{self.SLUG} 语音识别到了：{res['DisplayText']}")
+            return "".join(res["DisplayText"])
+        else:
+            logger.info(f"{self.SLUG} 语音识别出错了: {res.text}")
+            return ""
+        
 class BaiduASR(AbstractASR):
     """
     百度的语音识别API.
@@ -83,7 +130,6 @@ class BaiduASR(AbstractASR):
 class XunfeiASR(AbstractASR):
     """
     科大讯飞的语音识别API.
-    外网ip查询：https://ip.51240.com/
     """
 
     SLUG = "xunfei-asr"
@@ -101,6 +147,43 @@ class XunfeiASR(AbstractASR):
 
     def transcribe(self, fp):
         return XunfeiSpeech.transcribe(fp, self.appid, self.api_key, self.api_secret)
+
+class WhisperASR(AbstractASR):
+    """
+    OpenAI 的 whisper 语音识别API
+    """
+
+    SLUG = "openai"
+
+    def __init__(self, openai_api_key, **args):
+        super(self.__class__, self).__init__()
+        try:
+            import openai
+
+            self.openai = openai
+            self.openai.api_key = openai_api_key
+            print(openai_api_key)
+        except Exception:
+            logger.critical("OpenAI 初始化失败，请升级 Python 版本至 > 3.6")
+
+    @classmethod
+    def get_config(cls):
+        return conf().get("openai", {})
+
+    def transcribe(self, fp):
+        if self.openai:
+            try:
+                with open(fp, "rb") as f:
+                    result = self.openai.Audio.transcribe("whisper-1", f)
+                    if result:
+                        logger.info(f"{self.SLUG} 语音识别到了：{result.text}")
+                        return result.text
+            except Exception:
+                logger.critical(f"{self.SLUG} 语音识别出错了", stack_info=True)
+                return ""
+        logger.critical(f"{self.SLUG} 语音识别出错了", stack_info=True)
+        return ""
+
 
 def get_engine_by_slug(slug=None)->AbstractASR:
     """
