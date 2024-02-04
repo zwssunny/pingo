@@ -1,6 +1,5 @@
 # encoding:utf-8
-import json
-import os
+
 import json
 import threading
 import websocket
@@ -12,9 +11,9 @@ class pagecontrol(object):
     def __init__(self):
         try:
             pgconf = conf().get("pagecontrol", {"enable": False,
-                "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", "screenid": "dbe5b0425026446fb52437e8e58ed73f"})
+                                                "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", "screenid": "dbe5b0425026446fb52437e8e58ed73f"})
             # websocket
-            self.enablecontrol =pgconf["enable"]
+            self.enablecontrol = pgconf["enable"]
             self.websocketurl = pgconf["websocketurl"]
             self.screenid = pgconf["screenid"]
             logger.info("[pagecontrol] inited")
@@ -44,7 +43,7 @@ class pagecontrol(object):
         """
         try:
             # 创建websocket链接
-            uri = self.websocketurl+self.screenid
+            uri = self.websocketurl + self.screenid
             ws = websocket.WebSocket()
             ws.connect(uri)  # , timeout=6, close_timeout=6
             if ws.connected:
