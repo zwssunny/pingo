@@ -3,7 +3,6 @@ import hashlib
 import base64
 import hmac
 import json
-import wave
 import tempfile
 from urllib.parse import urlencode
 import time
@@ -37,7 +36,8 @@ class ASR_Ws_Param(object):
         # 公共参数(common)
         self.CommonArgs = {"app_id": self.APPID}
         # 业务参数(business)，更多个性化参数可在官网查看
-        self.BusinessArgs = {"domain": "iat", "language": "zh_cn", "accent": "mandarin"}
+        self.BusinessArgs = {"domain": "iat",
+                             "language": "zh_cn", "accent": "mandarin"}
 
     # 生成url
     def create_url(self):
@@ -56,7 +56,8 @@ class ASR_Ws_Param(object):
             signature_origin.encode("utf-8"),
             digestmod=hashlib.sha256,
         ).digest()
-        signature_sha = base64.b64encode(signature_sha).decode(encoding="utf-8")
+        signature_sha = base64.b64encode(
+            signature_sha).decode(encoding="utf-8")
 
         authorization_origin = (
             'api_key="%s", algorithm="%s", headers="%s", signature="%s"'
@@ -66,7 +67,8 @@ class ASR_Ws_Param(object):
             encoding="utf-8"
         )
         # 将请求的鉴权参数组合为字典
-        v = {"authorization": authorization, "date": date, "host": "ws-api.xfyun.cn"}
+        v = {"authorization": authorization,
+             "date": date, "host": "ws-api.xfyun.cn"}
         # 拼接鉴权参数，生成url
         url = url + "?" + urlencode(v)
         # 此处打印出建立连接时候的url,参考本demo的时候可取消上方打印的注释，比对相同参数时生成的url与自己代码生成的url是否一致
@@ -114,7 +116,8 @@ class TTS_Ws_Param(object):
             signature_origin.encode("utf-8"),
             digestmod=hashlib.sha256,
         ).digest()
-        signature_sha = base64.b64encode(signature_sha).decode(encoding="utf-8")
+        signature_sha = base64.b64encode(
+            signature_sha).decode(encoding="utf-8")
 
         authorization_origin = (
             'api_key="%s", algorithm="%s", headers="%s", signature="%s"'
@@ -124,7 +127,8 @@ class TTS_Ws_Param(object):
             encoding="utf-8"
         )
         # 将请求的鉴权参数组合为字典
-        v = {"authorization": authorization, "date": date, "host": "tts-api.xfyun.cn"}
+        v = {"authorization": authorization,
+             "date": date, "host": "tts-api.xfyun.cn"}
         # 拼接鉴权参数，生成url
         url = url + "?" + urlencode(v)
         # print("date: ",date)
@@ -244,7 +248,8 @@ def tts_on_message(ws, message):
         audio = base64.b64decode(audio)
         if code != 0:
             errMsg = json.loads(message)["message"]
-            logger.error("sid:%s call error:%s code is:%s" % (sid, errMsg, code))
+            logger.error("sid:%s call error:%s code is:%s" %
+                         (sid, errMsg, code))
         else:
             with open(gTTSPath, "ab") as f:
                 f.write(audio)
@@ -303,7 +308,8 @@ def transcribe(fpath, appid, api_key, api_secret):
     """
     global asrWsParam, gResult
     gResult = ""
-    asrWsParam = ASR_Ws_Param(appid, api_key, APISecret=api_secret, AudioFile=fpath)
+    asrWsParam = ASR_Ws_Param(
+        appid, api_key, APISecret=api_secret, AudioFile=fpath)
     websocket.enableTrace(False)
     wsUrl = asrWsParam.create_url()
     ws = websocket.WebSocketApp(

@@ -10,6 +10,7 @@ from robot.sdk import XunfeiSpeech
 
 from common import utils
 
+
 class AbstractASR(object):
     """
     Generic parent class for all ASR engines
@@ -30,7 +31,8 @@ class AbstractASR(object):
     @abstractmethod
     def transcribe(self, fp):
         pass
-    
+
+
 class AzureASR(AbstractASR):
     """
     微软的语音识别API
@@ -75,7 +77,8 @@ class AzureASR(AbstractASR):
         else:
             logger.info(f"{self.SLUG} 语音识别出错了: {res.text}")
             return ""
-        
+
+
 class BaiduASR(AbstractASR):
     """
     百度的语音识别API.
@@ -108,12 +111,12 @@ class BaiduASR(AbstractASR):
     def get_config(cls):
         # Try to get baidu_yuyin config from config
         return conf().get("baidu_yuyin", {})
-    
+
     def _get_file_content(self, file_name):
         with open(file_name, 'rb') as f:
             audio_data = f.read()
         return audio_data
-    
+
     def transcribe(self, fp):
         # 识别本地文件
         wav = self._get_file_content(fp)
@@ -126,6 +129,7 @@ class BaiduASR(AbstractASR):
             if res["err_msg"] == "request pv too much":
                 logger.info("       出现这个原因很可能是你的百度语音服务调用量超出限制，或未开通付费")
             return ""
+
 
 class XunfeiASR(AbstractASR):
     """
@@ -147,6 +151,7 @@ class XunfeiASR(AbstractASR):
 
     def transcribe(self, fp):
         return XunfeiSpeech.transcribe(fp, self.appid, self.api_key, self.api_secret)
+
 
 class WhisperASR(AbstractASR):
     """
@@ -185,7 +190,7 @@ class WhisperASR(AbstractASR):
         return ""
 
 
-def get_engine_by_slug(slug=None)->AbstractASR:
+def get_engine_by_slug(slug=None) -> AbstractASR:
     """
     Returns:
         An ASR Engine implementation available on the current platform
