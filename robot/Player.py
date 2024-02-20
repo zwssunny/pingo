@@ -82,7 +82,7 @@ class SoxPlayer(AbstractPlayer):
 
     Returns:
         sox: 声音播放器
-    """    
+    """
     SLUG = "SoxPlayer"
 
     def __init__(self, **kwargs):
@@ -107,7 +107,7 @@ class SoxPlayer(AbstractPlayer):
 
     def play(self, src):
         if src and (os.path.exists(src) or src.startswith("http")):
-            #先停止原来的播放
+            # 先停止原来的播放
             self.stop()
             self.__doPlay(src)
         else:
@@ -169,12 +169,10 @@ class PGamePlayer(AbstractPlayer):
     def pause(self):
         self.is_pause = True
         self.music.pause()
-           
 
     def resume(self):
         self.is_pause = False
         self.music.unpause()
-            
 
     def stop(self):
         self.is_pause = False

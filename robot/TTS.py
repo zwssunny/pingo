@@ -13,6 +13,8 @@ from config import conf
 from robot.sdk import XunfeiSpeech
 
 nest_asyncio.apply()
+
+
 class AbstractTTS(object):
     """
     Generic parent class for all TTS engines
@@ -33,7 +35,8 @@ class AbstractTTS(object):
     @abstractmethod
     def get_speech(self, phrase):
         pass
-    
+
+
 class AzureTTS(AbstractTTS):
     """
     使用微软语音合成技术
@@ -84,6 +87,7 @@ class AzureTTS(AbstractTTS):
         else:
             logger.critical(f"{self.SLUG} 合成失败！", stack_info=True)
 
+
 class BaiduTTS(AbstractTTS):
     """
     使用百度语音合成技术
@@ -115,14 +119,15 @@ class BaiduTTS(AbstractTTS):
 
     def get_speech(self, phrase):
         if utils.getCache(phrase):
-            temfile=utils.getCache(phrase)
+            temfile = utils.getCache(phrase)
             return tmpfile
         else:
-            result = self.client.synthesis(phrase, self.lan, 1, {"per": self.per})
+            result = self.client.synthesis(
+                phrase, self.lan, 1, {"per": self.per})
             # 识别正确返回语音二进制 错误则返回dict 参照下面错误码
             if not isinstance(result, dict):
                 tmpfile = utils.write_temp_file(result, ".mp3")
-                temfile=utils.saveCache(temfile,phrase)
+                temfile = utils.saveCache(temfile, phrase)
                 logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
                 return tmpfile
             else:
@@ -155,6 +160,7 @@ class XunfeiTTS(AbstractTTS):
             phrase, self.appid, self.api_key, self.api_secret, self.voice_name
         )
 
+
 class EdgeTTS(AbstractTTS):
     """
     edge-tts 引擎
@@ -175,13 +181,14 @@ class EdgeTTS(AbstractTTS):
 
     async def async_get_speech(self, phrase):
         try:
-            if utils.getCache(phrase,self.voice):  # 存在缓存
-                tmpfile = utils.getCache(phrase,self.voice)
+            if utils.getCache(phrase, self.voice):  # 存在缓存
+                tmpfile = utils.getCache(phrase, self.voice)
             else:
-                tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".mp3")
+                tmpfile = os.path.join(
+                    utils.TMP_PATH, uuid.uuid4().hex + ".mp3")
                 tts = edge_tts.Communicate(text=phrase, voice=self.voice)
-                await tts.save(tmpfile)   
-                tmpfile = utils.saveCache(tmpfile, phrase,self.voice) 
+                await tts.save(tmpfile)
+                tmpfile = utils.saveCache(tmpfile, phrase, self.voice)
             logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
             return tmpfile
         except Exception as e:
@@ -192,10 +199,11 @@ class EdgeTTS(AbstractTTS):
         # event_loop = asyncio.new_event_loop()
         # tmpfile = event_loop.run_until_complete(self.async_get_speech(phrase))
         # event_loop.close()
-        tmpfile =asyncio.run(self.async_get_speech(phrase))
+        tmpfile = asyncio.run(self.async_get_speech(phrase))
         return tmpfile
 
-def get_engine_by_slug(slug=None)->AbstractTTS:
+
+def get_engine_by_slug(slug=None) -> AbstractTTS:
     """
     Returns:
         A TTS Engine implementation available on the current platform
