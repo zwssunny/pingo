@@ -163,6 +163,18 @@ function AddMenu() {
     // 暂存未修改时数据
     var dataformInit = $("#form_edit").serializeArray();
     jsonTextInit = JSON.stringify({ dataform: dataformInit });
+    clearmenuitem();
+}
+//初始化表单内容
+function clearmenuitem(){
+    // 清空表单
+    $('#form_edit')[0].reset();
+    $("#itemname").val("");
+    $("#itemorderno").val("0");
+    $("#itemsleep").val("0");
+    $("#itemopenevent").val("-1");
+    $("#itemcloseevent").val("-1");
+    $("#itemdesc").text("");
 }
 //初始化列表
 function InitmenuItemsTable() {
@@ -206,16 +218,7 @@ $(function () {
     //初始化节目表
     InitmenuItemsTable();
     //关闭编辑窗体后清空
-    $('#editModal').on('hidden.bs.modal', function () {
-        // 清空表单
-        $('#form_edit')[0].reset();
-        $("#itemname").val("");
-        $("#itemorderno").val("0");
-        $("#itemsleep").val("0");
-        $("#itemsopenevent").val("-1");
-        $("#itemscloseevent").val("-1");
-        $("#itemdesc").text("");
-    });
+    $('#editModal').on('hidden.bs.modal', clearmenuitem());
     //提交节点保存
     $("#but_submit_add").click(function () {
         // 判断是否修改
@@ -226,8 +229,8 @@ $(function () {
             return;
         }
         //需要增加判断合法性
-        nametext=$("#itemname").val()
-        if (trim(nametext).length==0){
+        var nametext=$("#itemname").val()
+        if (nametext.trim().length==0){
             toastr.error('名称不能为空！', '输入错误');
             return
         }
