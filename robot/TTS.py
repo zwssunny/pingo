@@ -58,12 +58,13 @@ class AzureTTS(AbstractTTS):
             "X-Microsoft-OutputFormat": "audio-16khz-128kbitrate-mono-mp3",
             "User-Agent": "curl",
         }
+        self.voice=voice
         self.sess = requests.session()
         body = ElementTree.Element("speak", version="1.0")
         body.set("xml:lang", "en-us")
         vc = ElementTree.SubElement(body, "voice")
         vc.set("xml:lang", lang)
-        vc.set("name", voice)
+        vc.set("name", self.voice)
         self.body = body
         self.vc = vc
 
@@ -73,19 +74,24 @@ class AzureTTS(AbstractTTS):
         return conf().get("azure_yuyin", {})
 
     def get_speech(self, phrase):
-        self.vc.text = phrase
-        result = self.sess.post(
-            self.post_url,
-            headers=self.post_header,
-            data=ElementTree.tostring(self.body),
-        )
-        # 识别正确返回语音二进制,http状态码为200
-        if result.status_code == 200:
-            tmpfile = utils.write_temp_file(result.content, ".mp3")
-            logger.info(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
+        if utils.getCache(phrase, self.voice):  # 存在缓存
+            tmpfile = utils.getCache(phrase, self.voice)
             return tmpfile
         else:
-            logger.critical(f"{self.SLUG} 合成失败！", stack_info=True)
+            self.vc.text = phrase
+            result = self.sess.post(
+                self.post_url,
+                headers=self.post_header,
+                data=ElementTree.tostring(self.body),
+            )
+            # 识别正确返回语音二进制,http状态码为200
+            if result.status_code == 200:
+                tmpfile = utils.write_temp_file(result.content, ".mp3")
+                tmpfile = utils.saveCache(tmpfile, phrase, self.voice)
+                logger.info(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
+                return tmpfile
+            else:
+                logger.critical(f"{self.SLUG} 合成失败！", stack_info=True)
 
 
 class BaiduTTS(AbstractTTS):
@@ -118,8 +124,8 @@ class BaiduTTS(AbstractTTS):
         return conf().get("baidu_yuyin", {})
 
     def get_speech(self, phrase):
-        if utils.getCache(phrase):
-            temfile = utils.getCache(phrase)
+        if utils.getCache(phrase,str(self.per)):
+            temfile = utils.getCache(phrase,str(self.per))
             return tmpfile
         else:
             result = self.client.synthesis(
@@ -127,7 +133,7 @@ class BaiduTTS(AbstractTTS):
             # 识别正确返回语音二进制 错误则返回dict 参照下面错误码
             if not isinstance(result, dict):
                 tmpfile = utils.write_temp_file(result, ".mp3")
-                temfile = utils.saveCache(temfile, phrase)
+                temfile = utils.saveCache(temfile, phrase,str(self.per))
                 logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
                 return tmpfile
             else:
@@ -156,9 +162,12 @@ class XunfeiTTS(AbstractTTS):
         return conf().get("xunfei_yuyin", {})
 
     def get_speech(self, phrase):
-        return XunfeiSpeech.synthesize(
-            phrase, self.appid, self.api_key, self.api_secret, self.voice_name
-        )
+        if utils.getCache(phrase, self.voice_name):  # 存在缓存
+            tmpfile = utils.getCache(phrase, self.voice_name)
+        else:
+            tmpfile= XunfeiSpeech.synthesize(phrase, self.appid, self.api_key, self.api_secret, self.voice_name)
+            tmpfile = utils.saveCache(tmpfile, phrase, self.voice_name)
+        return tmpfile
 
 
 class EdgeTTS(AbstractTTS):
