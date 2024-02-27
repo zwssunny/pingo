@@ -82,6 +82,16 @@ available_setting = {
         "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", # websocket服务地址
         "screenid": "dbe5b0425026446fb52437e8e58ed73f" #大屏ID
       },
+    "VITS": {  # 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
+        "server_url": "http://127.0.0.1:23456", #服务器url
+        "api_key": "api_key", #若服务器配置了API Key，在此填入
+        "speaker_id": 0, #说话人ID，由所使用的模型决定
+        "length": 1.0, #调节语音长度，相当于调节语速，该数值越大语速越慢。
+        "noise": 0.667, #噪声
+        "noisew": 0.8, #噪声偏差
+        "max": 50, #分段阈值，按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。
+        "timeout": 60 #响应超时时间（秒），根据vits-simple-api服务器性能不同配置合理的超时时间。
+    },
 }
 
 
