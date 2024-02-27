@@ -16,14 +16,14 @@ class BillsHandler(BaseHandler):
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
                 if billid is None:
                     cursor = conn.execute(
-                        "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL")
+                        "SELECT ID, NAME,ISDEFAULT, DATETIME,DESC FROM BILL")
                 else:
                     cursor = conn.execute(
-                        "SELECT ID, NAME,ISDEFAULT, VOICE, DATETIME,DESC FROM BILL WHERE ID= ?", (billid,))
+                        "SELECT ID, NAME,ISDEFAULT,  DATETIME,DESC FROM BILL WHERE ID= ?", (billid,))
                 billscursor = cursor.fetchall()
                 for bill in billscursor:
                     billjson = {"ID": bill[0],
-                                "NAME": bill[1], "ISDEFAULT": bill[2], "VOICE": bill[3], "DATETIME": bill[4], "DESC": bill[5]}
+                                "NAME": bill[1], "ISDEFAULT": bill[2],  "DATETIME": bill[3], "DESC": bill[4]}
                     bills.append(billjson)
                 self.write(json.dumps(bills))
             except Exception as error:
@@ -42,7 +42,6 @@ class BillsHandler(BaseHandler):
                 id = self.get_argument("id")
                 name = self.get_argument("name")
                 isdefault = self.get_argument("isdefault")
-                voice = self.get_argument("voice")
                 datetime = self.get_argument("datetime")
                 desc = unquote(self.get_argument("desc"))
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
@@ -51,9 +50,9 @@ class BillsHandler(BaseHandler):
                 if int(isdefault) == 1:
                     sql = "UPDATE BILL SET isdefault=0 WHERE isdefault=1 and ID<>? "
                     cursor.execute(sql, (id,))
-                sql = "UPDATE BILL SET  name=?,voice=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
+                sql = "UPDATE BILL SET  name=?,isdefault=?,datetime=?, DESC=? WHERE ID=? "
                 cursor.execute(
-                    sql, (name, voice, isdefault, datetime, desc, id,))
+                    sql, (name,  isdefault, datetime, desc, id,))
                 conn.commit()
                 res = {"code": 0, "message": "更新演讲方案"}
             except Exception as error:
@@ -76,7 +75,7 @@ class BillsHandler(BaseHandler):
                 id = self.get_argument("id")
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
                 cursor = conn.cursor()
-                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',VOICE,datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? "
+                sql = "INSERT INTO BILL(NAME,DATETIME,ISDEFAULT,DESC) SELECT  NAME||'-克隆',datetime(CURRENT_TIMESTAMP,'localtime'),0,DESC FROM BILL WHERE ID=? "
                 cursor.execute(sql, (id,))
                 sql = "SELECT LAST_INSERT_ROWID()"
                 cursor.execute(sql)
@@ -111,7 +110,7 @@ class BillsHandler(BaseHandler):
             try:
                 conn = sqlite3.connect(GVar.sysdb, check_same_thread=False)
                 cursor = conn.cursor()
-                sql = "INSERT INTO BILL(NAME,VOICE,DATETIME,ISDEFAULT,DESC) VALUES('新建演讲方案','',datetime(CURRENT_TIMESTAMP,'localtime'),0,'请输入开场白')"
+                sql = "INSERT INTO BILL(NAME,DATETIME,ISDEFAULT,DESC) VALUES('新建演讲方案',datetime(CURRENT_TIMESTAMP,'localtime'),0,'请输入开场白')"
                 cursor.execute(sql)
                 sql = "SELECT LAST_INSERT_ROWID()"
                 cursor.execute(sql)

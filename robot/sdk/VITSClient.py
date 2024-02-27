@@ -18,7 +18,6 @@ def tts(text, server_url, api_key, speaker_id, length, noise, noisew, max, timeo
         "max": max
     }
     headers = {"api_key": api_key}
-    url = f"{server_url}/voice/vits"
-    res = requests.post(url=url, data=data, headers=headers, timeout=timeout)
+    res = requests.post(url=server_url, data=data, headers=headers, timeout=timeout)
     res.raise_for_status()
     return res.content

@@ -419,7 +419,7 @@ $(function () {
                 if (data_json.length > 0) {
                     // $("#itemid").val(data_json[0].ID);
                     $("#billname").val(data_json[0].NAME);
-                    $("#billvoice").val(data_json[0].VOICE);
+                    // $("#billvoice").val(data_json[0].VOICE);
                     $("#billisdefault").val(data_json[0].ISDEFAULT);
                     $("#billdesc").text(data_json[0].DESC);
                     $("#billdatetime").val(data_json[0].DATETIME);
@@ -444,7 +444,7 @@ $(function () {
         // 清空表单
         $('#form_billedit')[0].reset();
         $("#billname").val("");
-        $("#billvoice").val("");
+        // $("#billvoice").val("");
         $("#billisdefault").val("");
         $("#billdesc").text("");
         $("#billdatetime").val(getCurrentTime());
@@ -461,7 +461,8 @@ $(function () {
         }
         var billdata = {
             'validate': getCookie('validation'), "id": selected_value, "name": $("#billname").val(),
-            "isdefault": $("#billisdefault").val(), "voice": $("#billvoice").val(),
+            "isdefault": $("#billisdefault").val(), 
+            // "voice": $("#billvoice").val(),
             "datetime": $("#billdatetime").val(), "desc": encodeURIComponent($("#billdesc").val())
         }
         $.ajax({
@@ -568,27 +569,27 @@ $(function () {
         $("#deleteModal").modal('hide');
     });
     //声音测试TESTVOICE
-    $('button#TESTVOICE').on('click', function (e) {
-        voice = $('#billvoice').val()
-        var voicedata = { 'validate': getCookie('validation'), "voice": voice }
-        $.ajax({
-            url: '/voice',
-            type: "POST",
-            data: voicedata,
-            success: function (res) {
-                var data = JSON.parse(res);
-                msg = '测试声音';
-                if (data.code == 0) {
-                    toastr.success(msg + '成功');
-                } else {
-                    toastr.error(data.message, msg + '失败');
-                }
-            },
-            error: function () {
-                toastr.error('服务器异常', '测试失败');
-            }
-        });
-    });
+    // $('button#TESTVOICE').on('click', function (e) {
+    //     voice = $('#billvoice').val()
+    //     var voicedata = { 'validate': getCookie('validation'), "voice": voice }
+    //     $.ajax({
+    //         url: '/voice',
+    //         type: "POST",
+    //         data: voicedata,
+    //         success: function (res) {
+    //             var data = JSON.parse(res);
+    //             msg = '测试声音';
+    //             if (data.code == 0) {
+    //                 toastr.success(msg + '成功');
+    //             } else {
+    //                 toastr.error(data.message, msg + '失败');
+    //             }
+    //         },
+    //         error: function () {
+    //             toastr.error('服务器异常', '测试失败');
+    //         }
+    //     });
+    // });
     //获取服务器播放状态
     getbillplaystatus();
 });

@@ -14,7 +14,7 @@ BaiduASR,OpenaiASR,AzureASR,XunfeiASR,其它的可以加
 
 ## 语音合成
 
-BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，其它的可以加
+BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，VITTS其它的可以加
 
 ## 运行环境
 
@@ -27,8 +27,8 @@ python版本>=3.10，ubutun22,windows11环境开发测试；其它平台还没�
 
 ## 缓存语音功能
 
-cach目录是缓存历史的语音功能，可以减少语音合成次数调用，节省时间，提高效率。如果转换人声语调和转换语音合成引擎，可以删除该目录下文件。
+cach目录是缓存历史的语音功能，可以减少语音合成次数调用，节省时间，提高效率。
 
 ## 系统演示功能
-
+打开浏览器登录https://localhost:5001/
 可以完整演示整个平台，逐个页面切换展示，同时对页面内容进行介绍

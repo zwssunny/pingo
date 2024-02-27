@@ -35,8 +35,6 @@ class sysIntroduction:
         """
 
         try:
-            # 保存原来的tts
-            oldtts = self.conversation.tts
             self.is_stop = False
             if onPlaybill:
                 self.onPlaybill = onPlaybill
@@ -44,20 +42,16 @@ class sysIntroduction:
             # 查询系统介绍内容
             if billID:
                 cursor = self.conn.execute(
-                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ID= ?", (billID,))
+                    "SELECT ID, NAME, DESC FROM BILL WHERE ID= ?", (billID,))
             else:
                 cursor = self.conn.execute(
-                    "SELECT ID, NAME,VOICE, DESC FROM BILL WHERE ISDEFAULT=1")
+                    "SELECT ID, NAME, DESC FROM BILL WHERE ISDEFAULT=1")
             billcursor = cursor.fetchone()
             if billcursor:
-                billdesc = billcursor[3]
+                billdesc = billcursor[2]
                 self.curBillId = billcursor[0]
                 billname = billcursor[1]
                 self.setplaystatusChange(1, billname)
-
-                voice = billcursor[2]
-                if voice:
-                    self.conversation.tts = self.conversation.newvoice(voice)
                 # 说说开场白
                 self.conversation.say(billdesc)
                 if self.is_stop:  # 监测停止标志
@@ -69,8 +63,6 @@ class sysIntroduction:
         except Exception as error:
             logger.error(error)
         finally:
-            # 恢复原来声音
-            self.conversation.tts = oldtts
             self.setplaystatusChange(4, "演示方案")
 
     def talkAllBillItem(self, billID):
@@ -128,25 +120,8 @@ class sysIntroduction:
             "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID, BILLID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
         itemcursor = cursor.fetchone()
         if itemcursor:
-            # 创建声音
-            try:
-                # 保存原来的tts
-                oldtts = self.conversation.tts
-                billID = itemcursor[6]
-                bcursor = self.conn.execute(
-                    "SELECT ID, NAME,VOICE FROM BILL WHERE ID= ?", (billID,))
-                billcursor = bcursor.fetchone()
-                if billcursor:
-                    voice = billcursor[2]
-                    if voice:
-                        self.conversation.tts = self.conversation.newvoice(
-                            voice)
-
-                self.tallbillitem(itemcursor)
-                self.setplaystatusChange(4, "节点讲解")  # 停止
-            finally:
-                # 恢复原来声音
-                self.conversation.tts = oldtts
+            self.tallbillitem(itemcursor)
+            self.setplaystatusChange(4, "节点讲解")  # 停止
 
     def systalk(self):
         """

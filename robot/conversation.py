@@ -56,7 +56,7 @@ class Conversation(object):
         if self.player:
             self.player.quit()
 
-    def newvoice(self, voice):
+    def newvoice(self, tts_engine):
         """创建新声音，这是为应对演讲方案中个性化服务，
             系统的声音请在config.json系统参数中设置
             如果声音列表中已存在该声音列表，直接返回该语音合成引擎
@@ -67,18 +67,19 @@ class Conversation(object):
         Returns:
             tts: 语音合成引擎实例
         """
-        if voice is None:
+        if tts_engine is None:
             return self.tts
-        if voice not in self.voices:
-            self.voices[voice] = TTS.EdgeTTS(voice)
-        return self.voices[voice]
+        if tts_engine not in self.voices:
+            self.voices[tts_engine] = TTS.get_engine_by_slug(
+                conf().get(tts_engine))
+        return self.voices[tts_engine]
 
-    def testvoice(self, text, voice=None):
+    def testvoice(self, text, tts_engine=None):
         try:
             # 保存原来的tts
             oldtts = self.tts
-            if voice:
-                self.tts = self.newvoice(voice)
+            if tts_engine:
+                self.tts = self.newvoice(tts_engine)
             self.say(text)
         except Exception as e:
             logger.error("测试语音出错{e}", e)
