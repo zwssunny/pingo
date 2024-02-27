@@ -214,7 +214,7 @@ class VITS(AbstractTTS):
     """
     VITS 语音合成
     需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
-    server_url : 服务器url，如http://127.0.0.1:23456
+    server_url : 服务器url，如http://127.0.0.1:23456/voice/vits
     api_key : 若服务器配置了API Key，在此填入
     speaker_id : 说话人ID，由所使用的模型决定
     length : 调节语音长度，相当于调节语速，该数值越大语速越慢。
