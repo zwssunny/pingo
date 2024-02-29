@@ -15,10 +15,13 @@ available_setting = {
     "keyword_path": "",  # 你的唤醒词检测离线文件地址
     "model_path": "",   # 中文模型地址
     "sensitivity": 0.5,  # 噪音指数
-    # azure 语音api配置， 使用azure语音识别和语音合成时需要
-    "azure_api_key": "",  # 你的azure key
-    "azure_region": "japaneast",  # 你的azure region
-    "appdata_dir": "",
+    "appdata_dir": "", #用户数据保存路径
+    "notbother": {  # 免打扰模式
+        "enable": False,  # true: 开启; false: 关闭
+        "since": 23,    # 开始时间
+        "till": 9      # 结束时间，如果比 since 小表示第二天
+    },
+    #后台控制管理服务器
     "server": {
         "enable": True,
         "host": "0.0.0.0",  # ip 地址
@@ -33,7 +36,15 @@ available_setting = {
         # 强烈建议修改!!!
         "validate": "2499d2e04e0f949927690d6375ce1a67"
     },
+    #识别引擎配置
     "asr_engine": "baidu-asr",
+    # azure 语音api配置， 使用azure语音识别和语音合成时需要
+    "azure_yuyin": {
+        "api_key": "",  # 你的azure key
+        "region": "japaneast",  # 你的azure region
+        "lang": "zh-CN",  #语言
+        "voice": "zh-CN-XiaoxiaoNeural" #语音
+    },
     # baidu 语音api配置， 使用百度语音识别和语音合成时需要
     "baidu_yuyin": {
         "appid": "",  # 你的百度APP_ID
@@ -49,10 +60,22 @@ available_setting = {
         "api_secret": "",  # 你的讯飞SECRET_KEY
         "voice": "xiaoyan"  # 音调
     },
+    #文字转语音配置
     "tts_engine": "edge-tts",
     "edge-tts": {
         "voice": "zh-CN-XiaoxiaoNeural"
     },
+    "VITS": {  # 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
+        "server_url": "http://127.0.0.1:23456",  # 服务器url
+        "api_key": "api_key",  # 若服务器配置了API Key，在此填入
+        "speaker_id": 0,  # 说话人ID，由所使用的模型决定
+        "length": 1.0,  # 调节语音长度，相当于调节语速，该数值越大语速越慢。
+        "noise": 0.667,  # 噪声
+        "noisew": 0.8,  # 噪声偏差
+        "max": 50,  # 分段阈值，按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。
+        "timeout": 60  # 响应超时时间（秒），根据vits-simple-api服务器性能不同配置合理的超时时间。
+    },
+    #NLU解析引擎
     "nlu_engine": "unit",
     # 百度Unit机器人
     "unit": {
@@ -60,38 +83,50 @@ available_setting = {
         "api_key": "",
         "secret_key": ""
     },
-    "pageintent": [
+    # 聊天机器人
+    "robot": "unit",
+    #OpenAI聊天机器人
+    "openai": {
+        "openai_api_key": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        # 参数指定将生成文本的模型类型。目前支持 gpt-3.5-turbo 和 gpt-3.5-turbo-0301 两种选择
+        "model": "gpt-3.5-turbo",
+        # 在前面加的一段前缀
+        "prefix": "请用200字回答：",
+        # 该temperature参数可以设置返回内容地多样性。值越大意味着该模型更有可能产生创造性的东西，设置为 1 意味着模型将返回它不确定的结果；相比之下，将此参数设置为 0 意味着模型将返回它几乎可以肯定的结果。
+        "temperature": 1,
+        # 该max_tokens参数指定模型允许生成的最大字符数量作为其输出的一部分。您需要为生成的更多字符付费，因此请务必小心使用此参数。
+        "max_tokens": 2000,
+        # 一个可用于代替 temperature 的参数，对应机器学习中 nucleus sampling，如果设置 0.1 意味着只考虑构成前 10% 概率质量的 tokens
+        "top_p": 1.0,
+        # -2.0 ~ 2.0 之间的数字，正值会根据新 tokens 在文本中的现有频率对其进行惩罚，从而降低模型逐字重复同一行的可能性
+        "frequency_penalty": 0.0,
+        # -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新 tokens，从而增加模型谈论新主题的可能性
+        "presence_penalty": 0.0,
+        "stop_ai": "stop"
+        # 如果需要代理，反注释下面的配置进行修改
+        # proxy: '127.0.0.1:1080'
+        # 如果需要更换 api_base ，反注释下面的配置进行修改
+        # api_base: "https://api.openai.com/v1/chat"
+    },
+    # 演讲和页面控制配置参数
+    "pagecontrol": {  # 大屏页面控制
+        "enable": False,
+        "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/",  # websocket服务地址
+        "screenid": "dbe5b0425026446fb52437e8e58ed73f"  # 大屏ID
+    },
+    "pageintent": [ #页面控制事件
         "OPEN_PAGE",
         "CLOSE_PAGE"
     ],
-    "systemintent": [
+    "systemintent": [ #第三方系统控制事件
         "OPEN_SYSTEM",
         "CLOSE_SYSTEM"
     ],
-    "highlightintent": [
+    "highlightintent": [ #亮点场景控制事件
         "OPEN_HIGHLIGHT",
         "CLOSE_HIGHLIGHT"
     ],
-    "notbother": { #免打扰模式
-        "enable": False,  # true: 开启; false: 关闭
-        "since": 23,    # 开始时间
-        "till": 9      # 结束时间，如果比 since 小表示第二天
-    },
-    "pagecontrol": { #大屏控制
-        "enable": False,
-        "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", # websocket服务地址
-        "screenid": "dbe5b0425026446fb52437e8e58ed73f" #大屏ID
-      },
-    "VITS": {  # 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
-        "server_url": "http://127.0.0.1:23456", #服务器url
-        "api_key": "api_key", #若服务器配置了API Key，在此填入
-        "speaker_id": 0, #说话人ID，由所使用的模型决定
-        "length": 1.0, #调节语音长度，相当于调节语速，该数值越大语速越慢。
-        "noise": 0.667, #噪声
-        "noisew": 0.8, #噪声偏差
-        "max": 50, #分段阈值，按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。
-        "timeout": 60 #响应超时时间（秒），根据vits-simple-api服务器性能不同配置合理的超时时间。
-    },
+
 }
 
 
@@ -161,6 +196,7 @@ class Config(dict):
 
 config = Config()
 has_init = False
+
 
 def reload_config():
     """重新加载参数
