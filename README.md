@@ -6,7 +6,8 @@ Pingo被唤醒后，用户的语音指令先经过 ASR 引擎进行 ASR 识别�
 
 本机器人用百度UNIT机器人进行技能训练和识别
 
-登录 https://ai.baidu.com/unit/home#/home，可以创建自己的机器人和训练自己的技能。
+登录 https://ai.baidu.com/unit/home#/home
+可以创建自己的机器人和训练自己的技能。
 
 ## 语音识别
 
@@ -15,6 +16,9 @@ BaiduASR,OpenaiASR,AzureASR,XunfeiASR,其它的可以加
 ## 语音合成
 
 BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，VITTS其它的可以加
+
+VITS 语音合成
+需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
 
 ## 运行环境
 

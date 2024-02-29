@@ -205,7 +205,7 @@ class Conversation(object):
         if self.onSay:
             serverhost = conf().get("server")
             cached_audios = [
-                f"http://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
+                f"https://{serverhost['host']}:{serverhost['port']}/audio/{os.path.basename(voice)}"
                 for voice in audios
             ]
             logger.debug(f"onSay: {msg}, {cached_audios}")
@@ -274,7 +274,7 @@ class Conversation(object):
                     self.isConversationcomplete = False  # 问题不明确
             else:
                 self.isConversationcomplete = False  # 词槽不明确
-        else:  # 后续可以交给chatgpt
+        else:  # 后续可以交给第三方机器人，如chatgpt
             self.pardon()
 
     # 从麦克风收集音频并写入文件
@@ -282,7 +282,7 @@ class Conversation(object):
         with sr.Microphone(sample_rate=rate) as source:
             # 校准环境噪声水平的energy threshold
             # duration:用于指定计算环境噪声的持续时间（秒）。默认值为1秒。函数将等待指定时间来计算环境噪声水平，并相应地调整麦克风增益，以提高语音识别的准确性。如果噪声水平很高，则可以增加此值以获得更准确的噪声估计。
-            # self.r.adjust_for_ambient_noise(source, duration=1)
+            # self.recognizer.adjust_for_ambient_noise(source, duration=1)
             print('您可以开始说话了')
             # timeout 用于指定等待语音输入的最长时间（秒），如果没有检测到语音输入，则函数将返回None。默认值为 None，表示等待无限长的时间。如果指定了超时时间，则函数将在等待指定时间后自动返回。
             # phrase_time_limit：用于指定允许单次语音输入的最长时间（秒），如果超过这个时间，函数将自动停止录制，并返回None.默认值为 None，表示允许单次语音输入的时间没有限制。
