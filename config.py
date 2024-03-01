@@ -15,7 +15,7 @@ available_setting = {
     "porcupine": { # 登录 https://console.picovoice.ai/
         # 你的picovoice key
         "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",
-        "keywords": ["Hey Pingo!"],
+        "keywords": ["Hey Pingo"],
         # 你的唤醒词检测离线文件地址
         "keyword_paths": ["./static/Hey-pingo_en_linux_v2_2_0.ppn"]
     },
