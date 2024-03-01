@@ -239,23 +239,23 @@ class Conversation(object):
         parsed = self.doParse(query)
         intent = self.nlu.getIntent(parsed)
         # 先打断前面播放事件
-        self.interrupt()        
+        self.interrupt()
         if intent:  # 找到意图
             logger.debug("找到意图 Intent= %s", intent)
             slots = self.nlu.getSlots(parsed, intent)
+            soltslen = len(slots)
 
-            if intent in self.pageintent:
+            if soltslen > 0:
                 pagename = slots[0]['normalized_word']
+            if intent in self.pageintent:
                 self.activeThread = threading.Thread(
                     target=lambda: self.introduction.talkmenuitem_byname(pagename))
                 self.activeThread.start()
             elif intent in self.systemintent:
-                pagename = slots[0]['normalized_word']
                 self.activeThread = threading.Thread(
                     target=lambda: self.introduction.talkothersystem_byname(pagename))
                 self.activeThread.start()
             elif intent in self.highlightintent:
-                pagename = slots[0]['normalized_word']
                 self.activeThread = threading.Thread(
                     target=lambda: self.introduction.talkhighlight_byname(pagename))
                 self.activeThread.start()

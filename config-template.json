@@ -4,7 +4,7 @@
     "porcupine": { # 登录 https://console.picovoice.ai/
         # 你的picovoice key
         "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",
-        "keywords": ["Hey Pingo!"],
+        "keywords": ["Hey Pingo"],
         # 你的唤醒词检测离线文件地址
         "keyword_paths": ["./static/Hey-pingo_en_linux_v2_2_0.ppn"]
     },
@@ -57,7 +57,7 @@
         "voice": "zh-CN-XiaoxiaoNeural"
     },
     "VITS": {  # 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
-        "server_url": "http://127.0.0.1:23456",  # 服务器url
+        "server_url": "http://127.0.0.1:23456/voice/vits",  # 服务器url
         "api_key": "api_key",  # 若服务器配置了API Key，在此填入
         "speaker_id": 0,  # 说话人ID，由所使用的模型决定
         "length": 1.0,  # 调节语音长度，相当于调节语速，该数值越大语速越慢。
