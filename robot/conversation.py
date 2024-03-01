@@ -9,7 +9,7 @@ import speech_recognition as sr
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
-from robot import ASR, NLU, TTS, History, Player
+from robot import AI,ASR, NLU, TTS, History, Player
 from common.log import logger
 
 
@@ -42,6 +42,7 @@ class Conversation(object):
             self.tts = TTS.get_engine_by_slug(
                 conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
+            self.ai = AI.get_robot_by_slug(conf().get("robot", "unit"))
             # self.player = Player.PGamePlayer()
             system = platform.system()
             if system == "Windows":
@@ -240,41 +241,37 @@ class Conversation(object):
         intent = self.nlu.getIntent(parsed)
         if intent:  # 找到意图
             logger.debug("找到意图 Intent= %s", intent)
-            reply = self.nlu.getSay(parsed, intent)
-            print(reply)
-            self.say(reply)
             self.isConversationcomplete = True
             slots = self.nlu.getSlots(parsed, intent)
-            soltslen = len(slots)
-            if soltslen > 0:
-                # if self.activeThread and self.activeThread.is_alive():
-                # 先打断前面播放事件
-                self.interrupt()
+            # soltslen = len(slots)
+            # 先打断前面播放事件
+            self.interrupt()
 
-                if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
-                    # 查找页面
-                    pagename = slots[0]['normalized_word']
-                    if intent in self.pageintent:
-                        self.activeThread = threading.Thread(
-                            target=lambda: self.introduction.talkmenuitem_byname(pagename))
-                        self.activeThread.start()
-                    elif intent in self.systemintent:
-                        self.activeThread = threading.Thread(
-                            target=lambda: self.introduction.talkothersystem_byname(pagename))
-                        self.activeThread.start()
-                    elif intent in self.highlightintent:
-                        self.activeThread = threading.Thread(
-                            target=lambda: self.introduction.talkhighlight_byname(pagename))
-                        self.activeThread.start()
-                elif "ORATOR" in intent:  # 演示系统默认方案
+            if (intent in self.pageintent) or (intent in self.systemintent) or (intent in self.highlightintent):
+                # 查找页面
+                pagename = slots[0]['normalized_word']
+                if intent in self.pageintent:
                     self.activeThread = threading.Thread(
-                        target=lambda: self.billtalk())
+                        target=lambda: self.introduction.talkmenuitem_byname(pagename))
                     self.activeThread.start()
-                elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
-                    self.isConversationcomplete = False  # 问题不明确
+                elif intent in self.systemintent:
+                    self.activeThread = threading.Thread(
+                        target=lambda: self.introduction.talkothersystem_byname(pagename))
+                    self.activeThread.start()
+                elif intent in self.highlightintent:
+                    self.activeThread = threading.Thread(
+                        target=lambda: self.introduction.talkhighlight_byname(pagename))
+                    self.activeThread.start()
+            elif "ORATOR" in intent:  # 演示系统默认方案
+                self.activeThread = threading.Thread(
+                    target=lambda: self.billtalk())
+                self.activeThread.start()
+            # elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
+            #     self.isConversationcomplete = False  # 问题不明确
             else:
-                self.isConversationcomplete = False  # 词槽不明确
-        else:  # 后续可以交给第三方机器人，如chatgpt
+                msg = self.ai.chat(query, parsed)
+                self.say(msg)
+        else:  #找不到意图
             self.pardon()
 
     # 从麦克风收集音频并写入文件
@@ -287,7 +284,7 @@ class Conversation(object):
             # timeout 用于指定等待语音输入的最长时间（秒），如果没有检测到语音输入，则函数将返回None。默认值为 None，表示等待无限长的时间。如果指定了超时时间，则函数将在等待指定时间后自动返回。
             # phrase_time_limit：用于指定允许单次语音输入的最长时间（秒），如果超过这个时间，函数将自动停止录制，并返回None.默认值为 None，表示允许单次语音输入的时间没有限制。
             audio = self.recognizer.listen(
-                source, timeout=20, phrase_time_limit=4)
+                source, timeout=20, phrase_time_limit=5)
 
         # Avoid the same filename under multithreading
         file_name = TmpDir().path() + "speech-" + str(int(time.time())) + ".wav"
