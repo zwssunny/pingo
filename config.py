@@ -11,9 +11,14 @@ from common.log import logger
 # 此处的配置值无实际意义，程序不会读取此处的配置，仅用于提示格式，请将配置加入到config.json中
 available_setting = {
     "debug":  False,  # 是否调式模式
-    "picovoice_api_key": "",  # 你的picovoice key
-    "keyword_path": "",  # 你的唤醒词检测离线文件地址
-    "model_path": "",   # 中文模型地址
+    "robot_name": "Pingo", #机器人名字
+    "porcupine": { # 登录 https://console.picovoice.ai/
+        # 你的picovoice key
+        "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",
+        "keywords": ["Hey Pingo!"],
+        # 你的唤醒词检测离线文件地址
+        "keyword_paths": ["./static/Hey-pingo_en_linux_v2_2_0.ppn"]
+    },
     "sensitivity": 0.5,  # 噪音指数
     "appdata_dir": "", #用户数据保存路径
     "notbother": {  # 免打扰模式

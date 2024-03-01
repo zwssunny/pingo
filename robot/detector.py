@@ -18,20 +18,24 @@ def initDetector():
 
     import pvporcupine
     from pvrecorder import PvRecorder
-    access_key = conf().get("picovoice_api_key")
-    keyword_paths = conf().get("keyword_path")
 
+    robot_name = conf().get("robot_name")
+    pvconfig = conf().get("porcupine")
+    call_keywords = pvconfig["keywords"]
+    call_keyword_paths = pvconfig["keyword_paths"]
+    
     porcupine = pvporcupine.create(
-        access_key=access_key,
-        keyword_paths=[keyword_paths],
-        sensitivities=[conf().get("sensitivity", 0.5)]
+        access_key=pvconfig["access_key"],
+        keyword_paths=call_keyword_paths,
+        keywords=call_keywords,
+        sensitivities=[conf().get("sensitivity", 0.5)] * len(call_keyword_paths),
     )
     # 创建会话实例
     conversation = Conversation()
     # 初始化全局变量
     GVar.conversation = conversation
     # 问候语
-    conversation.say("您好,我的名字叫Pingo,很高兴见到您！说话之前记得叫我 ‘Hey Pingo!'")
+    conversation.say(f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我'{call_keywords}'")
     # 录音监听器
     recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
     recorder.start()
@@ -42,7 +46,7 @@ def initDetector():
 
             result = porcupine.process(pcm)
             if result >= 0:
-                kw = keyword_paths[result]
+                kw = call_keyword_paths[result]
                 logger.info(
                     "[porcupine] Keyword {} Detected at time {}".format(
                         kw,
