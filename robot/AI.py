@@ -1,6 +1,5 @@
 import os
 import json
-import random
 import requests
 
 from abc import ABCMeta, abstractmethod
@@ -32,7 +31,6 @@ class AbstractRobot(object):
         pass
 
 
-
 class UnitRobot(AbstractRobot):
 
     SLUG = "unit"
@@ -62,7 +60,8 @@ class UnitRobot(AbstractRobot):
             logger.info("{} 回答：{}".format(self.SLUG, result))
             return result
         except Exception:
-            logger.critical("UNIT robot failed to response for %r", msg, exc_info=True)
+            logger.critical(
+                "UNIT robot failed to response for %r", msg, exc_info=True)
             return "抱歉, 百度UNIT服务回答失败"
 
 
@@ -97,21 +96,20 @@ class OPENAIRobot(AbstractRobot):
                 openai_api_key = os.getenv("OPENAI_API_KEY")
             self.openai.api_key = openai_api_key
             if proxy:
-                logger.info(f"{self.SLUG} 使用代理：{proxy}")
+                logger.debug(f"{self.SLUG} 使用代理：{proxy}")
                 self.openai.proxy = proxy
-
-        except Exception:
-            logger.critical("OpenAI 初始化失败，请升级 Python 版本至 > 3.6")
-        self.model = model
-        self.prefix = prefix
-        self.temperature = temperature
-        self.max_tokens = max_tokens
-        self.top_p = top_p
-        self.frequency_penalty = frequency_penalty
-        self.presence_penalty = presence_penalty
-        self.stop_ai = stop_ai
-        self.api_base = api_base if api_base else "https://api.openai.com/v1/chat"
-        self.context = []
+            self.model = model
+            self.prefix = prefix
+            self.temperature = temperature
+            self.max_tokens = max_tokens
+            self.top_p = top_p
+            self.frequency_penalty = frequency_penalty
+            self.presence_penalty = presence_penalty
+            self.stop_ai = stop_ai
+            self.api_base = api_base if api_base else "https://api.openai.com/v1/chat"
+            self.context = []
+        except Exception as e:
+            logger.critical(f"OpenAI 初始化失败，{e}")
 
     @classmethod
     def get_config(cls):
@@ -135,7 +133,8 @@ class OPENAIRobot(AbstractRobot):
             "Authorization": "Bearer " + self.openai.api_key,
         }
 
-        data = {"model": "gpt-3.5-turbo", "messages": self.context, "stream": True}
+        data = {"model": "gpt-3.5-turbo",
+                "messages": self.context, "stream": True}
         logger.info("开始流式请求")
         url = self.api_base + "/completions"
         # 请求接收流式数据
@@ -175,7 +174,8 @@ class OPENAIRobot(AbstractRobot):
                                         elif i == 40:
                                             logger.debug("......")
                                         one_message["content"] = (
-                                            one_message["content"] + delta_content
+                                            one_message["content"] +
+                                            delta_content
                                         )
                                         yield delta_content
 
@@ -224,21 +224,11 @@ class OPENAIRobot(AbstractRobot):
             logger.warning("token超出长度限制，丢弃历史会话")
             self.context = []
             return self.chat(texts, parsed)
-        except Exception:
+        except Exception as e:
             logger.critical(
                 "openai robot failed to response for %r", msg, exc_info=True
             )
             return "抱歉，OpenAI 回答失败"
-
-
-def get_unknown_response():
-    """
-    不知道怎么回答的情况下的答复
-
-    :returns: 表示不知道的答复
-    """
-    results = ["抱歉，我不会这个呢", "我不会这个呢", "我还不会这个呢", "我还没学会这个呢", "对不起，你说的这个，我还不会"]
-    return random.choice(results)
 
 
 def get_robot_by_slug(slug):
@@ -251,7 +241,8 @@ def get_robot_by_slug(slug):
 
     selected_robots = list(
         filter(
-            lambda robot: hasattr(robot, "SLUG") and robot.SLUG == slug, get_robots()
+            lambda robot: hasattr(
+                robot, "SLUG") and robot.SLUG == slug, get_robots()
         )
     )
     if len(selected_robots) == 0:
