@@ -115,12 +115,16 @@ class sysIntroduction:
         """
         if onPlaybill:
             self.onPlaybill = onPlaybill
-        # 查询菜单记录
-        cursor = self.conn.execute(
-            "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID, BILLID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
-        itemcursor = cursor.fetchone()
-        if itemcursor:
-            self.tallbillitem(itemcursor)
+        try:
+            # 查询菜单记录
+            cursor = self.conn.execute(
+                "SELECT TYPENAME,TYPEID, ORDERNO, SLEEP, DESC, ID, BILLID FROM BILLITEM WHERE ENABLE=1 AND ID= ?", (bllitemid,))
+            itemcursor = cursor.fetchone()
+            if itemcursor:
+                self.tallbillitem(itemcursor)
+        except sqlite3.Error as error:
+            logger.error(error)
+        finally:
             self.setplaystatusChange(4, "节点讲解")  # 停止
 
     def systalk(self):
