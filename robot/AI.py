@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
 import os
 import json
 import random
 import requests
 
-from uuid import getnode as get_mac
 from abc import ABCMeta, abstractmethod
 from .sdk import baiduUnit
 from common import utils

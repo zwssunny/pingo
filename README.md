@@ -20,6 +20,10 @@ BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，VITTS其它的可以加
 VITS 语音合成
 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
 
+## 聊天机器人
+
+unitRobot,Openai的Chatgpt,其它的可以加
+
 ## 运行环境
 
 python版本>=3.10，ubutun22,windows11环境开发测试；其它平台还没测试，有测试过的小伙伴请通知一下！
