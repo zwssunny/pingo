@@ -61,14 +61,8 @@ def initDetector():
                 # 中断原来会话
                 conversation.interrupt()
                 conversation.say("我在，请讲！", append_history=False)
-                num = 3  # 最多循环确认4次
-                conversation.begin()  # 会话开始
-                while not conversation.conversation_is_complete() and num > 0:
-                    num = num - 1
-                    query = conversation.activeListen()
-                    conversation.doResponse(query)
-
-                conversation.end()  # 会话结束
+                query = conversation.activeListen()
+                conversation.doResponse(query)
                 # 取回麦克风使用权
                 recorder.start()
     except pvporcupine.PorcupineActivationError as e:

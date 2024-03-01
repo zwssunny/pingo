@@ -9,7 +9,7 @@ import speech_recognition as sr
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
-from robot import AI,ASR, NLU, TTS, History, Player
+from robot import AI, ASR, NLU, TTS, History, Player
 from common.log import logger
 
 
@@ -19,7 +19,6 @@ class Conversation(object):
         self.reInit()
         # 历史会话消息
         self.history = History.History()
-        self.isConversationcomplete = False
         self.hasPardon = False
         self.onSay = None
         self.onStream = None
@@ -83,7 +82,7 @@ class Conversation(object):
                 self.tts = self.newvoice(tts_engine)
             self.say(text)
         except Exception as e:
-            logger.error("测试语音出错{e}", e)
+            logger.error("测试语音出错{e}")
         finally:
             self.tts = oldtts
 
@@ -143,7 +142,7 @@ class Conversation(object):
         if t in (0, 1) and text:
             if text.endswith(",") or text.endswith("，"):
                 text = text[:-1]
-            if UUID == "" or UUID == None or UUID == "null":
+            if (UUID is None) or (UUID == "") or (UUID == "null"):
                 UUID = str(uuid.uuid1())
             # 将图片处理成HTML
             pattern = r"https?://.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF)"
@@ -241,7 +240,6 @@ class Conversation(object):
         intent = self.nlu.getIntent(parsed)
         if intent:  # 找到意图
             logger.debug("找到意图 Intent= %s", intent)
-            self.isConversationcomplete = True
             slots = self.nlu.getSlots(parsed, intent)
             # soltslen = len(slots)
             # 先打断前面播放事件
@@ -264,15 +262,15 @@ class Conversation(object):
                     self.activeThread.start()
             elif "ORATOR" in intent:  # 演示系统默认方案
                 self.activeThread = threading.Thread(
-                    target=lambda: self.billtalk())
+                    target=self.billtalk())
                 self.activeThread.start()
-            # elif "FAQ_FOUND" in intent and soltslen < 2:  # 问题解答
-            #     self.isConversationcomplete = False  # 问题不明确
             else:
-                msg = self.ai.chat(query, parsed)
-                self.say(msg)
-        else:  #找不到意图
-            self.pardon()
+                reply = self.nlu.getSay(parsed, intent)
+                self.say(reply)
+        else:  # 找不到意图，后续可以传给聊天机器人处理
+            # self.pardon()
+            msg = self.ai.chat(query, parsed)
+            self.say(msg)
 
     # 从麦克风收集音频并写入文件
     def _record(self, rate=16000):
@@ -292,15 +290,6 @@ class Conversation(object):
             f.write(audio.get_wav_data())
 
         return file_name
-
-    def begin(self):
-        self.isConversationcomplete = False
-
-    def end(self):
-        self.isConversationcomplete = True
-
-    def conversation_is_complete(self) -> bool:
-        return self.isConversationcomplete
 
     def activeListen(self):
         """
