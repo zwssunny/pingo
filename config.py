@@ -71,7 +71,7 @@ available_setting = {
         "voice": "zh-CN-XiaoxiaoNeural"
     },
     "VITS": {  # 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
-        "server_url": "http://127.0.0.1:23456",  # 服务器url
+        "server_url": "http://127.0.0.1:23456/voice/vits",  # 服务器url
         "api_key": "api_key",  # 若服务器配置了API Key，在此填入
         "speaker_id": 0,  # 说话人ID，由所使用的模型决定
         "length": 1.0,  # 调节语音长度，相当于调节语速，该数值越大语速越慢。
