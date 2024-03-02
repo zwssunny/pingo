@@ -28,6 +28,8 @@ unitRobot,Openai的Chatgpt,其它的可以加
 
 python版本>=3.10，ubutun22,windows11环境开发测试；其它平台还没测试，有测试过的小伙伴请通知一下！
 
+系统需要安装ffmpeg工具，安装依赖库：pip install -r requirements.txt
+
 ## porcupine 离线唤醒
 
 登录 https://console.picovoice.ai/
@@ -40,4 +42,5 @@ cach目录是缓存历史的语音功能，可以减少语音合成次数调用�
 ## 系统演示功能
 打开浏览器登录https://localhost:5001/
 登录名pingo 密码 pingo@2023
+
 可以完整演示整个平台，逐个页面切换展示，同时对页面内容进行介绍
