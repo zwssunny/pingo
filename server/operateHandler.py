@@ -66,7 +66,7 @@ class OperateHandler(BaseHandler):
             elif type in ["stop", "4"]:
                 res = {"code": 0, "message": "stop ok"}
                 self.write(json.dumps(res))
-                threading.Thread(target=lambda: GVar.conversation.interrupt()).start()
+                threading.Thread(target=lambda: GVar.conversation.interrupt(True)).start()
                 self.finish()
             elif type in ["playstatus", "5"]:
                 res = {

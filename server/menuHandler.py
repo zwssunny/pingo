@@ -20,7 +20,7 @@ class MenuHandler(BaseHandler):
                 res = {"code": 0, "message": "stop ok"}
                 self.write(json.dumps(res))
                 threading.Thread(
-                    target=lambda: GVar.conversation.interrupt()).start()
+                    target=lambda: GVar.conversation.interrupt(True)).start()
         else:
             res = {"code": 1, "message": "illegal visit"}
             self.write(json.dumps(res))

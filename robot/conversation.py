@@ -111,9 +111,13 @@ class Conversation(object):
     def getHistory(self):
         return self.history
 
-    def interrupt(self):
+    def interrupt(self,ispassive=False):
         """打断会话过程，不会恢复
         """
+        if ispassive:
+            self.appendHistory(0, "打断会话！")
+            logger.info("打断会话！")
+
         if self.introduction:
             self.introduction.stop()
         if self.player:
@@ -125,7 +129,8 @@ class Conversation(object):
 
         if self.player:
             self.player.pause()
-
+        self.appendHistory(0, "暂停！")
+        logger.info("暂停！")
         self.introduction.setplaystatusChange(2)
 
     def unpause(self):
@@ -135,6 +140,8 @@ class Conversation(object):
         if self.player:
             self.player.resume()
 
+        self.appendHistory(0, "继续！")
+        logger.info("继续！")
         self.introduction.setplaystatusChange(1)
 
     def appendHistory(self, t, text, UUID="", plugin=""):
@@ -191,7 +198,7 @@ class Conversation(object):
             self.hasPardon = False
 
     def doConverse(self, fp, callback=None, onSay=None, onStream=None):
-        self.interrupt()
+        # self.interrupt()
         try:
             query = self.asr.transcribe(fp)
         except Exception as e:
@@ -223,7 +230,9 @@ class Conversation(object):
         :param query: 指令
         :UUID: 指令的UUID
         """
+        # 先打断前面播放事件
         self.interrupt()
+
         self.appendHistory(0, query, UUID)
 
         if onSay:
@@ -238,8 +247,6 @@ class Conversation(object):
 
         parsed = self.doParse(query)
         intent = self.nlu.getIntent(parsed)
-        # 先打断前面播放事件
-        self.interrupt()
         if intent:  # 找到意图
             logger.debug("找到意图 Intent= %s", intent)
             slots = self.nlu.getSlots(parsed, intent)
