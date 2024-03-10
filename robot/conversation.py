@@ -54,8 +54,7 @@ class Conversation(object):
             logger.critical(f"对话初始化失败：{e}", stack_info=True)
 
     def quit(self):
-        if self.player:
-            self.player.quit()
+        self.interrupt()
 
     def newvoice(self, tts_engine):
         """创建新声音，这是为应对演讲方案中个性化服务，

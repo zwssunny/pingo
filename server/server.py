@@ -33,8 +33,6 @@ from .menupageHandler import MenupageHandler
 
 from gvar import GVar
 
-webApp=None
-
 
 settings = {
     "cookie_secret": GVar.serverconf["cookie_secret"],
@@ -85,7 +83,6 @@ application = tornado.web.Application(
 
 
 def start_server():
-    global webApp
     if GVar.serverconf["enable"]:
         port = GVar.serverconf["port"]
         try:
@@ -106,11 +103,6 @@ def start_server():
 
 
 def run(debug=False):
+    global serThread
     settings["debug"] = debug
-    threading.Thread(target=lambda: start_server()).start()
-
-
-def stop():
-    if webApp:
-        webApp.stop()
-        tornado.ioloop.IOLoop.current().close()
+    threading.Thread(target=lambda: start_server(), name="pingoserver",daemon=True).start()

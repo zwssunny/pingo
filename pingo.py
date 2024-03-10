@@ -41,7 +41,6 @@ class Pingo(object):
             logger.info("signal {} received, exiting...".format(_signo))
             conf().save_user_datas()
             utils.clean()  
-            server.stop()
             if callable(old_handler):  #  check old_handler
                 return old_handler(_signo, _stack_frame)
             sys.exit(0)
