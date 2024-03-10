@@ -2,19 +2,12 @@ import time
 from config import conf
 from common.log import logger
 from common import utils
-from robot.conversation import Conversation
-from gvar import GVar
-
-recorder = None
-porcupine = None
-conversation = None
 
 
-def initDetector():
+def initDetector(conversation):
     """
     初始化离线唤醒热词监听器，支持 porcupine 引擎
     """
-    global porcupine, recorder, conversation
 
     import pvporcupine
     from pvrecorder import PvRecorder
@@ -23,17 +16,13 @@ def initDetector():
     pvconfig = conf().get("porcupine")
     call_keywords = pvconfig["keywords"]
     call_keyword_paths = pvconfig["keyword_paths"]
-    
+    access_key=pvconfig["access_key"]
     porcupine = pvporcupine.create(
-        access_key=pvconfig["access_key"],
+        access_key=access_key,
         keyword_paths=call_keyword_paths,
         keywords=call_keywords,
         sensitivities=[conf().get("sensitivity", 0.5)] * len(call_keyword_paths),
     )
-    # 创建会话实例
-    conversation = Conversation()
-    # 初始化全局变量
-    GVar.conversation = conversation
     # 问候语
     conversation.say(f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我'{call_keywords}'")
     # 录音监听器

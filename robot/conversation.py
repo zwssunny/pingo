@@ -42,12 +42,13 @@ class Conversation(object):
                 conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
             self.ai = AI.get_robot_by_slug(conf().get("robot", "unit"))
-            # self.player = Player.PGamePlayer()
+
             system = platform.system()
             if system == "Windows":
                 self.player = Player.PGamePlayer()
             else:
                 self.player = Player.SoxPlayer()
+
             self.introduction = sysIntroduction(conversation=self)
         except Exception as e:
             logger.critical(f"对话初始化失败：{e}", stack_info=True)
@@ -70,8 +71,7 @@ class Conversation(object):
         if tts_engine is None:
             return self.tts
         if tts_engine not in self.voices:
-            self.voices[tts_engine] = TTS.get_engine_by_slug(
-                conf().get(tts_engine))
+            self.voices[tts_engine] = TTS.get_engine_by_slug(tts_engine)
         return self.voices[tts_engine]
 
     def testvoice(self, text, tts_engine=None):
@@ -111,7 +111,7 @@ class Conversation(object):
     def getHistory(self):
         return self.history
 
-    def interrupt(self,ispassive=False):
+    def interrupt(self, ispassive=False):
         """打断会话过程，不会恢复
         """
         if ispassive:

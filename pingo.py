@@ -8,6 +8,7 @@ import fire
 from common import utils
 from common.log import logger
 from robot import detector
+from robot.conversation import Conversation
 from config import conf, load_config
 from server import server
 from gvar import GVar
@@ -58,12 +59,15 @@ class Pingo(object):
             self.sigterm_handler_wrap(signal.SIGINT)
             # kill signal
             self.sigterm_handler_wrap(signal.SIGTERM)
-            #初始化全局变量
+            # 创建会话实例
+            conversation = Conversation()
+            # 初始化全局变量
+            GVar.conversation = conversation
             GVar.pingo=self
             # 后台管理端
             server.run(debug=self._debug)
             # 初始化离线唤醒
-            detector.initDetector()
+            detector.initDetector(conversation)
         except Exception as e:
             logger.error("Pingo startup failed!")
             logger.exception(e)
