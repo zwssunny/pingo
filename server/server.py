@@ -41,7 +41,7 @@ settings = {
     "login_url": "/login",
     "debug": False,
 }
-#新增的接口在这里注册
+# 新增的接口在这里注册
 application = tornado.web.Application(
     [
         (r"/", MainHandler),
@@ -68,7 +68,7 @@ application = tornado.web.Application(
         (
             r"/photo/(.+\.(?:png|jpg|jpeg|bmp|gif|JPG|PNG|JPEG|BMP|GIF))",
             tornado.web.StaticFileHandler,
-            {"path": os.path.join(utils.APP_PATH,"server","static")},
+            {"path": os.path.join(utils.APP_PATH, "server", "static")},
         ),
         (
             r"/audio/(.+\.(?:mp3|wav|pcm))",
@@ -76,7 +76,7 @@ application = tornado.web.Application(
             {"path": os.path.join(utils.CACH_PATH, utils.TTS_ENGINE)},
         ),
         (r"/static/(.*)", tornado.web.StaticFileHandler,
-         {"path": os.path.join(utils.APP_PATH,"server","static")}),
+         {"path": os.path.join(utils.APP_PATH, "server", "static")}),
     ],
     **settings,
 )
@@ -105,4 +105,5 @@ def start_server():
 def run(debug=False):
     global serThread
     settings["debug"] = debug
-    threading.Thread(target=lambda: start_server(), name="pingoserver",daemon=True).start()
+    threading.Thread(target=lambda: start_server(),
+                     name="pingoserver", daemon=True).start()
