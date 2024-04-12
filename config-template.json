@@ -72,7 +72,9 @@
         "frequency_penalty": 0.0,
         "presence_penalty": 0.0,
         "stop_ai": "stop",
-        "prefix": "请简单回答："
+        "prefix": "请简单回答：",
+        "proxy": "127.0.0.1:7890",
+        "api_base": "https://api.openai.com/v1/chat"
     },
     "pagecontrol": {  
         "enable": false,
