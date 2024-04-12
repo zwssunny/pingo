@@ -64,15 +64,15 @@
     },
     "robot": "unit",
     "openai": {
-        "openai_api_key": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "openai_api_key": "sk-xxxxxxxxxxxxxxxxxxxx",
         "model": "gpt-3.5-turbo",
-        "prefix": "请用200字回答：",
         "temperature": 1,
         "max_tokens": 2000,
         "top_p": 1.0,
         "frequency_penalty": 0.0,
         "presence_penalty": 0.0,
-        "stop_ai": "stop"
+        "stop_ai": "stop",
+        "prefix": "请简单回答："
     },
     "pagecontrol": {  
         "enable": false,
