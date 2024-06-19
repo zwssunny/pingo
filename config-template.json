@@ -56,6 +56,15 @@
         "max": 50,  
         "timeout": 60  
     },
+    "schat-tts":
+    {
+        "temperature": 3, 
+        "top_P": 0.7,
+        "top_K": 20,
+        "oral": "oral_2",
+        "laugh": "laugh_0",
+        "breaktype": "break_6"
+    },
     "nlu_engine": "unit",
     "unit": {
         "service_id": "S97518",

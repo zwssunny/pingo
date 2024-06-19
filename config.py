@@ -80,6 +80,15 @@ available_setting = {
         "max": 50,  # 分段阈值，按标点符号分段，加起来大于max时为一段文本。max<=0表示不分段。
         "timeout": 60  # 响应超时时间（秒），根据vits-simple-api服务器性能不同配置合理的超时时间。
     },
+    "schat-tts":  #chatTTS
+    {
+        "temperature": 3,  # using custom temperature
+        "top_P": 0.7, # top P decode
+        "top_K": 20, # top K decode
+        "oral": "oral_2", # use oral_(0-9), laugh_(0-2), break_(0-7) 
+        "laugh": "laugh_0", # to generate special token in text to synthesize.
+        "breaktype": "break_6"
+    },
     #NLU解析引擎
     "nlu_engine": "unit",
     # 百度Unit机器人
@@ -107,11 +116,11 @@ available_setting = {
         "frequency_penalty": 0.0,
         # -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新 tokens，从而增加模型谈论新主题的可能性
         "presence_penalty": 0.0,
-        "stop_ai": "stop"
+        "stop_ai": "stop",
         # 如果需要代理，反注释下面的配置进行修改
-        # proxy: '127.0.0.1:1080'
+        # "proxy": "127.0.0.1:7890",
         # 如果需要更换 api_base ，反注释下面的配置进行修改
-        # api_base: "https://api.openai.com/v1/chat"
+        # "api_base": "https://api.openai.com/v1/chat"
     },
     # 演讲和页面控制配置参数
     "pagecontrol": {  # 大屏页面控制
