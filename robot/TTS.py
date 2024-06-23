@@ -3,7 +3,8 @@ import uuid
 import edge_tts
 import asyncio
 import nest_asyncio
-import ChatTTS
+
+
 from abc import ABCMeta, abstractmethod
 from aip import AipSpeech
 import requests
@@ -13,6 +14,11 @@ from common import utils
 from common.log import logger
 from config import conf
 from .sdk import XunfeiSpeech, VITSClient
+
+from dotenv import load_dotenv
+load_dotenv("sha256.env")
+
+import ChatTTS
 
 nest_asyncio.apply()
 
@@ -43,21 +49,25 @@ class SchatTTS(AbstractTTS):
     """
         使用chatTTS合成语音
     """
+   
     SLUG = "schat-tts"
 
-    def __init__(self, temperature, top_P, top_K, oral, laugh, breaktype, voice="chattts") -> None:
+    def __init__(self, temperature, top_p, top_k, oral, laugh, breaktype, voice="chattts", **args) -> None:
         super(self.__class__, self).__init__()
-        self.chat = ChatTTS.Chat()
-        self.chat.load_models(source="local", local_path="D:/chatTTS")
-        rand_spk = self.chat.sample_random_speaker()
+        chat = ChatTTS.Chat()
+        # MODEL_PATH = os.path.join(utils.APP_PATH, "robot", "chatTTSmodels")
+        # chat.load_models(source="custom", custom_path=MODEL_PATH)
+        chat.load_models()
+        rand_spk = chat.sample_random_speaker()
         self.params_infer_code = {
             "spk_emb": rand_spk,  # add sampled speaker
             "temperature": temperature,  # using custom temperature
-            "top_P": top_P,  # top P decode
-            "top_K": top_K,  # top K decode
+            "top_P": top_p,  # top P decode
+            "top_K": top_k,  # top K decode
         }
         self.oral, self.laugh, self.breaktype = oral, laugh, breaktype
         self.voice = voice
+        self.chat = chat
 
     @classmethod
     def get_config(cls):

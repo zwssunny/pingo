@@ -83,8 +83,8 @@ available_setting = {
     "schat-tts":  #chatTTS
     {
         "temperature": 3,  # using custom temperature
-        "top_P": 0.7, # top P decode
-        "top_K": 20, # top K decode
+        "top_p": 0.7, # top P decode
+        "top_k": 20, # top K decode
         "oral": "oral_2", # use oral_(0-9), laugh_(0-2), break_(0-7) 
         "laugh": "laugh_0", # to generate special token in text to synthesize.
         "breaktype": "break_6"
