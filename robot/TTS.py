@@ -1,9 +1,12 @@
+import ChatTTS
 import os
 import uuid
+import wave
 import edge_tts
 import asyncio
 import nest_asyncio
-
+import numpy as np
+import torch
 
 from abc import ABCMeta, abstractmethod
 from aip import AipSpeech
@@ -18,7 +21,6 @@ from .sdk import XunfeiSpeech, VITSClient
 from dotenv import load_dotenv
 load_dotenv("sha256.env")
 
-import ChatTTS
 
 nest_asyncio.apply()
 
@@ -49,16 +51,26 @@ class SchatTTS(AbstractTTS):
     """
         使用chatTTS合成语音
     """
-   
+
     SLUG = "schat-tts"
 
     def __init__(self, temperature, top_p, top_k, oral, laugh, breaktype, voice="chattts", **args) -> None:
         super(self.__class__, self).__init__()
         chat = ChatTTS.Chat()
-        # MODEL_PATH = os.path.join(utils.APP_PATH, "robot", "chatTTSmodels")
-        # chat.load_models(source="custom", custom_path=MODEL_PATH)
-        chat.load_models()
-        rand_spk = chat.sample_random_speaker()
+        MODEL_PATH = utils.APP_PATH
+        chat.load_models(
+            vocos_config_path=f'{MODEL_PATH}/config/vocos.yaml',
+            vocos_ckpt_path=f'{MODEL_PATH}/asset/Vocos.pt',
+            dvae_config_path=f'{MODEL_PATH}/config/dvae.yaml',
+            dvae_ckpt_path=f'{MODEL_PATH}/asset/DVAE.pt',
+            gpt_config_path=f'{MODEL_PATH}/config/gpt.yaml',
+            gpt_ckpt_path=f'{MODEL_PATH}/asset/GPT.pt',
+            decoder_config_path=f'{MODEL_PATH}/config/decoder.yaml',
+            decoder_ckpt_path=f'{MODEL_PATH}/asset/Decoder.pt',
+            tokenizer_path=f'{MODEL_PATH}/asset/tokenizer.pt',
+        )
+        torch.manual_seed(42)
+        rand_spk = torch.randn(768)
         self.params_infer_code = {
             "spk_emb": rand_spk,  # add sampled speaker
             "temperature": temperature,  # using custom temperature
@@ -74,6 +86,14 @@ class SchatTTS(AbstractTTS):
         # Try to get schat-tts config from config
         return conf().get("schat-tts", {})
 
+    def save_wav_file(wav, wav_filename):
+        with wave.open(wav_filename, "wb") as wf:
+            wf.setnchannels(1)  # Mono channel
+            wf.setsampwidth(2)  # Sample width in bytes
+            wf.setframerate(24000)  # Sample rate in Hz
+            wf.writeframes(wav)
+        logger.info(f"Audio saved to {wav_filename}")
+
     def get_speech(self, phrase):
         if utils.getCache(phrase, self.voice):  # 存在缓存
             tmpfile = utils.getCache(phrase, self.voice)
@@ -86,11 +106,13 @@ class SchatTTS(AbstractTTS):
             params_refine_text = {
                 "prompt": "[oral_2][laugh_0][break_6]"
             }
+            torch.manual_seed(42)
             wavs = self.chat.infer(
-                texts, params_refine_text=params_refine_text, params_infer_code=self.params_infer_code)
-            # tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".wav")
+                texts, params_refine_text=params_refine_text, params_infer_code=self.params_infer_code, use_decoder=True, skip_refine_text=True)
 
-            tmpfile = utils.saveCache(wavs[0], phrase, self.voice)
+            tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".wav")
+            self.save_wav_file(wavs[0], tmpfile)
+            tmpfile = utils.saveCache(tmpfile, phrase, self.voice)
             logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
             return tmpfile
 
