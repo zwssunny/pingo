@@ -6,6 +6,7 @@ import uuid
 import threading
 import platform
 import speech_recognition as sr
+from common import utils
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
@@ -182,11 +183,19 @@ class Conversation(object):
         if append_history:
             self.appendHistory(1, msg, plugin=plugin)
         # msg = utils.stripPunctuation(msg).strip()
-
+        if not msg:
+            return
         voice = self.tts.get_speech(msg)
         # logger.info(f"TTS合成成功。msg: {msg}")
         self._befor_play(msg, [voice], plugin)
         self.player.play(voice)
+
+        # logger.info(f"即将朗读语音：{msg}")
+        # lines = re.split("。|！|？|\!|\?|\n", msg)
+        # for line in lines:
+        #     voice = self.tts.get_speech(line)
+        #     self._befor_play(line, [voice], plugin)
+        #     self.player.play(voice)
 
     def pardon(self):
         if not self.hasPardon:

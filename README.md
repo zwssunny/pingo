@@ -14,10 +14,13 @@ BaiduASR,OpenaiASR,AzureASR,XunfeiASR,其它的可以加
 
 ## 语音合成
 
-BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，VITTS其它的可以加
+BaiduTTS,AzureTTS,EdgeTTS,XunfeiTTS，VITTS,ChatTTS其它的可以加
 
 VITS 语音合成
 需要自行搭建vits-simple-api服务器：https://github.com/zwssunny/vits-simple-api
+
+ChatTTS 语音合成
+需要自行配置chatTTS运行环境：https://github.com/2noise/ChatTTS
 
 ## 聊天机器人
 
