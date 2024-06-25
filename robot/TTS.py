@@ -61,7 +61,7 @@ class SchatTTS(AbstractTTS):
         super(self.__class__, self).__init__()
 
         self.chat = ChatTTS.Chat()
-        self.chat.load_models(compile=sys.platform != 'win32')
+        self.chat.load(compile=False)
 
         rand_spk = self.chat.sample_random_speaker()
         self.params_infer_code = self.chat.InferCodeParams(
