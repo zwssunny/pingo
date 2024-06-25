@@ -4,6 +4,7 @@
 __pycache__/
 env/
 cach/
+config/
 tmp
 *.log
 *.ppn
