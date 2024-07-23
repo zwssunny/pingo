@@ -7,7 +7,6 @@ cach/
 config/
 tmp
 *.log
-*.ppn
 asset
 config.json
 user_datas.pkl
