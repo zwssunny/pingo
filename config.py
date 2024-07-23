@@ -82,7 +82,7 @@ available_setting = {
     },
     "schat-tts":  #chatTTS
     {
-        "temperature": 3,  # using custom temperature
+        "temperature": 0.3,  # using custom temperature
         "top_p": 0.7, # top P decode
         "top_k": 20, # top K decode
         "oral": "oral_2", # use oral_(0-9), laugh_(0-2), break_(0-7) 
