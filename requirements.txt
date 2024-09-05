@@ -1,4 +1,4 @@
-pvporcupine==2.2.1
+pvporcupine==3.0.3
 pvrecorder==1.2.1
 baidu-aip==4.16.10
 SpeechRecognition==3.10.0
