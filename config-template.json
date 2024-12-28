@@ -44,7 +44,8 @@
     },
     "tts_engine": "edge-tts",
     "edge-tts": {
-        "voice": "zh-CN-XiaoxiaoNeural"
+        "voice": "zh-CN-XiaoxiaoNeural",
+        "proxy": "127.0.0.1:7890"
     },
     "VITS": { 
         "server_url": "http://127.0.0.1:23456/voice/vits", 

@@ -16,7 +16,7 @@ def initDetector(conversation):
     pvconfig = conf().get("porcupine")
     call_keywords = pvconfig["keywords"]
     call_keyword_paths = pvconfig["keyword_paths"]
-    access_key=pvconfig["access_key"]
+    access_key = pvconfig["access_key"]
     porcupine = pvporcupine.create(
         access_key=access_key,
         keyword_paths=call_keyword_paths,
@@ -24,7 +24,9 @@ def initDetector(conversation):
         sensitivities=[conf().get("sensitivity", 0.5)] * len(call_keyword_paths),
     )
     # 问候语
-    conversation.say(f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我'{call_keywords}'")
+    conversation.say(
+        f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我'{call_keywords}'"
+    )
     # 录音监听器
     recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
     recorder.start()
@@ -39,9 +41,7 @@ def initDetector(conversation):
                 logger.info(
                     "[porcupine] Keyword {} Detected at time {}".format(
                         kw,
-                        time.strftime(
-                            "%Y-%m-%d %H:%M:%S", time.localtime(time.time())
-                        ),
+                        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
                     )
                 )
                 # 判断是否在可使用时段
@@ -68,9 +68,7 @@ def initDetector(conversation):
         )
         raise e
     except pvporcupine.PorcupineActivationRefusedError as e:
-        logger.error(
-            "[Porcupine] AccessKey '%s' refused" % access_key, stack_info=True
-        )
+        logger.error("[Porcupine] AccessKey '%s' refused" % access_key, stack_info=True)
         raise e
     except pvporcupine.PorcupineActivationThrottledError as e:
         logger.error(
