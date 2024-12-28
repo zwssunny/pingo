@@ -8,7 +8,7 @@ playsound==1.3.0
 pyaudio==0.2.14
 pyttsx3==2.90
 azure-cognitiveservices-speech==1.27.0
-edge_tts==6.1.8
+edge_tts==7.0.0
 openai==0.28
 langchain==0.0.279
 cn2an==0.5.19
