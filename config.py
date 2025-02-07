@@ -122,6 +122,19 @@ available_setting = {
         # 如果需要更换 api_base ，反注释下面的配置进行修改
         # "api_base": "https://api.openai.com/v1/chat"
     },
+    #deepseek聊天机器人
+    "deepseek": {
+        "api_key": "sk-xxxxxxxxxxxxxxxxxxxxxxxxxx",
+        # 参数指定将生成文本的模型类型。目前支持 deepseek-chat,deepseek-reasoner
+        "model": "deepseek-chat",
+        # 在前面加的一段前缀
+        "prefix": "请用200字回答：",
+        # 该max_tokens参数指定模型允许生成的最大字符数量作为其输出的一部分。您需要为生成的更多字符付费，因此请务必小心使用此参数。
+        "max_tokens": 2000,
+        "stop_ai": "stop",
+        # 如果需要更换 api_base ，反注释下面的配置进行修改
+        # "api_base": "https://api.deepseek.com"
+    },
     # 演讲和页面控制配置参数
     "pagecontrol": {  # 大屏页面控制
         "enable": False,

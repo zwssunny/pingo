@@ -86,6 +86,14 @@
         "proxy": "127.0.0.1:7890",
         "api_base": "https://api.openai.com/v1/chat"
     },
+    "deepseek": {
+        "api_key": "XXXXXXXXXXXXXXXXX",
+        "model": "deepseek-chat",
+        "max_tokens": 2000,
+        "stop_ai": "stop",
+        "prefix": "请简单回答：",
+        "api_base": "https://api.deepseek.com/chat"
+    },
     "pagecontrol": {  
         "enable": false,
         "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", 
