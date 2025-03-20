@@ -24,7 +24,7 @@ ChatTTS 语音合成
 
 ## 聊天机器人
 
-unitRobot,Openai的Chatgpt,其它的可以加
+unitRobot,Openai的Chatgpt,deepseek其它的可以加
 
 ## 运行环境
 

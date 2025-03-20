@@ -4,6 +4,7 @@ import hashlib
 import os
 import signal
 import sys
+import time
 import fire
 from common import utils
 from common.log import logger
@@ -66,11 +67,18 @@ class Pingo(object):
             GVar.pingo = self
             # 后台管理端
             server.run(debug=self._debug)
-            # 初始化离线唤醒
-            detector.initDetector(conversation)
-        except Exception as e:
-            logger.error("Pingo startup failed!")
-            logger.exception(e)
+            # 如果需要语音指令，取消下面的注释
+            # detector.initDetector(conversation)   # 初始化离线唤醒，每次有30天使用限制
+            robot_name = conf().get("robot_name")
+            conversation.say(f"您好,我的名字叫{robot_name},很高兴见到您！")
+            while True:
+                time.sleep(10)
+        except KeyboardInterrupt:
+            logger.info("Stopping ...")
+        finally:
+            if conversation is not None:
+                conversation.say(f"再见！")
+                conversation.quit()
 
     def restart(self):
         """
@@ -96,7 +104,7 @@ class Pingo(object):
         )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) == 1:
         pingo = Pingo()
         pingo.run()
