@@ -1,5 +1,6 @@
 {
     "debug":  false,  
+    "isSpeech": true,
     "robot_name": "Pingo", 
     "porcupine": { 
         "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",

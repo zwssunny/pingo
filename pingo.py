@@ -67,8 +67,11 @@ class Pingo(object):
             GVar.pingo = self
             # 后台管理端
             server.run(debug=self._debug)
+            
             # 如果需要语音指令，取消下面的注释
             # detector.initDetector(conversation)   # 初始化离线唤醒，每次有30天使用限制
+            
+            # 如果需要语音指令，屏蔽下面代码
             robot_name = conf().get("robot_name")
             conversation.say(f"您好,我的名字叫{robot_name},很高兴见到您！")
             while True:

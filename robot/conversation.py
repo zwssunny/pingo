@@ -1,4 +1,3 @@
-
 import os
 import re
 import time
@@ -32,15 +31,15 @@ class Conversation(object):
         """重新初始化"""
         try:
             load_config()
+            # 是否演讲
+            self.isSpeech = conf().get("isSpeech", True)
             # intent
             self.pageintent = conf().get("pageintent")
             self.systemintent = conf().get("systemintent")
             self.highlightintent = conf().get("highlightintent")
 
-            self.asr = ASR.get_engine_by_slug(
-                conf().get("asr_engine", "baidu-asr"))
-            self.tts = TTS.get_engine_by_slug(
-                conf().get("tts_engine", "edge-tts"))
+            self.asr = ASR.get_engine_by_slug(conf().get("asr_engine", "baidu-asr"))
+            self.tts = TTS.get_engine_by_slug(conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
             self.ai = AI.get_robot_by_slug(conf().get("robot", "unit"))
 
@@ -112,8 +111,7 @@ class Conversation(object):
         return self.history
 
     def interrupt(self, ispassive=False):
-        """打断会话过程，不会恢复
-        """
+        """打断会话过程，不会恢复"""
         if ispassive:
             self.appendHistory(0, "打断会话！")
             logger.info("打断会话！")
@@ -124,8 +122,7 @@ class Conversation(object):
             self.player.stop()
 
     def pause(self):
-        """暂停会话，可以通过unpause()恢复
-        """
+        """暂停会话，可以通过unpause()恢复"""
 
         if self.player:
             self.player.pause()
@@ -134,8 +131,7 @@ class Conversation(object):
         self.introduction.setplaystatusChange(2)
 
     def unpause(self):
-        """继续播放声音
-        """
+        """继续播放声音"""
 
         if self.player:
             self.player.resume()
@@ -162,8 +158,7 @@ class Conversation(object):
                 )
             urls = re.findall(url_pattern, text)
             for url in urls:
-                text = text.replace(
-                    url, f'<a href={url} target="_blank">{url}</a>')
+                text = text.replace(url, f'<a href={url} target="_blank">{url}</a>')
             self.history.add_message(
                 {
                     "type": t,
@@ -176,7 +171,7 @@ class Conversation(object):
                 }
             )
 
-    def say(self, msg,  plugin="", append_history=True):
+    def say(self, msg, plugin="", append_history=True):
         if not msg:
             return
 
@@ -185,6 +180,12 @@ class Conversation(object):
         # msg = utils.stripPunctuation(msg).strip()
         if not msg:
             return
+        
+        if not self.isSpeech:
+            # 如果不是演讲模式，则直接返回
+            logger.info(f"非演讲模式，直接返回：{msg}")
+            return
+
         voice = self.tts.get_speech(msg)
         # logger.info(f"TTS合成成功。msg: {msg}")
         self._befor_play(msg, [voice], plugin)
@@ -261,22 +262,24 @@ class Conversation(object):
             soltslen = len(slots)
 
             if soltslen > 0:
-                pagename = slots[0]['normalized_word']
+                pagename = slots[0]["normalized_word"]
             if intent in self.pageintent:
                 self.activeThread = threading.Thread(
-                    target=lambda: self.introduction.talkmenuitem_byname(pagename))
+                    target=lambda: self.introduction.talkmenuitem_byname(pagename)
+                )
                 self.activeThread.start()
             elif intent in self.systemintent:
                 self.activeThread = threading.Thread(
-                    target=lambda: self.introduction.talkothersystem_byname(pagename))
+                    target=lambda: self.introduction.talkothersystem_byname(pagename)
+                )
                 self.activeThread.start()
             elif intent in self.highlightintent:
                 self.activeThread = threading.Thread(
-                    target=lambda: self.introduction.talkhighlight_byname(pagename))
+                    target=lambda: self.introduction.talkhighlight_byname(pagename)
+                )
                 self.activeThread.start()
             elif "ORATOR" in intent:  # 演示系统默认方案
-                self.activeThread = threading.Thread(
-                    target=self.billtalk())
+                self.activeThread = threading.Thread(target=self.billtalk())
                 self.activeThread.start()
             else:
                 reply = self.nlu.getSay(parsed, intent)
@@ -292,11 +295,10 @@ class Conversation(object):
             # 校准环境噪声水平的energy threshold
             # duration:用于指定计算环境噪声的持续时间（秒）。默认值为1秒。函数将等待指定时间来计算环境噪声水平，并相应地调整麦克风增益，以提高语音识别的准确性。如果噪声水平很高，则可以增加此值以获得更准确的噪声估计。
             # self.recognizer.adjust_for_ambient_noise(source, duration=1)
-            print('您可以开始说话了')
+            print("您可以开始说话了")
             # timeout 用于指定等待语音输入的最长时间（秒），如果没有检测到语音输入，则函数将返回None。默认值为 None，表示等待无限长的时间。如果指定了超时时间，则函数将在等待指定时间后自动返回。
             # phrase_time_limit：用于指定允许单次语音输入的最长时间（秒），如果超过这个时间，函数将自动停止录制，并返回None.默认值为 None，表示允许单次语音输入的时间没有限制。
-            audio = self.recognizer.listen(
-                source, timeout=20, phrase_time_limit=5)
+            audio = self.recognizer.listen(source, timeout=20, phrase_time_limit=5)
 
         # Avoid the same filename under multithreading
         file_name = TmpDir().path() + "speech-" + str(int(time.time())) + ".wav"
