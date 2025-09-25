@@ -1,0 +1,45 @@
+[project]
+name = "pingo"
+version = "0.1.0"
+description = "Pingo-robot是一个简单灵活的中文语音演讲和对话系统。"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pvporcupine==3.0.3",
+    "pvrecorder==1.2.1",
+    "baidu-aip==4.16.10",
+    "SpeechRecognition==3.10.0",
+    "pyaudio==0.2.14",
+    "pyttsx3==2.90",
+    "azure-cognitiveservices-speech==1.27.0",
+    "edge_tts==7.0.0",
+    "openai==0.28",
+    "langchain==0.0.279",
+    "cn2an==0.5.19",
+    "requests==2.31.0",
+    "wolframalpha==5.0.0",
+    "pygame==2.3.0",
+    "asyncio==3.4.3",
+    "chardet==5.2.0",
+    "websocket-client==1.2.3",
+    "tornado==6.3.3",
+    "nest_asyncio==1.5.8",
+    "pydub>=0.25.1",
+    "fire>=0.5.0",
+    "markdown==3.5.1",
+    "chattts==0.2.4",
+    "numpy<2.0.0",
+    "numba",
+    "omegaconf>=2.3.0",
+    "torch>=2.1.0",
+    "tqdm",
+    "vector_quantize_pytorch",
+    "transformers>=4.41.1",
+    "vocos",
+    "python-dotenv",
+    "pybase16384",
+    "pysoundfile",
+    "pynini==2.1.5; sys_platform == 'linux'",
+    "WeTextProcessing; sys_platform == 'linux'",
+    "nemo_text_processing; sys_platform == 'linux'",
+]
