@@ -54,6 +54,9 @@ proces==0.1.7
 propcache==0.3.2
 pvporcupine==3.0.3
 pvrecorder==1.2.1
+baidu-aip==4.16.10
+SpeechRecognition==3.10.0
+playsound3
 #ubuntu sudo apt -y install portaudio19-dev
 #ubuntu sudo apt-get install python3.10-dev
 PyAudio==0.2.14
@@ -92,7 +95,33 @@ typing_extensions==4.15.0
 urllib3==2.5.0
 vector-quantize-pytorch==1.23.2
 vocos==0.1.0
+wolframalpha==5.0.0
+pygame
+asyncio==3.4.3
+chardet==5.2.0
 websocket-client==1.2.3
 wolframalpha==5.0.0
 xmltodict==1.0.2
 yarl==1.20.1
+tornado==6.3.3
+nest_asyncio==1.5.8
+pydub>=0.25.1 # need ffmpeg
+fire>=0.5.0
+markdown==3.5.1
+chatTTS>=0.2.4
+numpy<2.0.0
+numba
+omegaconf>=2.3.0
+torch>=2.1.0
+tqdm
+vector_quantize_pytorch
+transformers>=4.41.1
+vocos
+# IPython
+# gradio
+python-dotenv
+pybase16384
+pysoundfile
+# pynini; sys_platform == 'linux'
+# WeTextProcessing; sys_platform == 'linux'
+# nemo_text_processing; sys_platform == 'linux'
