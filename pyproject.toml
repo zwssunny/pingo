@@ -12,7 +12,7 @@ dependencies = [
     "pyaudio==0.2.14",
     "pyttsx3==2.90",
     "azure-cognitiveservices-speech==1.27.0",
-    "edge_tts==7.0.0",
+    "edge_tts==7.2.8",
     "openai==1.95.0",
     "langchain==0.0.279",
     "cn2an==0.5.19",
