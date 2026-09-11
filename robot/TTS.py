@@ -18,6 +18,7 @@ import torchaudio
 
 from common import utils
 from common.log import logger
+from common.error_handler import retry_on_error
 from config import conf
 from .sdk import XunfeiSpeech, VITSClient
 
@@ -147,17 +148,22 @@ class AzureTTS(AbstractTTS):
         # Try to get baidu_yuyin config from config
         return conf().get("azure_yuyin", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=requests.exceptions.RequestException)
+    def _post(self):
+        return self.sess.post(
+            self.post_url,
+            headers=self.post_header,
+            data=ElementTree.tostring(self.body),
+            timeout=10,
+        )
+
     def get_speech(self, phrase):
         if utils.getCache(phrase, self.voice):  # 存在缓存
             tmpfile = utils.getCache(phrase, self.voice)
             return tmpfile
         else:
             self.vc.text = phrase
-            result = self.sess.post(
-                self.post_url,
-                headers=self.post_header,
-                data=ElementTree.tostring(self.body),
-            )
+            result = self._post()
             # 识别正确返回语音二进制,http状态码为200
             if result.status_code == 200:
                 tmpfile = utils.write_temp_file(result.content, ".mp3")
@@ -197,16 +203,20 @@ class BaiduTTS(AbstractTTS):
         # Try to get baidu_yuyin config from config
         return conf().get("baidu_yuyin", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _synthesis(self, phrase):
+        return self.client.synthesis(phrase, self.lan, 1, {"per": self.per})
+
     def get_speech(self, phrase):
         if utils.getCache(phrase, str(self.per)):
-            temfile = utils.getCache(phrase, str(self.per))
+            tmpfile = utils.getCache(phrase, str(self.per))
             return tmpfile
         else:
-            result = self.client.synthesis(phrase, self.lan, 1, {"per": self.per})
+            result = self._synthesis(phrase)
             # 识别正确返回语音二进制 错误则返回dict 参照下面错误码
             if not isinstance(result, dict):
                 tmpfile = utils.write_temp_file(result, ".mp3")
-                temfile = utils.saveCache(temfile, phrase, str(self.per))
+                tmpfile = utils.saveCache(tmpfile, phrase, str(self.per))
                 logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
                 return tmpfile
             else:
@@ -234,13 +244,17 @@ class XunfeiTTS(AbstractTTS):
         # Try to get xunfei_yuyin config from config
         return conf().get("xunfei_yuyin", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _synthesize(self, phrase):
+        return XunfeiSpeech.synthesize(
+            phrase, self.appid, self.api_key, self.api_secret, self.voice_name
+        )
+
     def get_speech(self, phrase):
         if utils.getCache(phrase, self.voice_name):  # 存在缓存
             tmpfile = utils.getCache(phrase, self.voice_name)
         else:
-            tmpfile = XunfeiSpeech.synthesize(
-                phrase, self.appid, self.api_key, self.api_secret, self.voice_name
-            )
+            tmpfile = self._synthesize(phrase)
             tmpfile = utils.saveCache(tmpfile, phrase, self.voice_name)
         return tmpfile
 
@@ -265,28 +279,28 @@ class EdgeTTS(AbstractTTS):
         return conf().get("edge-tts", {})
 
     async def async_get_speech(self, phrase):
+        if utils.getCache(phrase, self.voice):  # 存在缓存
+            tmpfile = utils.getCache(phrase, self.voice)
+        else:
+            tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".mp3")
+            tts = edge_tts.Communicate(
+                text=phrase, voice=self.voice, proxy=self.proxy
+            )
+            await tts.save(tmpfile)
+            tmpfile = utils.saveCache(tmpfile, phrase, self.voice)
+            logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
+        return tmpfile
+
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _get_speech(self, phrase):
+        return asyncio.run(self.async_get_speech(phrase))
+
+    def get_speech(self, phrase):
         try:
-            if utils.getCache(phrase, self.voice):  # 存在缓存
-                tmpfile = utils.getCache(phrase, self.voice)
-            else:
-                tmpfile = os.path.join(utils.TMP_PATH, uuid.uuid4().hex + ".mp3")
-                tts = edge_tts.Communicate(
-                    text=phrase, voice=self.voice, proxy=self.proxy
-                )
-                await tts.save(tmpfile)
-                tmpfile = utils.saveCache(tmpfile, phrase, self.voice)
-                logger.debug(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
-            return tmpfile
+            return self._get_speech(phrase)
         except Exception as e:
             logger.critical(f"{self.SLUG} 合成失败：{str(e)}！", stack_info=True)
             return None
-
-    def get_speech(self, phrase):
-        # event_loop = asyncio.new_event_loop()
-        # tmpfile = event_loop.run_until_complete(self.async_get_speech(phrase))
-        # event_loop.close()
-        tmpfile = asyncio.run(self.async_get_speech(phrase))
-        return tmpfile
 
 
 class VITS(AbstractTTS):
@@ -333,21 +347,29 @@ class VITS(AbstractTTS):
     def get_config(cls):
         return conf().get("VITS", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _tts(self, phrase):
+        return VITSClient.tts(
+            phrase,
+            self.server_url,
+            self.api_key,
+            self.speaker_id,
+            self.length,
+            self.noise,
+            self.noisew,
+            self.max,
+            self.timeout,
+        )
+
     def get_speech(self, phrase):
         if utils.getCache(phrase, str(self.speaker_id)):  # 存在缓存
             tmpfile = utils.getCache(phrase, str(self.speaker_id))
         else:
-            result = VITSClient.tts(
-                phrase,
-                self.server_url,
-                self.api_key,
-                self.speaker_id,
-                self.length,
-                self.noise,
-                self.noisew,
-                self.max,
-                self.timeout,
-            )
+            try:
+                result = self._tts(phrase)
+            except Exception as e:
+                logger.critical(f"{self.SLUG} 合成失败：{str(e)}！", stack_info=True)
+                return None
             tmpfile = utils.write_temp_file(result, ".wav")
             logger.info(f"{self.SLUG} 语音合成成功，合成路径：{tmpfile}")
             tmpfile = utils.saveCache(tmpfile, phrase, str(self.speaker_id))

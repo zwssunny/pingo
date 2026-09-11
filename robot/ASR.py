@@ -5,6 +5,7 @@ from abc import ABCMeta, abstractmethod
 import requests
 from common import utils
 from common.log import logger
+from common.error_handler import retry_on_error
 from config import conf
 from robot.sdk import XunfeiSpeech
 
@@ -60,15 +61,20 @@ class AzureASR(AbstractASR):
         # Try to get azure_yuyin config from config
         return conf().get("azure_yuyin", {})
 
-    def transcribe(self, fp):
-        # 识别本地文件
-        pcm = utils.get_pcm_from_wav(fp)
-        ret = self.sess.post(
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=requests.exceptions.RequestException)
+    def _post(self, pcm):
+        return self.sess.post(
             url=self.post_url,
             data=pcm,
             headers=self.post_header,
             params=self.post_param,
+            timeout=10,
         )
+
+    def transcribe(self, fp):
+        # 识别本地文件
+        pcm = utils.get_pcm_from_wav(fp)
+        ret = self._post(pcm)
 
         if ret.status_code == 200:
             res = ret.json()
@@ -117,10 +123,14 @@ class BaiduASR(AbstractASR):
             audio_data = f.read()
         return audio_data
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _asr(self, wav):
+        return self.client.asr(wav, "wav", 16000, {"dev_pid": self.dev_pid})
+
     def transcribe(self, fp):
         # 识别本地文件
         wav = self._get_file_content(fp)
-        res = self.client.asr(wav, "wav", 16000, {"dev_pid": self.dev_pid})
+        res = self._asr(wav)
         if res["err_no"] == 0:
             logger.info(f"{self.SLUG} 语音识别到了：{res['result']}")
             return "".join(res["result"])
@@ -149,6 +159,7 @@ class XunfeiASR(AbstractASR):
         # Try to get xunfei_yuyin config from config
         return conf().get("xunfei_yuyin", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
     def transcribe(self, fp):
         return XunfeiSpeech.transcribe(fp, self.appid, self.api_key, self.api_secret)
 
@@ -160,26 +171,35 @@ class WhisperASR(AbstractASR):
 
     SLUG = "openai"
 
-    def __init__(self, openai_api_key, **args):
+    def __init__(self, openai_api_key, proxy="", api_base="", **args):
         super(self.__class__, self).__init__()
+        self.client = None
         try:
             import openai
+            import httpx
 
-            self.openai = openai
-            self.openai.api_key = openai_api_key
-            print(openai_api_key)
-        except Exception:
-            logger.critical("OpenAI 初始化失败，请升级 Python 版本至 > 3.6")
+            client_kwargs = {"api_key": openai_api_key, "timeout": 30.0}
+            if api_base:
+                client_kwargs["base_url"] = api_base
+            if proxy:
+                client_kwargs["http_client"] = httpx.Client(proxies=proxy)
+            self.client = openai.OpenAI(**client_kwargs)
+        except Exception as e:
+            logger.critical(f"OpenAI 初始化失败，{e}")
 
     @classmethod
     def get_config(cls):
         return conf().get("openai", {})
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=Exception)
+    def _transcribe(self, f):
+        return self.client.audio.transcriptions.create(model="whisper-1", file=f)
+
     def transcribe(self, fp):
-        if self.openai:
+        if self.client:
             try:
                 with open(fp, "rb") as f:
-                    result = self.openai.Audio.transcribe("whisper-1", f)
+                    result = self._transcribe(f)
                     if result:
                         logger.info(f"{self.SLUG} 语音识别到了：{result.text}")
                         return result.text

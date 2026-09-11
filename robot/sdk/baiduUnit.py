@@ -4,12 +4,14 @@ import json
 import requests
 from uuid import getnode as get_mac
 from common.log import logger
+from common.error_handler import retry_on_error
 
 class baiduUnit(object):
 
     def __init__(self):
         self.access_token=None
 
+    @retry_on_error(max_retries=2, delay=1.0, backoff=2.0, exceptions=requests.exceptions.RequestException)
     def get_token(self, api_key, secret_key):
         """获取访问百度UUNIT 的access_token
         #param api_key: UNIT apk_key
@@ -23,9 +25,9 @@ class baiduUnit(object):
         headers = {"Content-Type": "application/json",
                     "Accept": "application/json"}
 
-        response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.request("POST", url, headers=headers, data=payload, timeout=10)
 
-        
+
         # print(response.text)
         return response.json()["access_token"]
 
@@ -57,7 +59,7 @@ class baiduUnit(object):
         }
         try:
             headers = {"Content-Type": "application/json"}
-            request = requests.post(url, json=body, headers=headers)
+            request = requests.post(url, json=body, headers=headers, timeout=10)
             return json.loads(request.text)
         except Exception:
             return None

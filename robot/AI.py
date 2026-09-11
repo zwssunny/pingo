@@ -1,11 +1,14 @@
 import os
 import json
 import requests
+import httpx
+import openai
 
 from abc import ABCMeta, abstractmethod
 from .sdk import baiduUnit
 from common import utils
 from common.log import logger
+from common.error_handler import retry_on_error
 from config import conf
 
 
@@ -82,22 +85,18 @@ class OPENAIRobot(AbstractRobot):
         prefix="",
         proxy="",
         api_base="",
+        max_history_turns=10,
     ):
         """
         OpenAI机器人
         """
         super(self.__class__, self).__init__()
-        self.openai = None
+        self.client = None
         try:
-            import openai
-
-            self.openai = openai
             if not openai_api_key:
                 openai_api_key = os.getenv("OPENAI_API_KEY")
-            self.openai.api_key = openai_api_key
-            if proxy:
-                logger.debug(f"{self.SLUG} 使用代理：{proxy}")
-                self.openai.proxy = proxy
+            self.api_key = openai_api_key
+            self.proxy = proxy
             self.model = model
             self.prefix = prefix
             self.temperature = temperature
@@ -106,8 +105,20 @@ class OPENAIRobot(AbstractRobot):
             self.frequency_penalty = frequency_penalty
             self.presence_penalty = presence_penalty
             self.stop_ai = stop_ai
-            self.api_base = api_base if api_base else "https://api.openai.com/v1/chat"
+            self.api_base = api_base if api_base else "https://api.openai.com/v1"
+            # 最多保留最近多少轮对话历史，避免上下文无限增长
+            self.max_history_turns = max_history_turns
             self.context = []
+
+            client_kwargs = {
+                "api_key": self.api_key,
+                "base_url": self.api_base,
+                "timeout": 30.0,
+            }
+            if proxy:
+                logger.debug(f"{self.SLUG} 使用代理：{proxy}")
+                client_kwargs["http_client"] = httpx.Client(proxies=proxy)
+            self.client = openai.OpenAI(**client_kwargs)
         except Exception as e:
             logger.critical(f"OpenAI 初始化失败，{e}")
 
@@ -115,6 +126,38 @@ class OPENAIRobot(AbstractRobot):
     def get_config(cls):
         # Try to get anyq config from config
         return conf().get("openai", {})
+
+    def _trim_context(self, force_shrink=False):
+        """裁剪上下文，只保留最近若干轮对话，避免无限增长"""
+        limit = self.max_history_turns
+        if force_shrink:
+            limit = max(1, limit // 2)
+        max_messages = 2 * limit
+        if len(self.context) > max_messages:
+            del self.context[: len(self.context) - max_messages]
+
+    @retry_on_error(
+        max_retries=2,
+        delay=1.0,
+        backoff=2.0,
+        exceptions=(
+            openai.APIConnectionError,
+            openai.APITimeoutError,
+            openai.RateLimitError,
+        ),
+    )
+    def _create_completion(self):
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.context,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+            top_p=self.top_p,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
+            stop=self.stop_ai,
+        )
+        return response.choices[0].message.content
 
     def stream_chat(self, texts):
         """
@@ -127,16 +170,17 @@ class OPENAIRobot(AbstractRobot):
         msg = self.prefix + msg  # 增加一段前缀
         logger.info("msg: " + msg)
         self.context.append({"role": "user", "content": msg})
+        self._trim_context()
 
         header = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + self.openai.api_key,
+            "Authorization": "Bearer " + self.api_key,
         }
 
         data = {"model": self.model,
                 "messages": self.context, "stream": True}
         logger.info("开始流式请求")
-        url = self.api_base + "/completions"
+        url = self.api_base + "/chat/completions"
         # 请求接收流式数据
         try:
             response = requests.request(
@@ -145,7 +189,8 @@ class OPENAIRobot(AbstractRobot):
                 headers=header,
                 json=data,
                 stream=True,
-                proxies={"https": self.openai.proxy},
+                proxies={"https": self.proxy} if self.proxy else None,
+                timeout=(5, 60),
             )
 
             def generate():
@@ -182,6 +227,7 @@ class OPENAIRobot(AbstractRobot):
                     elif len(line_str.strip()) > 0:
                         logger.debug(line_str)
                         yield line_str
+                self._trim_context()
 
         except Exception as e:
             ee = e
@@ -202,33 +248,34 @@ class OPENAIRobot(AbstractRobot):
         msg = utils.stripPunctuation(msg)
         msg = self.prefix + msg  # 增加一段前缀
         logger.info("msg: " + msg)
+
+        self.context.append({"role": "user", "content": msg})
+        self._trim_context()
         try:
-            respond = ""
+            respond = self._create_completion()
+        except openai.BadRequestError:
+            logger.warning("token超出长度限制，裁剪历史后重试")
+            self.context.pop()
+            self._trim_context(force_shrink=True)
             self.context.append({"role": "user", "content": msg})
-            response = self.openai.Completion.create(
-                model=self.model,
-                messages=self.context,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                top_p=self.top_p,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-                stop=self.stop_ai,
-                api_base=self.api_base
-            )
-            message = response.choices[0].message
-            respond = message.content
-            self.context.append(message)
-            return respond
-        except self.openai.error.InvalidRequestError:
-            logger.warning("token超出长度限制，丢弃历史会话")
-            self.context = []
-            return self.chat(texts, parsed)
-        except Exception as e:
+            try:
+                respond = self._create_completion()
+            except Exception:
+                self.context.pop()
+                logger.critical(
+                    "openai robot failed to response for %r", msg, exc_info=True
+                )
+                return "抱歉，OpenAI 回答失败"
+        except Exception:
+            self.context.pop()
             logger.critical(
                 "openai robot failed to response for %r", msg, exc_info=True
             )
             return "抱歉，OpenAI 回答失败"
+
+        self.context.append({"role": "assistant", "content": respond})
+        self._trim_context()
+        return respond
 
 
 class DeepseekRobot(AbstractRobot):
@@ -244,28 +291,36 @@ class DeepseekRobot(AbstractRobot):
         prefix="",
         proxy="",
         api_base="",
+        max_history_turns=10,
     ):
         """
         Deepseek机器人
         """
         super(self.__class__, self).__init__()
-        self.openai = None
+        self.client = None
         try:
-            import openai
-
-            self.openai = openai
             if not api_key:
                 api_key = os.getenv("DEEPSEEK_API_KEY")
-            self.openai.api_key = api_key
-            if proxy:
-                logger.debug(f"{self.SLUG} 使用代理：{proxy}")
-                self.openai.proxy = proxy
+            self.api_key = api_key
+            self.proxy = proxy
             self.model = model
             self.prefix = prefix
             self.max_tokens = max_tokens
             self.stop_ai = stop_ai
-            self.api_base = api_base if api_base else "https://api.deepseek.com/chat"
+            self.api_base = api_base if api_base else "https://api.deepseek.com"
+            # 最多保留最近多少轮对话历史，避免上下文无限增长
+            self.max_history_turns = max_history_turns
             self.context = []
+
+            client_kwargs = {
+                "api_key": self.api_key,
+                "base_url": self.api_base,
+                "timeout": 30.0,
+            }
+            if proxy:
+                logger.debug(f"{self.SLUG} 使用代理：{proxy}")
+                client_kwargs["http_client"] = httpx.Client(proxies=proxy)
+            self.client = openai.OpenAI(**client_kwargs)
         except Exception as e:
             logger.critical(f"deepseek 初始化失败，{e}")
 
@@ -273,6 +328,34 @@ class DeepseekRobot(AbstractRobot):
     def get_config(cls):
         # Try to get anyq config from config
         return conf().get("deepseek", {})
+
+    def _trim_context(self, force_shrink=False):
+        """裁剪上下文，只保留最近若干轮对话，避免无限增长"""
+        limit = self.max_history_turns
+        if force_shrink:
+            limit = max(1, limit // 2)
+        max_messages = 2 * limit
+        if len(self.context) > max_messages:
+            del self.context[: len(self.context) - max_messages]
+
+    @retry_on_error(
+        max_retries=2,
+        delay=1.0,
+        backoff=2.0,
+        exceptions=(
+            openai.APIConnectionError,
+            openai.APITimeoutError,
+            openai.RateLimitError,
+        ),
+    )
+    def _create_completion(self):
+        response = self.client.chat.completions.create(
+            model=self.model,
+            messages=self.context,
+            max_tokens=self.max_tokens,
+            stop=self.stop_ai,
+        )
+        return response.choices[0].message.content
 
     def stream_chat(self, texts):
         """
@@ -285,16 +368,17 @@ class DeepseekRobot(AbstractRobot):
         msg = self.prefix + msg  # 增加一段前缀
         logger.info("msg: " + msg)
         self.context.append({"role": "user", "content": msg})
+        self._trim_context()
 
         header = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer " + self.openai.api_key,
+            "Authorization": "Bearer " + self.api_key,
         }
 
         data = {"model": self.model,
                 "messages": self.context, "stream": True}
         logger.info("开始流式请求")
-        url = self.api_base + "/completions"
+        url = self.api_base + "/chat/completions"
         # 请求接收流式数据
         try:
             response = requests.request(
@@ -303,7 +387,8 @@ class DeepseekRobot(AbstractRobot):
                 headers=header,
                 json=data,
                 stream=True,
-                proxies={"https": self.openai.proxy},
+                proxies={"https": self.proxy} if self.proxy else None,
+                timeout=(5, 60),
             )
 
             def generate():
@@ -340,6 +425,7 @@ class DeepseekRobot(AbstractRobot):
                     elif len(line_str.strip()) > 0:
                         logger.debug(line_str)
                         yield line_str
+                self._trim_context()
 
         except Exception as e:
             ee = e
@@ -360,29 +446,34 @@ class DeepseekRobot(AbstractRobot):
         msg = utils.stripPunctuation(msg)
         msg = self.prefix + msg  # 增加一段前缀
         logger.info("msg: " + msg)
+
+        self.context.append({"role": "user", "content": msg})
+        self._trim_context()
         try:
-            respond = ""
+            respond = self._create_completion()
+        except openai.BadRequestError:
+            logger.warning("token超出长度限制，裁剪历史后重试")
+            self.context.pop()
+            self._trim_context(force_shrink=True)
             self.context.append({"role": "user", "content": msg})
-            response = self.openai.Completion.create(
-                model=self.model,
-                messages=self.context,
-                max_tokens=self.max_tokens,
-                stop=self.stop_ai,
-                api_base=self.api_base
-            )
-            message = response.choices[0].message
-            respond = message.content
-            self.context.append(message)
-            return respond
-        except self.openai.error.InvalidRequestError:
-            logger.warning("token超出长度限制，丢弃历史会话")
-            self.context = []
-            return self.chat(texts, parsed)
-        except Exception as e:
+            try:
+                respond = self._create_completion()
+            except Exception:
+                self.context.pop()
+                logger.critical(
+                    "deepseek robot failed to response for %r", msg, exc_info=True
+                )
+                return "抱歉，Deepseek 回答失败"
+        except Exception:
+            self.context.pop()
             logger.critical(
                 "deepseek robot failed to response for %r", msg, exc_info=True
             )
             return "抱歉，Deepseek 回答失败"
+
+        self.context.append({"role": "assistant", "content": respond})
+        self._trim_context()
+        return respond
 
 
 def get_robot_by_slug(slug):

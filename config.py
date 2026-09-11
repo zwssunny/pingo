@@ -118,10 +118,12 @@ available_setting = {
         # -2.0 ~ 2.0 之间的数字，正值会根据到目前为止是否出现在文本中来惩罚新 tokens，从而增加模型谈论新主题的可能性
         "presence_penalty": 0.0,
         "stop_ai": "stop",
+        # 最多保留最近多少轮对话历史，避免上下文无限增长
+        "max_history_turns": 10,
         # 如果需要代理，反注释下面的配置进行修改
         # "proxy": "127.0.0.1:7890",
         # 如果需要更换 api_base ，反注释下面的配置进行修改
-        # "api_base": "https://api.openai.com/v1/chat"
+        # "api_base": "https://api.openai.com/v1"
     },
     #deepseek聊天机器人
     "deepseek": {
@@ -133,6 +135,8 @@ available_setting = {
         # 该max_tokens参数指定模型允许生成的最大字符数量作为其输出的一部分。您需要为生成的更多字符付费，因此请务必小心使用此参数。
         "max_tokens": 2000,
         "stop_ai": "stop",
+        # 最多保留最近多少轮对话历史，避免上下文无限增长
+        "max_history_turns": 10,
         # 如果需要更换 api_base ，反注释下面的配置进行修改
         # "api_base": "https://api.deepseek.com"
     },
