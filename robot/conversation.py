@@ -2,6 +2,7 @@ import os
 import re
 import time
 import uuid
+import queue
 import threading
 import platform
 import speech_recognition as sr
@@ -26,6 +27,7 @@ class Conversation(object):
         self.recognizer = sr.Recognizer()
         self.voices = {}
         self.activeThread = None
+        self._tts_stop_event = None
 
     def reInit(self):
         """重新初始化"""
@@ -116,6 +118,8 @@ class Conversation(object):
             self.appendHistory(0, "打断会话！")
             logger.info("打断会话！")
 
+        if self._tts_stop_event:
+            self._tts_stop_event.set()
         if self.introduction:
             self.introduction.stop()
         if self.player:
@@ -180,23 +184,75 @@ class Conversation(object):
         # msg = utils.stripPunctuation(msg).strip()
         if not msg:
             return
-        
+
         if not self.isSpeech:
             # 如果不是演讲模式，则直接返回
             logger.info(f"非演讲模式，直接返回：{msg}")
             return
 
-        voice = self.tts.get_speech(msg)
-        # logger.info(f"TTS合成成功。msg: {msg}")
-        self._befor_play(msg, [voice], plugin)
-        self.player.play(voice)
+        sentences = self._split_sentences(msg)
+        if len(sentences) <= 1:
+            # 短回复/无标点，走原有的单句合成+播放逻辑，不引入线程开销
+            voice = self.tts.get_speech(msg)
+            self._befor_play(msg, [voice], plugin)
+            self.player.play(voice)
+            return
 
-        # logger.info(f"即将朗读语音：{msg}")
-        # lines = re.split("。|！|？|\!|\?|\n", msg)
-        # for line in lines:
-        #     voice = self.tts.get_speech(line)
-        #     self._befor_play(line, [voice], plugin)
-        #     self.player.play(voice)
+        self._say_pipelined(sentences, plugin)
+
+    def _split_sentences(self, msg):
+        """按标点把长回复切成短句，用于分句合成播放流水线"""
+        lines = re.split(r"[。！？\!\?\n]", msg)
+        return [line.strip() for line in lines if line.strip()]
+
+    def _say_pipelined(self, sentences, plugin=""):
+        """一边合成下一句，一边播放当前句，降低长回复的首字延迟"""
+        stop_event = threading.Event()
+        audio_queue = queue.Queue(maxsize=1)
+        SENTINEL = object()
+
+        def producer():
+            for sentence in sentences:
+                if stop_event.is_set():
+                    break
+                try:
+                    voice = self.tts.get_speech(sentence)
+                except Exception as e:
+                    logger.critical(f"分句语音合成失败：{sentence}，{e}", stack_info=True)
+                    continue
+                if not voice:
+                    logger.critical(f"分句语音合成失败：{sentence}")
+                    continue
+                while not stop_event.is_set():
+                    try:
+                        audio_queue.put((sentence, voice), timeout=0.5)
+                        break
+                    except queue.Full:
+                        continue
+            audio_queue.put(SENTINEL)
+
+        producer_thread = threading.Thread(target=producer, daemon=True)
+        self._tts_stop_event = stop_event
+        producer_thread.start()
+
+        try:
+            while True:
+                item = audio_queue.get()
+                if item is SENTINEL or stop_event.is_set():
+                    break
+                sentence, voice = item
+                self._befor_play(sentence, [voice], plugin)
+                self.player.play(voice)
+        finally:
+            stop_event.set()
+            # 释放可能阻塞在 put() 上的生产者线程，丢弃未播放的音频
+            try:
+                while True:
+                    audio_queue.get_nowait()
+            except queue.Empty:
+                pass
+            producer_thread.join(timeout=5)
+            self._tts_stop_event = None
 
     def pardon(self):
         if not self.hasPardon:
