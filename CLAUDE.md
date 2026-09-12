@@ -92,7 +92,7 @@ The system includes a comprehensive web management interface:
 
 ### External Dependencies
 
-- **Porcupine**: Requires access key from https://console.picovoice.ai/
+- **openWakeWord**: An open-source wakeword library from https://github.com/dscripka/openWakeWord
 - **VITS**: Requires separate VITS server setup (https://github.com/zwssunny/vits-simple-api)
 - **ChatTTS**: Requires ChatTTS environment setup (https://github.com/2noise/ChatTTS)
 - **Baidu Unit**: Requires Baidu AI platform setup for NLU

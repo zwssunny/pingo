@@ -12,13 +12,15 @@ from common.log import logger
 available_setting = {
     "debug":  False,  # 是否调式模式
     "isSpeech": True,  # 是否演讲模式
-    "robot_name": "Pingo", #机器人名字
-    "porcupine": { # 登录 https://console.picovoice.ai/
-        # 你的picovoice key
-        "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",
-        "keywords": ["Hey Pingo"],
-        # 你的唤醒词检测离线文件地址
-        "keyword_paths": ["./static/Hey-pingo_en_linux_v2_2_0.ppn"]
+    "robot_name": "jarvis", #机器人名字
+    "openwakeword": {  # 离线语音唤醒词检测，完全本地运行，无需在线激活
+        # 唤醒词模型列表。可以是 openWakeWord 内置模型名（如 hey_jarvis/alexa/hey_mycroft/hey_rhasspy），
+        # 也可以是自己训练的 .onnx/.tflite 模型文件路径（如 "./static/hi-pingo.onnx"）
+        "model_paths": ["hey_jarvis"],
+        # 唤醒判定阈值，命中分数超过该值才算被唤醒
+        "threshold": 0.5,
+        # 推理后端，可选 "onnx" 或 "tflite"
+        "inference_framework": "onnx"
     },
     "sensitivity": 0.5,  # 噪音指数
     "appdata_dir": "", #用户数据保存路径

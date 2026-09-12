@@ -1,5 +1,4 @@
-    pvporcupine==3.0.3
-    pvrecorder==1.2.1
+    openwakeword==0.6.0
     baidu-aip==4.16.10
     SpeechRecognition==3.10.0
 #ubuntu sudo apt -y install portaudio19-dev

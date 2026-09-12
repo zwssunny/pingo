@@ -32,10 +32,11 @@ python版本>=3.10，ubutun22,windows11环境开发测试；其它平台还没�
 
 系统需要安装ffmpeg工具，安装依赖库：pip install -r requirements.txt
 
-## porcupine 离线唤醒
+## openWakeWord 离线唤醒
 
-登录 https://console.picovoice.ai/
-可以获取 access_key 和训练自己的唤醒词
+开源唤醒词引擎https://github.com/dscripka/openWakeWord
+如果需要下载内置的唤醒词，请下载
+python -c "import openwakeword; openwakeword.utils.download_models()"
 
 ## 缓存语音功能
 

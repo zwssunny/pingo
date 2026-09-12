@@ -1,46 +1,55 @@
 import time
+import numpy as np
+import pyaudio
 from config import conf
 from common.log import logger
 from common import utils
 
+# openWakeWord 官方推荐的帧长：80ms，对应 16kHz 采样率下的 1280 个采样点
+FRAME_LENGTH = 1280
+SAMPLE_RATE = 16000
+
 
 def initDetector(conversation):
     """
-    初始化离线唤醒热词监听器，支持 porcupine 引擎
+    初始化离线唤醒热词监听器，使用 openWakeWord 引擎（完全本地运行，无需在线激活）
     """
 
-    import pvporcupine
-    from pvrecorder import PvRecorder
+    from openwakeword.model import Model
 
     robot_name = conf().get("robot_name")
-    pvconfig = conf().get("porcupine")
-    call_keywords = pvconfig["keywords"]
-    call_keyword_paths = pvconfig["keyword_paths"]
-    access_key = pvconfig["access_key"]
-    porcupine = pvporcupine.create(
-        access_key=access_key,
-        keyword_paths=call_keyword_paths,
-        keywords=call_keywords,
-        sensitivities=[conf().get("sensitivity", 0.5)] * len(call_keyword_paths),
-    )
+    owwconfig = conf().get("openwakeword")
+    model_paths = owwconfig["model_paths"]
+    threshold = owwconfig.get("threshold", 0.5)
+    inference_framework = owwconfig.get("inference_framework", "onnx")
+
+    model = Model(wakeword_models=model_paths, inference_framework=inference_framework)
+
     # 问候语
     conversation.say(
-        f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我'{call_keywords}'"
+        f"您好,我的名字叫{robot_name},很高兴见到您！说话之前记得叫我的唤醒词"
     )
-    # 录音监听器
-    recorder = PvRecorder(device_index=-1, frame_length=porcupine.frame_length)
-    recorder.start()
+
+    pa = pyaudio.PyAudio()
+    stream = pa.open(
+        format=pyaudio.paInt16,
+        channels=1,
+        rate=SAMPLE_RATE,
+        input=True,
+        frames_per_buffer=FRAME_LENGTH,
+    )
 
     try:
         while True:
-            pcm = recorder.read()
+            pcm = stream.read(FRAME_LENGTH, exception_on_overflow=False)
+            audio_frame = np.frombuffer(pcm, dtype=np.int16)
 
-            result = porcupine.process(pcm)
-            if result >= 0:
-                kw = call_keyword_paths[result]
+            prediction = model.predict(audio_frame)
+            detected = [name for name, score in prediction.items() if score > threshold]
+            if detected:
                 logger.info(
-                    "[porcupine] Keyword {} Detected at time {}".format(
-                        kw,
+                    "[openwakeword] Keyword {} Detected at time {}".format(
+                        detected,
                         time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time())),
                     )
                 )
@@ -49,39 +58,23 @@ def initDetector(conversation):
                     logger.warning("勿扰模式开启中")
                     continue
                 # 交出麦克风使用权
-                recorder.stop()
+                stream.stop_stream()
                 logger.info("进入主动聆听...")
                 # 中断原来会话
                 conversation.interrupt()
                 conversation.say("我在，请讲！", append_history=False)
                 query = conversation.activeListen()
                 conversation.doResponse(query)
-                # 取回麦克风使用权
-                recorder.start()
-    except pvporcupine.PorcupineActivationError as e:
-        logger.error("[Porcupine] AccessKey activation error", stack_info=True)
-        raise e
-    except pvporcupine.PorcupineActivationLimitError as e:
-        logger.error(
-            f"[Porcupine] AccessKey {access_key} has reached it's temporary device limit",
-            stack_info=True,
-        )
-        raise e
-    except pvporcupine.PorcupineActivationRefusedError as e:
-        logger.error("[Porcupine] AccessKey '%s' refused" % access_key, stack_info=True)
-        raise e
-    except pvporcupine.PorcupineActivationThrottledError as e:
-        logger.error(
-            "[Porcupine] AccessKey '%s' has been throttled" % access_key,
-            stack_info=True,
-        )
-        raise e
-    except pvporcupine.PorcupineError as e:
-        logger.error("[Porcupine] 初始化 Porcupine 失败", stack_info=True)
-        raise e
+                # 取回麦克风使用权前重置预测缓冲区，避免刚结束的对话残留分数影响下一次唤醒判断
+                model.reset()
+                stream.start_stream()
     except KeyboardInterrupt:
         logger.info("Stopping ...")
+    except Exception as e:
+        logger.error("[openwakeword] 唤醒检测出错", stack_info=True)
+        raise e
     finally:
-        porcupine and porcupine.delete()
-        recorder and recorder.delete()
+        stream.stop_stream()
+        stream.close()
+        pa.terminate()
         conversation and conversation.quit()
