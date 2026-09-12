@@ -1,11 +1,13 @@
 {
     "debug":  false,  
     "isSpeech": true,
-    "robot_name": "Pingo", 
-    "porcupine": { 
-        "access_key": "bknZW//ygPtvjDkETLBPLvTxS80HwPd8GspKhK1ESDbr2eoXTRHJ+g==",
-        "keywords": ["Hey Pingo"],
-        "keyword_paths": ["./static/Hey-pingo_en_linux_v2_2_0.ppn"]
+    "robot_name": "jarvis",
+    "openwakeword": {
+        "model_paths": [
+            "hey_jarvis"
+        ],
+        "threshold": 0.5,
+        "inference_framework": "onnx"
     },
     "sensitivity": 0.5, 
     "appdata_dir": "", 
