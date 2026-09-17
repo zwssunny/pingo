@@ -10,7 +10,7 @@ from common import utils
 from common.tmp_dir import TmpDir
 from config import conf, load_config
 from orator.sysintroduction import sysIntroduction
-from robot import AI, ASR, NLU, TTS, History, Player
+from robot import AI, ASR, NLU, TTS, History, Player, skills
 from common.log import logger
 
 
@@ -44,6 +44,8 @@ class Conversation(object):
             self.tts = TTS.get_engine_by_slug(conf().get("tts_engine", "edge-tts"))
             self.nlu = NLU.get_engine_by_slug(conf().get("nlu_engine", "unit"))
             self.ai = AI.get_robot_by_slug(conf().get("robot", "unit"))
+            # 预加载技能知识库，失败只记日志，不影响初始化
+            skills.warmup()
 
             system = platform.system()
             if system == "Windows":
@@ -340,9 +342,16 @@ class Conversation(object):
             else:
                 reply = self.nlu.getSay(parsed, intent)
                 self.say(reply)
-        else:  # 找不到意图，后续可以传给聊天机器人处理
-            # self.pardon()
-            msg = self.ai.chat(query, parsed)
+        else:  # 找不到意图，交给聊天机器人兜底；启用技能知识库时先做检索增强
+            system_prompt = ""
+            if getattr(self.ai, "SUPPORTS_SYSTEM_PROMPT", False):
+                try:
+                    system_prompt = skills.system_prompt_for(query)
+                except Exception:
+                    # 检索链路的任何异常都不能打断对话，降级为普通聊天
+                    logger.critical("技能知识库检索失败，降级为普通聊天", exc_info=True)
+                    system_prompt = ""
+            msg = self.ai.chat(query, parsed, system_prompt=system_prompt)
             self.say(msg)
 
     # 从麦克风收集音频并写入文件

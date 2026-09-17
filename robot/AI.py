@@ -16,6 +16,9 @@ class AbstractRobot(object):
 
     __metaclass__ = ABCMeta
 
+    # 是否支持 system 消息（技能知识库注入）。UNIT 机器人不消费该参数
+    SUPPORTS_SYSTEM_PROMPT = False
+
     @classmethod
     def get_instance(cls):
         profile = cls.get_config()
@@ -26,7 +29,7 @@ class AbstractRobot(object):
         pass
 
     @abstractmethod
-    def chat(self, texts, parsed):
+    def chat(self, texts, parsed, system_prompt=None):
         pass
 
     @abstractmethod
@@ -49,12 +52,14 @@ class UnitRobot(AbstractRobot):
     def get_config(cls):
         return {}
 
-    def chat(self, texts, parsed):
+    def chat(self, texts, parsed, system_prompt=None):
         """
         使用百度UNIT机器人聊天
 
         Arguments:
         texts -- user input, typically speech, to be parsed by a module
+
+        system_prompt -- 技能知识库注入内容，UNIT 不支持，忽略即可
         """
         msg = "".join(texts)
         msg = utils.stripPunctuation(msg)
@@ -71,6 +76,7 @@ class UnitRobot(AbstractRobot):
 class OPENAIRobot(AbstractRobot):
 
     SLUG = "openai"
+    SUPPORTS_SYSTEM_PROMPT = True
 
     def __init__(
         self,
@@ -136,6 +142,12 @@ class OPENAIRobot(AbstractRobot):
         if len(self.context) > max_messages:
             del self.context[: len(self.context) - max_messages]
 
+    def _build_messages(self, system_prompt=None):
+        """system 消息每次请求临时拼装，不写进 self.context，因此不会被 _trim_context 裁掉"""
+        if system_prompt:
+            return [{"role": "system", "content": system_prompt}] + list(self.context)
+        return list(self.context)
+
     @retry_on_error(
         max_retries=2,
         delay=1.0,
@@ -146,10 +158,10 @@ class OPENAIRobot(AbstractRobot):
             openai.RateLimitError,
         ),
     )
-    def _create_completion(self):
+    def _create_completion(self, system_prompt=None):
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=self.context,
+            messages=self._build_messages(system_prompt),
             temperature=self.temperature,
             max_tokens=self.max_tokens,
             top_p=self.top_p,
@@ -237,12 +249,15 @@ class OPENAIRobot(AbstractRobot):
 
         return generate
 
-    def chat(self, texts, parsed):
+    def chat(self, texts, parsed, system_prompt=None):
         """
         使用OpenAI机器人聊天
 
         Arguments:
         texts -- user input, typically speech, to be parsed by a module
+
+        system_prompt -- 技能知识库检索到的资料，作为 system 消息参与本次请求，
+                         不写入 self.context，所以不影响多轮历史
         """
         msg = "".join(texts)
         msg = utils.stripPunctuation(msg)
@@ -252,14 +267,14 @@ class OPENAIRobot(AbstractRobot):
         self.context.append({"role": "user", "content": msg})
         self._trim_context()
         try:
-            respond = self._create_completion()
+            respond = self._create_completion(system_prompt)
         except openai.BadRequestError:
             logger.warning("token超出长度限制，裁剪历史后重试")
             self.context.pop()
             self._trim_context(force_shrink=True)
             self.context.append({"role": "user", "content": msg})
             try:
-                respond = self._create_completion()
+                respond = self._create_completion(system_prompt)
             except Exception:
                 self.context.pop()
                 logger.critical(
@@ -281,6 +296,7 @@ class OPENAIRobot(AbstractRobot):
 class DeepseekRobot(AbstractRobot):
 
     SLUG = "deepseek"
+    SUPPORTS_SYSTEM_PROMPT = True
 
     def __init__(
         self,
@@ -338,6 +354,12 @@ class DeepseekRobot(AbstractRobot):
         if len(self.context) > max_messages:
             del self.context[: len(self.context) - max_messages]
 
+    def _build_messages(self, system_prompt=None):
+        """system 消息每次请求临时拼装，不写进 self.context，因此不会被 _trim_context 裁掉"""
+        if system_prompt:
+            return [{"role": "system", "content": system_prompt}] + list(self.context)
+        return list(self.context)
+
     @retry_on_error(
         max_retries=2,
         delay=1.0,
@@ -348,10 +370,10 @@ class DeepseekRobot(AbstractRobot):
             openai.RateLimitError,
         ),
     )
-    def _create_completion(self):
+    def _create_completion(self, system_prompt=None):
         response = self.client.chat.completions.create(
             model=self.model,
-            messages=self.context,
+            messages=self._build_messages(system_prompt),
             max_tokens=self.max_tokens,
             stop=self.stop_ai,
         )
@@ -435,12 +457,15 @@ class DeepseekRobot(AbstractRobot):
 
         return generate
 
-    def chat(self, texts, parsed):
+    def chat(self, texts, parsed, system_prompt=None):
         """
         使用deepseek机器人聊天
 
         Arguments:
         texts -- user input, typically speech, to be parsed by a module
+
+        system_prompt -- 技能知识库检索到的资料，作为 system 消息参与本次请求，
+                         不写入 self.context，所以不影响多轮历史
         """
         msg = "".join(texts)
         msg = utils.stripPunctuation(msg)
@@ -450,14 +475,14 @@ class DeepseekRobot(AbstractRobot):
         self.context.append({"role": "user", "content": msg})
         self._trim_context()
         try:
-            respond = self._create_completion()
+            respond = self._create_completion(system_prompt)
         except openai.BadRequestError:
             logger.warning("token超出长度限制，裁剪历史后重试")
             self.context.pop()
             self._trim_context(force_shrink=True)
             self.context.append({"role": "user", "content": msg})
             try:
-                respond = self._create_completion()
+                respond = self._create_completion(system_prompt)
             except Exception:
                 self.context.pop()
                 logger.critical(

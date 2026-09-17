@@ -97,7 +97,17 @@
         "prefix": "请简单回答：",
         "api_base": "https://api.deepseek.com/chat"
     },
-    "pagecontrol": {  
+    "skill": {
+        "enable": true,
+        "root": "./skills",
+        "name": "fusion-platform",
+        "min_score": 2.0,
+        "max_files": 2,
+        "max_chars": 4000,
+        "default_reference": "references/00-平台首页.md",
+        "reload_interval": 5.0
+    },
+    "pagecontrol": {
         "enable": false,
         "websocketurl": "ws://10.201.63.153:8081/daasPortal/websocket/", 
         "screenid": "dbe5b0425026446fb52437e8e58ed73f" 

@@ -63,11 +63,46 @@ The system includes a comprehensive web management interface:
 - **Logging**: System log viewing
 - **Menu Management**: Dynamic menu system for demonstrations
 
+### Skill Knowledge Base (`robot/skills.py` + `skills/`)
+
+When the Baidu UNIT NLU matches no intent, `Conversation.doResponse` falls back to the
+chatbot. `robot/skills.py` runs a deterministic keyword retrieval over the markdown
+knowledge base in `skills/<name>/` and injects the matched reference text as a **system
+message**, so the fallback answers from the official demo script instead of making
+things up.
+
+- Corpus layout follows the Claude Code skill convention: `skills/<name>/SKILL.md`
+  (frontmatter `description` with 触发词, a 检索表 table, and a 回答守则 section) plus
+  `skills/<name>/references/*.md`.
+- The keyword index is built from the 检索表 table (weight 3.0), reference file titles
+  (3.0) and `##` section headings (2.0); terms appearing in ≥60% of the files are
+  dropped as too generic. Chinese needs no tokenizer — matching is plain substring.
+- Only the top-scoring section of the top 1-2 files is injected (bounded by
+  `max_chars`), so an 8 KB board file contributes a few hundred characters, not the
+  whole thing. Queries with no keyword hit (e.g. 闲聊) inject nothing and behave exactly
+  as before. A query inside the domain but with no specific file hit falls back to
+  `default_reference` (平台首页).
+- The system message is assembled **per request** in `_build_messages()` and is never
+  stored in `self.context`, so `_trim_context` cannot drop it and multi-turn history is
+  unchanged. Only `OPENAIRobot`/`DeepseekRobot` consume it (`SUPPORTS_SYSTEM_PROMPT`);
+  `UnitRobot` ignores it.
+- Tuning: `python -m robot.skills "公交客流" "今天天气"` prints per-file scores and what
+  would be injected; `python test/test_skills.py` runs the offline regression suite.
+- Config lives in the top-level `skill` section of `config.json`
+  (`enable`/`root`/`name`/`min_score`/`max_files`/`max_chars`/`default_reference`/
+  `reload_interval`). Note `available_setting` in `config.py` whitelists top-level keys —
+  a new section must be added there first. Never put skill config inside the
+  `openai`/`deepseek` sections: those are splatted into the robot constructors.
+- Any retrieval failure degrades to plain chat with a log line; it never breaks a
+  conversation. Reference files are re-read at most once per `reload_interval` seconds,
+  so editing the corpus takes effect without restarting.
+- `skills/` is data, not code — make sure it ships with the deployment.
+
 ### Key Configuration Areas
 
 - **Voice Engines**: Supports Baidu, Azure, Xunfei, OpenAI, Edge TTS, VITS, ChatTTS
 - **AI Backends**: Unit Robot, OpenAI ChatGPT, DeepSeek
-- **Wake Word Detection**: Porcupine offline wake word detection
+- **Wake Word Detection**: openWakeWord offline wake word detection
 - **Audio Caching**: Cached audio responses in `cach/` directory
 - **Database**: SQLite database for system data in `db/pingo.db`
 

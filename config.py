@@ -142,6 +142,19 @@ available_setting = {
         # 如果需要更换 api_base ，反注释下面的配置进行修改
         # "api_base": "https://api.deepseek.com"
     },
+    # 技能知识库：找不到意图、交给聊天机器人兜底时，
+    # 从 skills/ 目录检索领域资料，作为 system 消息注入，让回答有据可依
+    "skill": {
+        "enable": True,  # 总开关，关闭后兜底行为与不带知识库时完全一致
+        "root": "./skills",  # 技能根目录，相对路径以项目根目录为基准
+        "name": "fusion-platform",  # 启用的技能名（即目录名）
+        "min_score": 2.0,  # 关键词命中阈值，低于该分不注入
+        "max_files": 2,  # 单次最多注入几个参考文件
+        "max_chars": 4000,  # 注入的参考资料正文总字符上限
+        # 命中领域但没有具体文件时注入的兜底文件
+        "default_reference": "references/00-平台首页.md",
+        "reload_interval": 5.0,  # 资料文件变更检查间隔（秒），避免每次提问都读盘
+    },
     # 演讲和页面控制配置参数
     "pagecontrol": {  # 大屏页面控制
         "enable": False,
